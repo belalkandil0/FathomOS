@@ -13,14 +13,14 @@ using LicensingSystem.Shared;
 namespace FathomOS.Shell.Views;
 
 /// <summary>
-/// Fathom OS Dashboard - Main application window with module tiles and group navigation
+/// FathomOS Dashboard - Main application window with module tiles and group navigation
 /// </summary>
 public partial class DashboardWindow : Window
 {
     private readonly ModuleManager _moduleManager;
     private readonly List<RecentProject> _recentProjects = new();
     private bool _isDarkTheme = true;
-    private ModuleGroup? _currentGroup = null; // null = main dashboard
+    private ModuleGroupMetadata? _currentGroup = null; // null = main dashboard
     private DispatcherTimer? _licenseCheckTimer;
     
     public DashboardWindow()
@@ -194,6 +194,14 @@ public partial class DashboardWindow : Window
             LoadModuleTiles();
         }
     }
+
+    /// <summary>
+    /// Get group metadata by ID
+    /// </summary>
+    private ModuleGroupMetadata? GetGroupMetadata(string groupId)
+    {
+        return _moduleManager.GetGroup(groupId);
+    }
     
     /// <summary>
     /// Handle license badge click to show license details
@@ -253,9 +261,8 @@ public partial class DashboardWindow : Window
     /// </summary>
     private void UpdateModuleCount()
     {
-        var totalModules = _moduleManager.Modules.Count + 
-                          _moduleManager.Groups.Sum(g => g.Modules.Count);
-        TxtModuleCount.Text = totalModules.ToString();
+        // Use DiscoveredModuleCount which includes all modules (root + grouped)
+        TxtModuleCount.Text = _moduleManager.DiscoveredModuleCount.ToString();
     }
     
     #region Navigation
@@ -287,35 +294,37 @@ public partial class DashboardWindow : Window
     /// <summary>
     /// Navigate into a module group
     /// </summary>
-    private void ShowGroupModules(ModuleGroup group)
+    private void ShowGroupModules(ModuleGroupMetadata group)
     {
         _currentGroup = group;
-        
+
         // Show group navigation header with Home button
         GroupNavigationHeader.Visibility = Visibility.Visible;
         TxtCurrentGroupName.Text = group.DisplayName;
         TxtCurrentGroupDescription.Text = group.Description;
-        
+
         // Hide groups section and recent projects
         GroupsSection.Visibility = Visibility.Collapsed;
         RecentProjectsSection.Visibility = Visibility.Collapsed;
         RecentProjectsSeparator.Visibility = Visibility.Collapsed;
-        
+
         // Update header
         TxtModulesHeader.Text = $"{group.DisplayName.ToUpper()} MODULES";
-        
-        // Load group's modules
+
+        // Load group's modules (using metadata)
         ModuleTiles.Items.Clear();
-        
-        if (group.Modules.Count == 0)
+
+        var groupModules = _moduleManager.GetModulesInGroup(group.GroupId);
+
+        if (groupModules.Count == 0)
         {
             NoModulesPanel.Visibility = Visibility.Visible;
         }
         else
         {
             NoModulesPanel.Visibility = Visibility.Collapsed;
-            
-            foreach (var module in group.Modules)
+
+            foreach (var module in groupModules)
             {
                 var tile = CreateModuleTile(module, group.GroupId);
                 ModuleTiles.Items.Add(tile);
@@ -414,7 +423,7 @@ public partial class DashboardWindow : Window
     private void LoadGroupTiles()
     {
         GroupTiles.Items.Clear();
-        
+
         if (_moduleManager.Groups.Count == 0)
         {
             GroupsSection.Visibility = Visibility.Collapsed;
@@ -422,7 +431,7 @@ public partial class DashboardWindow : Window
         else
         {
             GroupsSection.Visibility = Visibility.Visible;
-            
+
             foreach (var group in _moduleManager.Groups)
             {
                 var tile = CreateGroupTile(group);
@@ -430,26 +439,26 @@ public partial class DashboardWindow : Window
             }
         }
     }
-    
+
     /// <summary>
     /// Create a tile button for a module group
     /// </summary>
-    private Button CreateGroupTile(ModuleGroup group)
+    private Button CreateGroupTile(IModuleGroupMetadata group)
     {
         var button = new Button
         {
             Style = (Style)FindResource("ModuleTileStyle"),
             Tag = group.GroupId,
-            ToolTip = $"{group.Description}\n({group.Modules.Count} modules)"
+            ToolTip = $"{group.Description}\n({group.ModuleIds.Count} modules)"
         };
-        
+
         var content = new StackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(15)
         };
-        
+
         // Icon container
         var iconContainer = new Border
         {
@@ -458,7 +467,7 @@ public partial class DashboardWindow : Window
             Margin = new Thickness(0, 0, 0, 12),
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        
+
         // Try to load group icon
         if (!string.IsNullOrEmpty(group.IconPath) && File.Exists(group.IconPath))
         {
@@ -481,9 +490,9 @@ public partial class DashboardWindow : Window
         {
             iconContainer.Child = CreateGroupDefaultIcon(group.DisplayName);
         }
-        
+
         content.Children.Add(iconContainer);
-        
+
         // Group name
         var nameBlock = new TextBlock
         {
@@ -496,11 +505,11 @@ public partial class DashboardWindow : Window
             Foreground = (Brush)FindResource("TextBrush")
         };
         content.Children.Add(nameBlock);
-        
+
         // Module count
         var countBlock = new TextBlock
         {
-            Text = $"{group.Modules.Count} modules",
+            Text = $"{group.ModuleIds.Count} modules",
             FontSize = 10,
             TextAlignment = TextAlignment.Center,
             Foreground = (Brush)FindResource("SecondaryTextBrush"),
@@ -508,7 +517,7 @@ public partial class DashboardWindow : Window
             Opacity = 0.7
         };
         content.Children.Add(countBlock);
-        
+
         // "Click to open" hint
         var hintBlock = new TextBlock
         {
@@ -519,10 +528,10 @@ public partial class DashboardWindow : Window
             Margin = new Thickness(0, 2, 0, 0)
         };
         content.Children.Add(hintBlock);
-        
+
         button.Content = content;
         button.Click += GroupTile_Click;
-        
+
         return button;
     }
     
@@ -561,7 +570,7 @@ public partial class DashboardWindow : Window
     {
         if (sender is Button button && button.Tag is string groupId)
         {
-            var group = _moduleManager.GetGroup(groupId);
+            var group = GetGroupMetadata(groupId);
             if (group != null)
             {
                 ShowGroupModules(group);
@@ -574,22 +583,22 @@ public partial class DashboardWindow : Window
     #region Module Tiles
     
     /// <summary>
-    /// Create module tiles from discovered modules
+    /// Create module tiles from discovered modules (metadata only, no DLL loading)
     /// </summary>
     private void LoadModuleTiles()
     {
         ModuleTiles.Items.Clear();
-        
+
         if (_moduleManager.Modules.Count == 0)
         {
-            NoModulesPanel.Visibility = _moduleManager.Groups.Count == 0 
-                ? Visibility.Visible 
+            NoModulesPanel.Visibility = _moduleManager.Groups.Count == 0
+                ? Visibility.Visible
                 : Visibility.Collapsed;
         }
         else
         {
             NoModulesPanel.Visibility = Visibility.Collapsed;
-            
+
             foreach (var module in _moduleManager.Modules)
             {
                 var tile = CreateModuleTile(module, null);
@@ -597,35 +606,35 @@ public partial class DashboardWindow : Window
             }
         }
     }
-    
+
     /// <summary>
-    /// Create a tile button for a module
+    /// Create a tile button for a module using metadata (no DLL loading)
     /// </summary>
-    private Button CreateModuleTile(IModule module, string? groupId)
+    private Button CreateModuleTile(IModuleMetadata module, string? groupId)
     {
         // Check if module is licensed
         bool isModuleLicensed = App.IsModuleLicensed(module.ModuleId);
-        
+
         var button = new Button
         {
             Style = (Style)FindResource("ModuleTileStyle"),
             Tag = module.ModuleId,
-            ToolTip = isModuleLicensed 
-                ? module.Description 
+            ToolTip = isModuleLicensed
+                ? module.Description
                 : $"{module.Description}\n\n🔒 This module is not included in your license.\nClick to learn more about upgrading.",
             Opacity = isModuleLicensed ? 1.0 : 0.6
         };
-        
+
         // Main content grid to allow overlay
         var mainGrid = new Grid();
-        
+
         var content = new StackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(15)
         };
-        
+
         // Icon container with lock overlay capability
         var iconGrid = new Grid
         {
@@ -634,16 +643,17 @@ public partial class DashboardWindow : Window
             Margin = new Thickness(0, 0, 0, 12),
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        
+
         var iconContainer = new Border
         {
             Width = 72,
             Height = 72
         };
-        
+
         try
         {
-            var iconPath = GetModuleIconPath(module, groupId);
+            // Use IconPath from metadata directly
+            var iconPath = module.IconPath;
             if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
             {
                 var image = new Image
@@ -669,9 +679,9 @@ public partial class DashboardWindow : Window
         {
             iconContainer.Child = CreateDefaultIcon(module.DisplayName);
         }
-        
+
         iconGrid.Children.Add(iconContainer);
-        
+
         // Add lock icon overlay for unlicensed modules
         if (!isModuleLicensed)
         {
@@ -685,7 +695,7 @@ public partial class DashboardWindow : Window
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, -4, -4)
             };
-            
+
             var lockIcon = new TextBlock
             {
                 Text = "🔒",
@@ -696,9 +706,9 @@ public partial class DashboardWindow : Window
             lockOverlay.Child = lockIcon;
             iconGrid.Children.Add(lockOverlay);
         }
-        
+
         content.Children.Add(iconGrid);
-        
+
         // Module name
         var nameBlock = new TextBlock
         {
@@ -712,7 +722,7 @@ public partial class DashboardWindow : Window
             Opacity = isModuleLicensed ? 1.0 : 0.7
         };
         content.Children.Add(nameBlock);
-        
+
         // Category label
         var categoryBlock = new TextBlock
         {
@@ -724,25 +734,25 @@ public partial class DashboardWindow : Window
             Opacity = isModuleLicensed ? 0.7 : 0.5
         };
         content.Children.Add(categoryBlock);
-        
+
         // Version or "Upgrade" label
         var versionBlock = new TextBlock
         {
             Text = isModuleLicensed ? $"v{module.Version}" : "Upgrade to unlock",
             FontSize = 10,
             TextAlignment = TextAlignment.Center,
-            Foreground = isModuleLicensed 
-                ? (Brush)FindResource("AccentBrush") 
+            Foreground = isModuleLicensed
+                ? (Brush)FindResource("AccentBrush")
                 : new SolidColorBrush(Color.FromRgb(255, 152, 0)), // Orange for upgrade
             Margin = new Thickness(0, 2, 0, 0),
             FontWeight = isModuleLicensed ? FontWeights.Normal : FontWeights.SemiBold
         };
         content.Children.Add(versionBlock);
-        
+
         mainGrid.Children.Add(content);
         button.Content = mainGrid;
         button.Click += ModuleTile_Click;
-        
+
         return button;
     }
     
@@ -774,39 +784,6 @@ public partial class DashboardWindow : Window
         
         border.Child = text;
         return border;
-    }
-    
-    /// <summary>
-    /// Get the icon path for a module
-    /// </summary>
-    private string? GetModuleIconPath(IModule module, string? groupId)
-    {
-        var exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? ".";
-        
-        string modulePath;
-        if (groupId != null)
-        {
-            // Grouped module: Modules/_Groups/{GroupId}/{ModuleId}/
-            modulePath = Path.Combine(exePath, "Modules", "_Groups", groupId, module.ModuleId);
-        }
-        else
-        {
-            // Root module: Modules/{ModuleId}/
-            modulePath = Path.Combine(exePath, "Modules", module.ModuleId);
-        }
-        
-        var iconNames = new[] { "icon.png", "icon.ico", "module.png", $"{module.ModuleId}.png" };
-        
-        foreach (var iconName in iconNames)
-        {
-            var path = Path.Combine(modulePath, "Assets", iconName);
-            if (File.Exists(path)) return path;
-            
-            path = Path.Combine(modulePath, iconName);
-            if (File.Exists(path)) return path;
-        }
-        
-        return null;
     }
     
     /// <summary>
