@@ -7,6 +7,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 # Core Projects
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Core", "FathomOS.Core\FathomOS.Core.csproj", "{A1B2C3D4-1234-5678-9ABC-DEF012345678}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.UI", "FathomOS.UI\FathomOS.UI.csproj", "{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Shell", "FathomOS.Shell\FathomOS.Shell.csproj", "{B2C3D4E5-2345-6789-ABCD-EF0123456789}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Tests", "FathomOS.Tests\FathomOS.Tests.csproj", "{D4E5F6A7-4567-89AB-CDEF-012345678901}"
@@ -136,6 +138,10 @@ Global
 		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

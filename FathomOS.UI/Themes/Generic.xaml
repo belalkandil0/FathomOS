@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - Generic Resources    -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- This file merges all design system resources  -->
+    <!-- ============================================== -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <!-- Design Tokens -->
+        <ResourceDictionary Source="Colors.xaml"/>
+        <ResourceDictionary Source="Typography.xaml"/>
+        <ResourceDictionary Source="Spacing.xaml"/>
+
+        <!-- Control Templates (to be added) -->
+        <!-- <ResourceDictionary Source="Controls/FathomButton.xaml"/> -->
+        <!-- <ResourceDictionary Source="Controls/FathomCard.xaml"/> -->
+        <!-- <ResourceDictionary Source="Controls/FathomTextBox.xaml"/> -->
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

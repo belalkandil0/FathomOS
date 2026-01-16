@@ -1,0 +1,109 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - Typography           -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- ============================================== -->
+
+    <!-- Font Families -->
+    <FontFamily x:Key="PrimaryFont">Segoe UI</FontFamily>
+    <FontFamily x:Key="HeadingFont">Segoe UI Semibold</FontFamily>
+    <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas</FontFamily>
+
+    <!-- Font Sizes - Type Scale -->
+    <sys:Double x:Key="FontSizeH1">32</sys:Double>
+    <sys:Double x:Key="FontSizeH2">24</sys:Double>
+    <sys:Double x:Key="FontSizeH3">20</sys:Double>
+    <sys:Double x:Key="FontSizeH4">18</sys:Double>
+    <sys:Double x:Key="FontSizeH5">16</sys:Double>
+    <sys:Double x:Key="FontSizeBody">14</sys:Double>
+    <sys:Double x:Key="FontSizeBodyLarge">16</sys:Double>
+    <sys:Double x:Key="FontSizeSmall">12</sys:Double>
+    <sys:Double x:Key="FontSizeCaption">10</sys:Double>
+
+    <!-- Font Weights -->
+    <FontWeight x:Key="WeightLight">Light</FontWeight>
+    <FontWeight x:Key="WeightRegular">Regular</FontWeight>
+    <FontWeight x:Key="WeightMedium">Medium</FontWeight>
+    <FontWeight x:Key="WeightSemiBold">SemiBold</FontWeight>
+    <FontWeight x:Key="WeightBold">Bold</FontWeight>
+
+    <!-- Line Heights (as multipliers) -->
+    <sys:Double x:Key="LineHeightTight">1.2</sys:Double>
+    <sys:Double x:Key="LineHeightNormal">1.5</sys:Double>
+    <sys:Double x:Key="LineHeightRelaxed">1.75</sys:Double>
+
+    <!-- Text Styles - Headings -->
+    <Style x:Key="HeadingH1" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH1}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+    </Style>
+
+    <Style x:Key="HeadingH2" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH2}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Margin" Value="0,0,0,12"/>
+    </Style>
+
+    <Style x:Key="HeadingH3" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH3}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
+    <Style x:Key="HeadingH4" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH4}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
+    <!-- Text Styles - Body -->
+    <Style x:Key="BodyText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+    </Style>
+
+    <Style x:Key="BodyTextLarge" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBodyLarge}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+    </Style>
+
+    <Style x:Key="SmallText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+    </Style>
+
+    <Style x:Key="CaptionText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+
+    <!-- Text Styles - Labels -->
+    <Style x:Key="LabelText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <!-- Text Styles - Monospace (for code, data) -->
+    <Style x:Key="MonospaceText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource MonospaceFont}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+    </Style>
+
+</ResourceDictionary>

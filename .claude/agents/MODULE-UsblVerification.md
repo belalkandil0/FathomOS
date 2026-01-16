@@ -105,6 +105,13 @@ Metadata = new Dictionary<string, object>
 - **DO NOT** create circular dependencies
 - **DO NOT** store UI state in models
 
+#### UI Violations (Enforced by UI-AGENT)
+- **DO NOT** create custom styles outside FathomOS.UI design system
+- **DO NOT** use raw WPF controls for user-facing UI (use FathomOS.UI controls)
+- **DO NOT** hardcode colors, fonts, or spacing (use design tokens)
+- **DO NOT** create custom button/card/input styles
+- **DO NOT** override control templates without UI-AGENT approval
+
 ---
 
 ## COORDINATION
@@ -116,6 +123,7 @@ Metadata = new Dictionary<string, object>
 ### Coordinate With:
 - **SHELL-AGENT** for DI registration
 - **CORE-AGENT** for new shared interfaces (Visualization3DService consideration)
+- **UI-AGENT** for UI components and design system compliance
 - **TEST-AGENT** for test coverage
 - **DOCUMENTATION-AGENT** for user guides
 

@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - Spacing              -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- ============================================== -->
+
+    <!-- Base Unit: 4px -->
+    <!-- All spacing values should be multiples of 4 -->
+
+    <!-- Spacing Scale -->
+    <sys:Double x:Key="SpacingXXS">2</sys:Double>
+    <sys:Double x:Key="SpacingXS">4</sys:Double>
+    <sys:Double x:Key="SpacingS">8</sys:Double>
+    <sys:Double x:Key="SpacingM">16</sys:Double>
+    <sys:Double x:Key="SpacingL">24</sys:Double>
+    <sys:Double x:Key="SpacingXL">32</sys:Double>
+    <sys:Double x:Key="SpacingXXL">48</sys:Double>
+    <sys:Double x:Key="SpacingXXXL">64</sys:Double>
+
+    <!-- Common Padding -->
+    <Thickness x:Key="PaddingXS">4</Thickness>
+    <Thickness x:Key="PaddingS">8</Thickness>
+    <Thickness x:Key="PaddingM">16</Thickness>
+    <Thickness x:Key="PaddingL">24</Thickness>
+    <Thickness x:Key="PaddingXL">32</Thickness>
+
+    <!-- Component-Specific Padding -->
+    <Thickness x:Key="CardPadding">16</Thickness>
+    <Thickness x:Key="CardPaddingLarge">24</Thickness>
+    <Thickness x:Key="ButtonPadding">16,10</Thickness>
+    <Thickness x:Key="ButtonPaddingSmall">12,6</Thickness>
+    <Thickness x:Key="ButtonPaddingLarge">24,14</Thickness>
+    <Thickness x:Key="InputPadding">12,10</Thickness>
+    <Thickness x:Key="DialogPadding">24</Thickness>
+    <Thickness x:Key="ListItemPadding">12,8</Thickness>
+
+    <!-- Common Margins -->
+    <Thickness x:Key="MarginXS">4</Thickness>
+    <Thickness x:Key="MarginS">8</Thickness>
+    <Thickness x:Key="MarginM">16</Thickness>
+    <Thickness x:Key="MarginL">24</Thickness>
+    <Thickness x:Key="MarginXL">32</Thickness>
+
+    <!-- Directional Margins -->
+    <Thickness x:Key="MarginBottomS">0,0,0,8</Thickness>
+    <Thickness x:Key="MarginBottomM">0,0,0,16</Thickness>
+    <Thickness x:Key="MarginBottomL">0,0,0,24</Thickness>
+    <Thickness x:Key="MarginTopS">0,8,0,0</Thickness>
+    <Thickness x:Key="MarginTopM">0,16,0,0</Thickness>
+    <Thickness x:Key="MarginTopL">0,24,0,0</Thickness>
+    <Thickness x:Key="MarginRightS">0,0,8,0</Thickness>
+    <Thickness x:Key="MarginRightM">0,0,16,0</Thickness>
+    <Thickness x:Key="MarginLeftS">8,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftM">16,0,0,0</Thickness>
+
+    <!-- Border Radius -->
+    <CornerRadius x:Key="RadiusXS">2</CornerRadius>
+    <CornerRadius x:Key="RadiusS">4</CornerRadius>
+    <CornerRadius x:Key="RadiusM">8</CornerRadius>
+    <CornerRadius x:Key="RadiusL">12</CornerRadius>
+    <CornerRadius x:Key="RadiusXL">16</CornerRadius>
+    <CornerRadius x:Key="RadiusRound">9999</CornerRadius>
+
+    <!-- Border Thickness -->
+    <Thickness x:Key="BorderThin">1</Thickness>
+    <Thickness x:Key="BorderMedium">2</Thickness>
+    <Thickness x:Key="BorderThick">3</Thickness>
+
+    <!-- Icon Sizes -->
+    <sys:Double x:Key="IconSizeXS">12</sys:Double>
+    <sys:Double x:Key="IconSizeS">16</sys:Double>
+    <sys:Double x:Key="IconSizeM">20</sys:Double>
+    <sys:Double x:Key="IconSizeL">24</sys:Double>
+    <sys:Double x:Key="IconSizeXL">32</sys:Double>
+    <sys:Double x:Key="IconSizeXXL">48</sys:Double>
+
+    <!-- Control Heights -->
+    <sys:Double x:Key="ControlHeightS">28</sys:Double>
+    <sys:Double x:Key="ControlHeightM">36</sys:Double>
+    <sys:Double x:Key="ControlHeightL">44</sys:Double>
+
+</ResourceDictionary>

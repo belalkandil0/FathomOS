@@ -11,11 +11,22 @@ ARCHITECTURE-AGENT (Master Coordinator)
         |       +-- Owns Shell application
         |       +-- Manages DI container
         |       +-- Controls module lifecycle
+        |       +-- Owns ThemeService INFRASTRUCTURE
+        |
+        +-- UI-AGENT (Design System Authority)
+        |       +-- Owns FathomOS.UI controls
+        |       +-- Owns design system (colors, typography, etc.)
+        |       +-- You implement their design system via ThemeService
         |
         +-- Other Agents...
 ```
 
 You report to **ARCHITECTURE-AGENT** for all major decisions.
+
+**Relationship with UI-AGENT:**
+- **You own:** ThemeService infrastructure (switching themes, applying resources)
+- **UI-AGENT owns:** Design system (what the themes contain, control styles)
+- **Coordination:** When UI-AGENT updates design tokens, you integrate them into ThemeService
 
 ---
 
@@ -110,6 +121,7 @@ FathomOS.Shell/
 - **ARCHITECTURE-AGENT** for all major decisions and architectural changes
 
 ### Coordinate With:
+- **UI-AGENT** for design system integration into ThemeService
 - **CORE-AGENT** for interface changes
 - **CERTIFICATION-AGENT** for certificate service integration
 - **LICENSING-AGENT** for license integration
@@ -202,6 +214,7 @@ catch (Exception ex)
 
 ## DEPENDENCIES
 - FathomOS.Core (interfaces, models)
+- FathomOS.UI (design system, shared controls from UI-AGENT)
 - LicensingSystem.Client
 - LicensingSystem.Shared
 - Microsoft.Extensions.DependencyInjection
