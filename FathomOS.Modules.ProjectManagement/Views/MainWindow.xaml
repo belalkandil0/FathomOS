@@ -1,0 +1,94 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.ProjectManagement.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="Project Management"
+        Height="750"
+        Width="1100"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Project Management" FontSize="28" FontWeight="Light"/>
+            <TextBlock Text="Manage survey projects, milestones, and deliverables"
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Project List -->
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Margin="0,0,10,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Projects" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,10"/>
+                    <Button DockPanel.Dock="Bottom" Content="+ New Project" Margin="0,10,10,0" Padding="10,5"/>
+                    <ListBox Margin="0,0,10,0">
+                        <ListBoxItem Content="Survey Project Alpha"/>
+                        <ListBoxItem Content="Pipeline Inspection 2024"/>
+                        <ListBoxItem Content="Seabed Mapping Phase 2"/>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Project Details -->
+            <TabControl Grid.Column="1">
+                <TabItem Header="Overview">
+                    <Grid Margin="10">
+                        <TextBlock Text="Project overview and summary will be displayed here"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="16" Foreground="Gray"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Milestones">
+                    <Grid Margin="10">
+                        <TextBlock Text="Milestone tracking will be implemented here"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="16" Foreground="Gray"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Deliverables">
+                    <Grid Margin="10">
+                        <TextBlock Text="Deliverable management will be implemented here"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="16" Foreground="Gray"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Documents">
+                    <Grid Margin="10">
+                        <TextBlock Text="Document management will be implemented here"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="16" Foreground="Gray"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Timeline">
+                    <Grid Margin="10">
+                        <TextBlock Text="Gantt chart / timeline will be implemented here"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="16" Foreground="Gray"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <!-- Footer -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Generate Report" Margin="0,0,10,0" Padding="20,8"/>
+            <Button Content="Export" Padding="20,8"/>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

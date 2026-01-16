@@ -1,0 +1,21 @@
+{
+  "moduleId": "PersonnelManagement",
+  "displayName": "Personnel Management",
+  "description": "Manage survey crew, certifications, training records, and competency tracking for offshore operations",
+  "version": "1.0.0",
+  "category": "Operations",
+  "displayOrder": 50,
+  "author": "FathomOS Team",
+  "iconResource": "/FathomOS.Modules.PersonnelManagement;component/Assets/icon.png",
+  "supportedFileTypes": [".csv", ".xlsx"],
+  "certificateCode": "PM",
+  "features": [
+    "Crew roster management",
+    "Certification tracking",
+    "Training record management",
+    "Competency matrix",
+    "Expiry notifications",
+    "Shift scheduling",
+    "Role assignments"
+  ]
+}

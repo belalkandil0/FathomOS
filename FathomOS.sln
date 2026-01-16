@@ -30,6 +30,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Modules.SoundVelocity", "FathomOS.Modules.SoundVelocity\FathomOS.Modules.SoundVelocity.csproj", "{44444444-4444-4444-4444-444444444444}"
 EndProject
 
+# Solution Folder for Management Modules
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Management", "Management", "{MGMT0001-MGMT-MGMT-MGMT-MANAGEMENT01}"
+EndProject
+
+# Management Modules
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Modules.PersonnelManagement", "FathomOS.Modules.PersonnelManagement\FathomOS.Modules.PersonnelManagement.csproj", "{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FathomOS.Modules.ProjectManagement", "FathomOS.Modules.ProjectManagement\FathomOS.Modules.ProjectManagement.csproj", "{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}"
+EndProject
+
 # Solution Folder for Calibration Modules
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Calibrations", "Calibrations", "{CALIB001-CALIB-CALIB-CALIB-CALIBRATION1}"
 EndProject
@@ -118,6 +128,14 @@ Global
 		{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,5 +147,7 @@ Global
 		{88888888-8888-8888-8888-888888888888} = {CALIB001-CALIB-CALIB-CALIB-CALIBRATION1}
 		{99999999-9999-9999-9999-999999999999} = {CALIB001-CALIB-CALIB-CALIB-CALIBRATION1}
 		{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA} = {CALIB001-CALIB-CALIB-CALIB-CALIBRATION1}
+		{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB} = {MGMT0001-MGMT-MGMT-MGMT-MANAGEMENT01}
+		{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC} = {MGMT0001-MGMT-MGMT-MGMT-MANAGEMENT01}
 	EndGlobalSection
 EndGlobal

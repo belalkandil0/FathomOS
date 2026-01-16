@@ -1,0 +1,22 @@
+{
+  "moduleId": "ProjectManagement",
+  "displayName": "Project Management",
+  "description": "Manage survey projects, milestones, deliverables, and client coordination",
+  "version": "1.0.0",
+  "category": "Operations",
+  "displayOrder": 51,
+  "author": "FathomOS Team",
+  "iconResource": "/FathomOS.Modules.ProjectManagement;component/Assets/icon.png",
+  "supportedFileTypes": [".sproj", ".csv", ".xlsx"],
+  "certificateCode": "PRJ",
+  "features": [
+    "Project creation and tracking",
+    "Milestone management",
+    "Deliverable tracking",
+    "Client coordination",
+    "Document management",
+    "Progress reporting",
+    "Resource allocation",
+    "Timeline visualization"
+  ]
+}
