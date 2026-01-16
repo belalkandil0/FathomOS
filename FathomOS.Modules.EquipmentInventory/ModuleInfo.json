@@ -1,0 +1,37 @@
+{
+    "moduleId": "EquipmentInventory",
+    "displayName": "Equipment & Inventory",
+    "description": "Comprehensive equipment and inventory management with QR code tracking, inward/outward manifests, and multi-location synchronization for offshore and onshore operations.",
+    "version": "1.0.0",
+    "author": "Fathom OS Development",
+    "category": "Operations Management",
+    "displayOrder": 5,
+    "icon": "icon.png",
+    "supportedFileTypes": [".xlsx", ".csv", ".json"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "Equipment Registry with QR Code Generation",
+        "Inward & Outward Manifest Management",
+        "Multi-Location Inventory Tracking",
+        "Offline-First Operation with Smart Sync",
+        "Certification & Calibration Tracking",
+        "Defect Reporting (EFN)",
+        "Consumables & Stock Level Management",
+        "Comprehensive Reporting",
+        "Digital Signatures",
+        "Mobile App Integration",
+        "Role-Based Access Control"
+    ],
+    "releaseNotes": {
+        "1.0.0": "Initial release with full equipment management, manifest workflow, and sync capabilities"
+    },
+    "support": {
+        "email": "support@fathomos.com",
+        "documentation": "https://docs.fathomos.com/equipment-inventory"
+    },
+    
+    "CertificateCode": "EI",
+    "CertificateTitle": "Equipment & Inventory Management Verification Certificate",
+    "CertificateStatement": "This is to certify that the equipment inventory and manifest operations documented herein have been successfully processed and verified in accordance with industry standards for asset tracking and management."
+}

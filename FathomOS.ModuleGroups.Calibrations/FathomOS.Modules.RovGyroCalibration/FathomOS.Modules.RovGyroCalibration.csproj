@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.RovGyroCalibration</RootNamespace>
+    <AssemblyName>FathomOS.Modules.RovGyroCalibration</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>ROV Gyro Calibration and Verification module for Fathom OS. Implements geometric corrections for ROV orientation relative to vessel per GLSIFR0034.</Description>
+    <Copyright>Copyright © Fathom OS 2025</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+  
+  <!-- 3D Model Files (optional - place rov.obj and rov.mtl in Assets folder) -->
+  <ItemGroup>
+    <Content Include="Assets\rov.obj" Condition="Exists('Assets\rov.obj')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\rov.mtl" Condition="Exists('Assets\rov.mtl')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+</Project>

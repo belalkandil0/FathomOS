@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ConfuserEx Configuration for Fathom OS
+  
+  SETUP INSTRUCTIONS:
+  1. Download ConfuserEx from: https://github.com/mkaring/ConfuserEx/releases
+  2. Extract to a folder (e.g., C:\Tools\ConfuserEx)
+  3. After building Fathom OS in Release mode, run:
+     Confuser.CLI.exe FathomOS.crproj
+  4. Obfuscated files will be in the 'Confused' output folder
+  
+  Or use the GUI:
+  1. Open ConfuserEx.exe
+  2. Drag this .crproj file onto the window
+  3. Click "Protect!"
+-->
+<project outputDir=".\Confused" baseDir=".\FathomOS.Shell\bin\Release\net8.0-windows" xmlns="http://confuser.codeplex.com">
+  
+  <!-- Global settings -->
+  <rule pattern="true" preset="maximum" inherit="false">
+    
+    <!-- Anti-Tamper: Prevents modification of the assembly -->
+    <protection id="anti tamper" />
+    
+    <!-- Anti-Debug: Additional debugger detection -->
+    <protection id="anti debug" />
+    
+    <!-- Anti-Dump: Prevents memory dumping -->
+    <protection id="anti dump" />
+    
+    <!-- Anti-ILDasm: Prevents IL disassembly -->
+    <protection id="anti ildasm" />
+    
+    <!-- Constants Protection: Encrypts constants and strings -->
+    <protection id="constants">
+      <argument name="mode" value="dynamic" />
+      <argument name="decoderCount" value="5" />
+    </protection>
+    
+    <!-- Control Flow Obfuscation: Makes code flow hard to follow -->
+    <protection id="ctrl flow">
+      <argument name="type" value="switch" />
+      <argument name="intensity" value="normal" />
+    </protection>
+    
+    <!-- Invalid Metadata: Adds invalid metadata to confuse decompilers -->
+    <protection id="invalid metadata" />
+    
+    <!-- Reference Proxy: Hides method references -->
+    <protection id="ref proxy">
+      <argument name="mode" value="mild" />
+      <argument name="encoding" value="normal" />
+    </protection>
+    
+    <!-- Rename: Renames all identifiers -->
+    <protection id="rename">
+      <argument name="mode" value="unicode" />
+      <argument name="renEnum" value="true" />
+    </protection>
+    
+    <!-- Resources Protection: Encrypts embedded resources -->
+    <protection id="resources">
+      <argument name="mode" value="dynamic" />
+    </protection>
+    
+  </rule>
+  
+  <!-- Main executable -->
+  <module path="FathomOS.Shell.exe">
+    <!-- Exclude WPF-related types that break if renamed -->
+    <rule pattern="match('FathomOS.Shell.Views.*')" inherit="false">
+      <protection id="rename">
+        <argument name="mode" value="letters" />
+        <argument name="renXaml" value="false" />
+      </protection>
+    </rule>
+    
+    <!-- Don't rename public API that might be used by modules -->
+    <rule pattern="match('FathomOS.Shell.App')" inherit="false">
+      <protection id="rename">
+        <argument name="mode" value="letters" />
+      </protection>
+    </rule>
+  </module>
+  
+  <!-- Core library -->
+  <module path="FathomOS.Core.dll" />
+  
+  <!-- Licensing libraries - IMPORTANT: Protect these well -->
+  <module path="LicensingSystem.Client.dll">
+    <rule pattern="true" preset="maximum" inherit="false">
+      <protection id="constants">
+        <argument name="mode" value="dynamic" />
+        <argument name="decoderCount" value="10" />
+      </protection>
+      <protection id="ctrl flow">
+        <argument name="type" value="switch" />
+        <argument name="intensity" value="high" />
+      </protection>
+    </rule>
+  </module>
+  
+  <module path="LicensingSystem.Shared.dll" />
+  
+  <!-- Survey Listing Module -->
+  <module path="Modules\SurveyListing\FathomOS.Modules.SurveyListing.dll">
+    <rule pattern="match('*.Views.*')" inherit="false">
+      <protection id="rename">
+        <argument name="renXaml" value="false" />
+      </protection>
+    </rule>
+  </module>
+  
+</project>

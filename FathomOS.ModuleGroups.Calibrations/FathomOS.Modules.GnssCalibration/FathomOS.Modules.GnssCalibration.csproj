@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.GnssCalibration</RootNamespace>
+    <AssemblyName>FathomOS.Modules.GnssCalibration</AssemblyName>
+    <Version>4.5.4</Version>
+    <Authors>Fathom OS</Authors>
+    <Company>Subsea7</Company>
+    <Description>GNSS Calibration and Verification Module - Compare and validate GNSS positioning systems with statistical analysis and 2DRMS calculations.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      Reference Core - provides:
+      - MahApps.Metro (UI framework)
+      - OxyPlot (charting)
+      - ClosedXML (Excel export)
+      - QuestPDF (PDF export)
+      - MathNet.Numerics (calculations)
+      - Core parsers, models, services
+    -->
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+  <!-- Ensure ModuleInfo.json is copied to output -->
+  <ItemGroup>
+    <None Update="ModuleInfo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

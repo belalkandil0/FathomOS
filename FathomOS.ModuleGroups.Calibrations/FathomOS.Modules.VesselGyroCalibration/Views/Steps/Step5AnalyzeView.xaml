@@ -1,0 +1,608 @@
+<UserControl x:Class="FathomOS.Modules.VesselGyroCalibration.Views.Steps.Step5AnalyzeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:oxy="http://oxyplot.org/wpf"
+             xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
+             xmlns:converters="clr-namespace:FathomOS.Modules.VesselGyroCalibration.Converters">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+    </UserControl.Resources>
+
+    <!-- Wrap everything in ScrollViewer for responsiveness -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="0,0,8,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with Theme Selector -->
+        <Border Grid.Row="0" Style="{DynamicResource CardBorder}" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Step 5: Process &amp; Analyze" Style="{DynamicResource SectionHeader}"/>
+                    <TextBlock Text="Apply 3-sigma outlier rejection and review statistics. Green points are accepted, red points are rejected."
+                               TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <!-- Chart Theme Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                    <iconPacks:PackIconMaterial Kind="Palette" Width="16" Height="16" 
+                                                Foreground="{DynamicResource TextSecondaryBrush}"
+                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox ItemsSource="{Binding AvailablePalettes}"
+                              SelectedItem="{Binding SelectedPalette}"
+                              Width="120"
+                              ToolTip="Select chart color theme">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Description, StringFormat=' - {0}'}" 
+                                               Foreground="{DynamicResource TextMutedBrush}" 
+                                               FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <Button Grid.Column="2" Command="{Binding RecalculateCommand}"
+                        Style="{DynamicResource SecondaryButton}" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Refresh" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Recalculate" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Statistics Cards -->
+        <Border Grid.Row="1" Style="{DynamicResource CardBorder}" Margin="0,0,0,16">
+            <UniformGrid Columns="5" Rows="1">
+                <!-- Mean C-O -->
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Mean C-O" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource SuccessBrush}"
+                                   HorizontalAlignment="Center">
+                            <Run Text="{Binding Result.MeanCOAccepted, Mode=OneWay, StringFormat='{}{0:F3}'}"/><Run Text="°"/>
+                        </TextBlock>
+                        <TextBlock Text="(accepted)" Foreground="{DynamicResource TextMutedBrush}" 
+                                   FontSize="9" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Std Dev -->
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Std Dev" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource InfoBrush}"
+                                   HorizontalAlignment="Center">
+                            <Run Text="{Binding Result.SDCOAccepted, Mode=OneWay, StringFormat='{}{0:F3}'}"/><Run Text="°"/>
+                        </TextBlock>
+                        <TextBlock Text="(accepted)" Foreground="{DynamicResource TextMutedBrush}" 
+                                   FontSize="9" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Accepted Count -->
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Accepted" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Result.AcceptedCount, StringFormat='{}{0:N0}'}" 
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource SuccessBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Foreground="{DynamicResource TextMutedBrush}" 
+                                   FontSize="9" HorizontalAlignment="Center">
+                            <Run Text="of "/><Run Text="{Binding Result.TotalObservations, Mode=OneWay, StringFormat='{}{0:N0}'}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Rejected Count -->
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Rejected" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Result.RejectedCount, StringFormat='{}{0:N0}'}" 
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource ErrorBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Foreground="{DynamicResource TextMutedBrush}" 
+                                   FontSize="9" HorizontalAlignment="Center">
+                            <Run Text="{Binding Result.RejectionPercentage, Mode=OneWay, StringFormat='{}{0:F1}'}"/><Run Text="%"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Heading Range -->
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        CornerRadius="8" Padding="12,10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Heading Range" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   HorizontalAlignment="Center">
+                            <Run Text="{Binding Result.HeadingRangeCoverage, Mode=OneWay, StringFormat='{}{0:F0}'}"/><Run Text="°"/>
+                        </TextBlock>
+                        <TextBlock Foreground="{DynamicResource TextMutedBrush}" 
+                                   FontSize="9" HorizontalAlignment="Center">
+                            <Run Text="{Binding Result.MinHeading, Mode=OneWay, StringFormat='{}{0:F0}'}"/><Run Text="° - "/><Run Text="{Binding Result.MaxHeading, Mode=OneWay, StringFormat='{}{0:F0}'}"/><Run Text="°"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </Border>
+
+        <!-- Charts in Tabs -->
+        <mah:MetroTabControl Grid.Row="2">
+            <!-- Tab 1: Main Charts (existing) -->
+            <mah:MetroTabItem Header="Main Charts">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- C-O Time Series -->
+                    <Border Grid.Column="0" Style="{DynamicResource CardBorder}" Margin="0,0,8,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                <iconPacks:PackIconMaterial Kind="ChartLine" Width="18" Height="18"
+                                                            Foreground="{DynamicResource PrimaryBrush}"
+                                                            VerticalAlignment="Center"/>
+                                <TextBlock Text="C-O Over Time (with 3σ limits)" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <oxy:PlotView Grid.Row="1" Model="{Binding COPlotModel}"
+                                          Background="Transparent" MinHeight="250"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Histogram -->
+                    <Border Grid.Column="1" Style="{DynamicResource CardBorder}" Margin="8,0,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                <iconPacks:PackIconMaterial Kind="ChartBar" Width="18" Height="18"
+                                                            Foreground="{DynamicResource PrimaryBrush}"
+                                                            VerticalAlignment="Center"/>
+                                <TextBlock Text="C-O Distribution (with ±1σ)" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <oxy:PlotView Grid.Row="1" Model="{Binding HistogramModel}"
+                                          Background="Transparent" MinHeight="250"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </mah:MetroTabItem>
+
+            <!-- Tab 2: Q-Q Plot (Normality Check) -->
+            <mah:MetroTabItem Header="Q-Q Plot">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartScatterPlotHexbin" Width="18" Height="18"
+                                                        Foreground="{DynamicResource AccentBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Q-Q Plot - Normality Check" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Points should follow the red dashed line for normal distribution)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding QQPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+
+            <!-- Tab 3: Residuals vs Time -->
+            <mah:MetroTabItem Header="Residuals">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartTimelineVariant" Width="18" Height="18"
+                                                        Foreground="{DynamicResource SuccessBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Residuals vs Time" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Check for patterns or drift over time)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding ResidualsPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+
+            <!-- Tab 4: Box Plot by Heading Quadrant -->
+            <mah:MetroTabItem Header="By Quadrant">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartBoxOutline" Width="18" Height="18"
+                                                        Foreground="{DynamicResource InfoBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="C-O by Heading Quadrant" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Check for directional bias)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding BoxPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+
+            <!-- Tab 5: Polar Plot -->
+            <mah:MetroTabItem Header="Polar View">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="Compass" Width="18" Height="18"
+                                                        Foreground="{DynamicResource WarningBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="C-O Polar Distribution" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(C-O magnitude by heading direction)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding PolarPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 6: Control Chart (SPC) -->
+            <mah:MetroTabItem Header="Control Chart">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartLineVariant" Width="18" Height="18"
+                                                        Foreground="{DynamicResource SuccessBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Individual Control Chart (I-Chart)" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(UCL/LCL based on moving range, UWL/LWL at ±2σ)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding ControlChartModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 7: CUSUM Chart -->
+            <mah:MetroTabItem Header="CUSUM">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="TrendingUp" Width="18" Height="18"
+                                                        Foreground="{DynamicResource WarningBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="CUSUM Chart - Trend Detection" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Detects gradual shifts: + upward trend, - downward trend)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding CusumChartModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 8: Heading Coverage -->
+            <mah:MetroTabItem Header="Coverage">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="CompassRose" Width="18" Height="18"
+                                                        Foreground="{DynamicResource AccentBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Heading Coverage Distribution" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Green=Good coverage, Yellow=Sparse, Red=No data)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding HeadingCoverageModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 9: Moving Average -->
+            <mah:MetroTabItem Header="Moving Avg">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartAreaspline" Width="18" Height="18"
+                                                        Foreground="{DynamicResource SuccessBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Moving Average with ±2σ Bands" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Smoothed trend with confidence envelope)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding MovingAverageModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 10: Scatter Plot -->
+            <mah:MetroTabItem Header="Scatter">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ChartScatterPlot" Width="18" Height="18"
+                                                        Foreground="{DynamicResource PrimaryBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="C-O vs Heading (Bias Detection)" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Detects heading-dependent systematic errors)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding ScatterPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 11: Autocorrelation -->
+            <mah:MetroTabItem Header="ACF">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="WaveArrowUp" Width="18" Height="18"
+                                                        Foreground="{DynamicResource WarningBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Autocorrelation Function (Independence Check)" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Bars outside red lines indicate serial correlation)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <oxy:PlotView Grid.Row="1" Model="{Binding AcfPlotModel}"
+                                      Background="Transparent" MinHeight="350"/>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Tab 12: 3D Visualization -->
+            <mah:MetroTabItem Header="3D View">
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="Rotate3dVariant" Width="18" Height="18"
+                                                        Foreground="{DynamicResource AccentBrush}"
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Calibration Result Visualization" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <TextBlock Text="(Green=Reference, Blue=Calibrated, Orange=C-O)"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </StackPanel>
+
+                        <Border Grid.Row="1" Background="#1A1A2E" CornerRadius="8" ClipToBounds="True" MinHeight="350">
+                            <hx:Viewport3DX Camera="{Binding Camera}"
+                                            EffectsManager="{Binding EffectsManager}"
+                                            BackgroundColor="#1A1A2E"
+                                            ShowCoordinateSystem="True"
+                                            CoordinateSystemLabelForeground="White"
+                                            ZoomExtentsWhenLoaded="True"
+                                            IsPanEnabled="True"
+                                            IsRotationEnabled="True"
+                                            IsZoomEnabled="True">
+                                
+                                <hx:AmbientLight3D Color="#404040"/>
+                                <hx:DirectionalLight3D Color="White" Direction="-1,-1,-1"/>
+                                <hx:DirectionalLight3D Color="#606060" Direction="1,1,0"/>
+                                
+                                <hx:MeshGeometryModel3D Geometry="{Binding SeaPlaneGeometry}"
+                                                        Material="{Binding SeaPlaneMaterial}"/>
+                                
+                                <hx:MeshGeometryModel3D Geometry="{Binding VesselGeometry}"
+                                                        Material="{Binding VesselMaterial}"/>
+                                
+                                <hx:LineGeometryModel3D Geometry="{Binding CompassRoseGeometry}"
+                                                        Color="#808080"
+                                                        Thickness="1.5"/>
+                                
+                                <hx:MeshGeometryModel3D Geometry="{Binding ReferenceArrowGeometry}"
+                                                        Material="{Binding ReferenceArrowMaterial}"
+                                                        Visibility="{Binding ShowHeadingArrows, Converter={StaticResource BoolToVisibility}}"/>
+                                
+                                <hx:MeshGeometryModel3D Geometry="{Binding CalibratedArrowGeometry}"
+                                                        Material="{Binding CalibratedArrowMaterial}"
+                                                        Visibility="{Binding ShowHeadingArrows, Converter={StaticResource BoolToVisibility}}"/>
+                                
+                                <hx:LineGeometryModel3D Geometry="{Binding COArcGeometry}"
+                                                        Color="#FF8000"
+                                                        Thickness="3"
+                                                        Visibility="{Binding ShowHeadingArrows, Converter={StaticResource BoolToVisibility}}"/>
+                            </hx:Viewport3DX>
+                        </Border>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
+                            <Button Content="Reset View" Command="{Binding ResetViewCommand}"
+                                    Style="{DynamicResource SecondaryButton}" Padding="10,5" Margin="0,0,10,0"/>
+                            <Button Content="Top View" Command="{Binding TopViewCommand}"
+                                    Style="{DynamicResource SecondaryButton}" Padding="10,5"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </mah:MetroTabItem>
+        </mah:MetroTabControl>
+
+        <!-- Phase 3: Iteration History -->
+        <Border Grid.Row="3" Style="{DynamicResource CardBorder}" Margin="0,16,0,0"
+                Visibility="{Binding IterationHistory.Count, Converter={StaticResource CountToVisibility}}">
+            <Expander Header="Iteration History (3-sigma convergence)" IsExpanded="False">
+                <DataGrid ItemsSource="{Binding IterationHistory}" AutoGenerateColumns="False"
+                          IsReadOnly="True" CanUserAddRows="False" Height="120"
+                          Background="Transparent" BorderThickness="0"
+                          RowBackground="{DynamicResource SurfaceBrush}"
+                          AlternatingRowBackground="{DynamicResource CardBrush}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Iter" Binding="{Binding IterationNumber}" Width="50"/>
+                        <DataGridTextColumn Header="Points" Binding="{Binding PointsInIteration}" Width="70"/>
+                        <DataGridTextColumn Header="Rejected" Binding="{Binding PointsRejected}" Width="70"/>
+                        <DataGridTextColumn Header="Mean C-O (°)" Binding="{Binding MeanCO, StringFormat='{}{0:F4}'}" Width="100"/>
+                        <DataGridTextColumn Header="Std Dev (°)" Binding="{Binding StdDev, StringFormat='{}{0:F4}'}" Width="100"/>
+                        <DataGridTextColumn Header="Upper 3σ" Binding="{Binding UpperLimit, StringFormat='{}{0:F3}'}" Width="80"/>
+                        <DataGridTextColumn Header="Lower 3σ" Binding="{Binding LowerLimit, StringFormat='{}{0:F3}'}" Width="80"/>
+                        <DataGridCheckBoxColumn Header="Converged" Binding="{Binding IsConverged}" Width="80"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Expander>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="6" Padding="12,8" Margin="0,16,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <iconPacks:PackIconMaterial Kind="Information" Width="16" Height="16"
+                                            Foreground="{DynamicResource PrimaryBrush}"
+                                            VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+
+                <mah:ProgressRing Grid.Column="2" IsActive="{Binding IsProcessing}" 
+                                  Width="20" Height="20"
+                                  Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibility}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+    </ScrollViewer>
+</UserControl>

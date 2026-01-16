@@ -1,0 +1,151 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SurveyLogbook.Views.PositionFixDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        mc:Ignorable="d"
+        Title="Add Position Fix"
+        Height="500" Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource AccentBrush}"
+        TitleCharacterCasing="Normal">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            
+            <!-- Fix Type -->
+            <StackPanel Margin="0,0,0,15">
+                <TextBlock Text="Fix Type" Style="{DynamicResource FieldLabel}"/>
+                <ComboBox x:Name="FixTypeCombo"
+                          SelectedIndex="0"
+                          Padding="10,8">
+                    <ComboBoxItem Content="Set Easting/Northing"/>
+                    <ComboBoxItem Content="Waypoint"/>
+                    <ComboBoxItem Content="Calibration"/>
+                    <ComboBoxItem Content="Manual"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Date/Time -->
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Date" Style="{DynamicResource FieldLabel}"/>
+                    <DatePicker x:Name="DatePicker" SelectedDate="{x:Static sys:DateTime.Now}" 
+                                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                                Padding="10,8"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Time" Style="{DynamicResource FieldLabel}"/>
+                    <mah:TimePicker x:Name="TimePicker"
+                                    PickerVisibility="HourMinuteSecond"
+                                    Culture="en-GB"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Object Name -->
+            <StackPanel Margin="0,0,0,15">
+                <TextBlock Text="Object Name" Style="{DynamicResource FieldLabel}"/>
+                <TextBox x:Name="ObjectNameText"
+                         Style="{DynamicResource ModernTextBox}"
+                         mah:TextBoxHelper.Watermark="e.g., ROV1, Vessel, Target"/>
+            </StackPanel>
+
+            <!-- Position Data -->
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,10,10">
+                    <TextBlock Text="Computed Easting" Style="{DynamicResource FieldLabel}"/>
+                    <mah:NumericUpDown x:Name="ComputedEasting"
+                                       StringFormat="F3"
+                                       NumericInputMode="Decimal"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,10">
+                    <TextBlock Text="Computed Northing" Style="{DynamicResource FieldLabel}"/>
+                    <mah:NumericUpDown x:Name="ComputedNorthing"
+                                       StringFormat="F3"
+                                       NumericInputMode="Decimal"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,10,0">
+                    <TextBlock Text="Required Easting" Style="{DynamicResource FieldLabel}"/>
+                    <mah:NumericUpDown x:Name="RequiredEasting"
+                                       StringFormat="F3"
+                                       NumericInputMode="Decimal"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Grid.Row="1">
+                    <TextBlock Text="Required Northing" Style="{DynamicResource FieldLabel}"/>
+                    <mah:NumericUpDown x:Name="RequiredNorthing"
+                                       StringFormat="F3"
+                                       NumericInputMode="Decimal"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Description -->
+            <StackPanel>
+                <TextBlock Text="Description" Style="{DynamicResource FieldLabel}"/>
+                <TextBox x:Name="DescriptionText"
+                         Style="{DynamicResource ModernTextBox}"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         Height="80"
+                         VerticalScrollBarVisibility="Auto"
+                         mah:TextBoxHelper.Watermark="Enter description..."/>
+            </StackPanel>
+
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="1" 
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="0,15,0,0"
+                Margin="0,15,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel"
+                        Style="{DynamicResource SecondaryButton}"
+                        Margin="0,0,10,0"
+                        Width="100"
+                        IsCancel="True"
+                        Click="CancelButton_Click"/>
+                
+                <Button Style="{DynamicResource PrimaryButton}"
+                        Width="120"
+                        IsDefault="True"
+                        Click="AddButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Plus" Width="14" Height="14" Margin="0,0,8,0"/>
+                        <TextBlock Text="Add Fix"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

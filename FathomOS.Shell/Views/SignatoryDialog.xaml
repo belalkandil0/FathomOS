@@ -1,0 +1,108 @@
+<Window x:Class="FathomOS.Shell.Views.SignatoryDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Certificate Signatory Information"
+        Width="500" Height="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+        <Style TargetType="TextBox" x:Key="InputStyle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="ComboBox" x:Key="ComboStyle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#0066CC" Padding="20,15">
+            <StackPanel>
+                <TextBlock Text="Certificate Signatory" 
+                           FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+                <TextBlock Text="Enter the details of the person authorizing this certificate" 
+                           FontSize="12" Foreground="#CCE5FF" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel>
+                <!-- Signatory Name -->
+                <TextBlock Text="Signatory Name *" Style="{StaticResource LabelStyle}"/>
+                <TextBox x:Name="txtSignatoryName" Style="{StaticResource InputStyle}"/>
+                
+                <!-- Signatory Title -->
+                <TextBlock Text="Professional Title *" Style="{StaticResource LabelStyle}"/>
+                <ComboBox x:Name="cboTitle" Style="{StaticResource ComboStyle}" IsEditable="True">
+                    <ComboBoxItem>Survey Supervisor</ComboBoxItem>
+                    <ComboBoxItem>Senior Survey Engineer</ComboBoxItem>
+                    <ComboBoxItem>Survey Engineer</ComboBoxItem>
+                    <ComboBoxItem>Processing Engineer</ComboBoxItem>
+                    <ComboBoxItem>Quality Control Engineer</ComboBoxItem>
+                    <ComboBoxItem>Verification Engineer</ComboBoxItem>
+                    <ComboBoxItem>Calibration Engineer</ComboBoxItem>
+                    <ComboBoxItem>Operations Manager</ComboBoxItem>
+                    <ComboBoxItem>Project Manager</ComboBoxItem>
+                    <ComboBoxItem>Survey Manager</ComboBoxItem>
+                    <ComboBoxItem>Data Processing Specialist</ComboBoxItem>
+                    <ComboBoxItem>Technical Supervisor</ComboBoxItem>
+                    <ComboBoxItem>Field Engineer</ComboBoxItem>
+                    <ComboBoxItem>Senior Technician</ComboBoxItem>
+                    <ComboBoxItem>Hydrographic Surveyor</ComboBoxItem>
+                    <ComboBoxItem>Geophysicist</ComboBoxItem>
+                    <ComboBoxItem>Navigation Engineer</ComboBoxItem>
+                    <ComboBoxItem>Positioning Engineer</ComboBoxItem>
+                    <ComboBoxItem>Party Chief</ComboBoxItem>
+                    <ComboBoxItem>Chief Surveyor</ComboBoxItem>
+                </ComboBox>
+                
+                <!-- Company Name -->
+                <TextBlock Text="Company Name *" Style="{StaticResource LabelStyle}"/>
+                <TextBox x:Name="txtCompanyName" Style="{StaticResource InputStyle}"/>
+                
+                <!-- Info text -->
+                <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1" 
+                        CornerRadius="4" Padding="12" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="ℹ️ Note" FontWeight="SemiBold" FontSize="12" Foreground="#F57F17"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#795548" Margin="0,5,0,0">
+                            This information will appear on the certificate. The certificate will be stored locally 
+                            and automatically synced to the server when online.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Buttons -->
+        <Border Grid.Row="2" Background="#F5F5F5" Padding="20,15">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnCancel" Content="Cancel" 
+                        Width="100" Height="35" Margin="0,0,10,0"
+                        Click="btnCancel_Click"/>
+                <Button x:Name="btnCreate" Content="Create Certificate" 
+                        Width="150" Height="35"
+                        Background="#0066CC" Foreground="White"
+                        Click="btnCreate_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

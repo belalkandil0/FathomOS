@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.EquipmentInventory</RootNamespace>
+    <AssemblyName>FathomOS.Modules.EquipmentInventory</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS Development</Authors>
+    <Description>Equipment and Inventory Management Module for Fathom OS - Manages equipment, consumables, defect reports, and transfer manifests across offshore and onshore locations.</Description>
+    <Company>Fathom OS</Company>
+    <Product>Fathom OS Equipment &amp; Inventory</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core Reference - provides MahApps, OxyPlot, HelixToolkit, ClosedXML, QuestPDF, netDxf -->
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Entity Framework Core for SQLite -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
+    
+    <!-- QR Code Generation -->
+    <PackageReference Include="QRCoder" Version="1.5.1" />
+    
+    <!-- System.Drawing for label image generation -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    
+    <!-- HTTP Client Extensions -->
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+  <!-- Content files -->
+  <ItemGroup>
+    <None Include="ModuleInfo.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="README.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Documentation -->
+  <ItemGroup>
+    <None Include="Documentation\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Exclude reference files from compilation (for reference only) -->
+  <ItemGroup>
+    <Compile Remove="Api\Reference\**\*" />
+    <None Include="Api\Reference\**\*" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,75 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SurveyListing.Views.ChartWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        Title="Survey Charts" Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        TitleCharacterCasing="Normal"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+        BorderThickness="1"
+        Loaded="Window_Loaded">
+    
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Chart Type:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox x:Name="CboChartType" Width="200" SelectionChanged="ChartType_Changed">
+                    <ComboBoxItem Content="KP vs Depth Profile" IsSelected="True"/>
+                    <ComboBoxItem Content="KP vs DCC (Cross-Track)"/>
+                    <ComboBoxItem Content="Easting vs Northing (Plan View)"/>
+                    <ComboBoxItem Content="Depth Histogram"/>
+                    <ComboBoxItem Content="DCC Distribution"/>
+                    <ComboBoxItem Content="Tide Correction Comparison"/>
+                    <ComboBoxItem Content="Statistics Dashboard"/>
+                    <ComboBoxItem Content="All Charts"/>
+                </ComboBox>
+                
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="15,0"/>
+                
+                <Button Content="📷 Export Image" Padding="10,5" Margin="0,0,5,0" Click="ExportImage_Click"/>
+                <Button Content="📋 Copy to Clipboard" Padding="10,5" Click="CopyToClipboard_Click"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Chart Area -->
+        <Grid Grid.Row="1">
+            <!-- Single Chart View -->
+            <oxy:PlotView x:Name="SingleChart" Background="#1E1E1E" Visibility="Visible"/>
+            
+            <!-- Multi Chart View -->
+            <Grid x:Name="MultiChartGrid" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <oxy:PlotView x:Name="Chart1" Grid.Row="0" Grid.Column="0" Background="#1E1E1E" Margin="2"/>
+                <oxy:PlotView x:Name="Chart2" Grid.Row="0" Grid.Column="1" Background="#1E1E1E" Margin="2"/>
+                <oxy:PlotView x:Name="Chart3" Grid.Row="1" Grid.Column="0" Background="#1E1E1E" Margin="2"/>
+                <oxy:PlotView x:Name="Chart4" Grid.Row="1" Grid.Column="1" Background="#1E1E1E" Margin="2"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>

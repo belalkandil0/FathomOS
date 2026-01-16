@@ -1,0 +1,99 @@
+<UserControl x:Class="FathomOS.Modules.SurveyListing.Views.Steps.Step3_SurveyData"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             
+             >
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="20,20,20,10">
+            <TextBlock Text="Load Survey Data" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="Add NPD survey data files and configure column mapping." 
+                       Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- File List -->
+            <Border Grid.Column="0" BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                    BorderThickness="1" CornerRadius="4" Margin="0,0,10,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" Padding="10">
+                        <TextBlock Text="Survey Data Files" FontWeight="SemiBold"/>
+                    </Border>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Files}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
+                              SelectionMode="Single" GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding FileSize}" Width="80"/>
+                            <DataGridTextColumn Header="Columns" Binding="{Binding ColumnCount}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10">
+                        <Button Content="Add Files..." Click="AddFiles_Click" Width="90" Margin="0,0,5,0"/>
+                        <Button Content="Remove" Click="RemoveFile_Click" Width="70" Margin="0,0,5,0"/>
+                        <Button Content="Clear All" Click="ClearFiles_Click" Width="70"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Column Mapping -->
+            <Border Grid.Column="1" Background="{DynamicResource PanelBackgroundBrush}" 
+                    CornerRadius="4" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Column Mapping" FontWeight="SemiBold" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Template" FontSize="12" Margin="0,0,0,3"/>
+                    <ComboBox ItemsSource="{Binding Templates}" 
+                              SelectedItem="{Binding SelectedTemplate}"
+                              DisplayMemberPath="Name" Margin="0,0,0,10"/>
+
+                    <CheckBox Content="Has Date/Time split" IsChecked="{Binding HasDateTimeSplit}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Date Format" FontSize="12" Margin="0,0,0,3"/>
+                    <TextBox Text="{Binding DateFormat}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Time Format" FontSize="12" Margin="0,0,0,3"/>
+                    <TextBox Text="{Binding TimeFormat}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Depth Column (Bathy)" FontSize="12" Margin="0,0,0,3"/>
+                    <ComboBox ItemsSource="{Binding AvailableDepthColumns}" 
+                              SelectedItem="{Binding SelectedDepthColumn}"
+                              IsEditable="True" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Altitude Column (Altimeter)" FontSize="12" Margin="0,0,0,3"/>
+                    <ComboBox ItemsSource="{Binding AvailableAltitudeColumns}" 
+                              SelectedItem="{Binding SelectedAltitudeColumn}"
+                              IsEditable="True" Margin="0,0,0,10"/>
+
+                    <Button Content="Auto-Detect Columns" Click="AutoDetect_Click" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status -->
+        <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" Padding="20,10" Margin="20,10,20,20">
+            <TextBlock Text="{Binding StatusMessage}"/>
+        </Border>
+    </Grid>
+</UserControl>

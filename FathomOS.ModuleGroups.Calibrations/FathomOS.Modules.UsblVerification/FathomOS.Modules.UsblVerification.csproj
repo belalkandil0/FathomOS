@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.UsblVerification</RootNamespace>
+    <AssemblyName>FathomOS.Modules.UsblVerification</AssemblyName>
+    <Version>1.7.0</Version>
+    <Authors>S7 Solutions</Authors>
+    <Description>USBL Verification and Analysis Module - Automated spin and transit verification processing with visualization, batch import with column mapping, quality dashboard, theme toggle, and certificate generation.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      REQUIRED: Reference FathomOS.Core
+      This provides all packages: MahApps, OxyPlot, ClosedXML, QuestPDF, etc.
+      Also provides Core NpdParser for reliable NPD file parsing with NaviPac support.
+      Also provides BrandingService for company branding integration.
+      Also provides CertificateService for verification certificate generation.
+      
+      DEFAULT: GROUPED MODULE location 
+      (DEV\FathomOS.ModuleGroups.Calibrations\FathomOS.Modules.UsblVerification\)
+    -->
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
+    
+    <!-- 
+      ALTERNATIVE: For ROOT MODULE location (DEV\FathomOS.Modules.UsblVerification\):
+      <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+    -->
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <!-- Theme files -->
+  <ItemGroup>
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+</Project>

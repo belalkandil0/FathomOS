@@ -1,0 +1,874 @@
+<Window x:Class="FathomOS.Modules.NetworkTimeSync.Views.DashboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:FathomOS.Modules.NetworkTimeSync.ViewModels"
+        mc:Ignorable="d"
+        Title="Network Time Sync - Fathom OS" 
+        Height="750" Width="1100"
+        MinHeight="550" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FathomOS.Modules.NetworkTimeSync;component/Themes/ModuleResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- Main Border with shadow -->
+    <Border Background="{DynamicResource BackgroundBrush}" 
+            BorderBrush="{DynamicResource BorderBrush}" 
+            BorderThickness="1" 
+            CornerRadius="8"
+            Margin="10">
+        <Border.Effect>
+            <DropShadowEffect Color="#000000" BlurRadius="20" ShadowDepth="0" Opacity="0.5"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>  <!-- Title Bar -->
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Toolbar -->
+                <RowDefinition Height="*"/>    <!-- Content -->
+                <RowDefinition Height="Auto"/> <!-- Stats Bar -->
+                <RowDefinition Height="Auto"/> <!-- Status Bar -->
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" 
+                    CornerRadius="8,8,0,0"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- App Icon & Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="15,0">
+                        <TextBlock Text="⏱" FontSize="16" VerticalAlignment="Center" 
+                                   Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,10,0"/>
+                        <TextBlock Text="Network Time Sync" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,5,0">
+                        <!-- Theme Toggle Button -->
+                        <Button x:Name="ThemeToggleButton" 
+                                Content="🌙" FontSize="14"
+                                ToolTip="Toggle Dark/Light Theme"
+                                Click="ThemeToggle_Click"
+                                Style="{StaticResource WindowControlButton}"
+                                Margin="0,0,5,0"/>
+                        
+                        <!-- Minimize -->
+                        <Button Content="─" FontSize="12"
+                                Click="MinimizeButton_Click"
+                                Style="{StaticResource WindowControlButton}"/>
+                        
+                        <!-- Maximize -->
+                        <Button Content="□" FontSize="12"
+                                Click="MaximizeButton_Click"
+                                Style="{StaticResource WindowControlButton}"/>
+                        
+                        <!-- Close -->
+                        <Button Content="✕" FontSize="12"
+                                Click="CloseButton_Click"
+                                Style="{StaticResource WindowCloseButton}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Header with Reference Time -->
+            <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Reference Time Display -->
+                        <Border Background="{DynamicResource CardBrush}" 
+                                CornerRadius="6" Padding="15,8" 
+                                BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🕐" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Reference Time" 
+                                               FontSize="10" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding ReferenceTimeDisplay}" 
+                                                   FontSize="20" FontWeight="Bold"
+                                                   FontFamily="Consolas"
+                                                   Foreground="{DynamicResource PrimaryBrush}"/>
+                                        <TextBlock Text="{Binding TargetTimeZoneDisplay}" 
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Bottom" Margin="8,0,0,2"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Time Source Indicator -->
+                        <Border Background="{DynamicResource CardBrush}" 
+                                CornerRadius="6" Padding="12,8" Margin="15,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📡" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Time Source" 
+                                               FontSize="10" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TimeSourceDisplay}" 
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- GPS Status (when connected) -->
+                        <Border Background="{DynamicResource CardBrush}" 
+                                CornerRadius="6" Padding="12,8" Margin="15,0,0,0"
+                                Visibility="{Binding IsGpsConnected, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🛰" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="GPS Satellites" 
+                                               FontSize="10" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding GpsSatelliteCount}" 
+                                                   FontSize="14" FontWeight="Bold"
+                                                   Foreground="{DynamicResource SuccessBrush}"/>
+                                        <TextBlock Text=" tracked" 
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Settings Button -->
+                    <Button Grid.Column="1" 
+                            Content="⚙ Settings" 
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding OpenSettingsCommand}"/>
+                </Grid>
+            </Border>
+
+            <!-- Toolbar -->
+            <Border Grid.Row="2" Background="{DynamicResource BackgroundBrush}" 
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                    Padding="20,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Discovery Section -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <!-- Discover/Cancel Button -->
+                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding DiscoverCommand}"
+                                Visibility="{Binding IsDiscovering, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                                Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" Margin="0,0,6,0"/>
+                                <TextBlock Text="Discover"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Content="⏹ Cancel Scan" 
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding CancelDiscoverCommand}"
+                                Visibility="{Binding IsDiscovering, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Margin="0,0,10,0"/>
+
+                        <!-- IP Range Inputs -->
+                        <Border Background="{DynamicResource CardBrush}" 
+                                CornerRadius="6" Padding="10,6"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="IP Range:" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+                                <TextBox Text="{Binding StartIpAddress, UpdateSourceTrigger=PropertyChanged}" 
+                                         Style="{StaticResource CompactTextBox}"
+                                         Width="110"/>
+                                <TextBlock Text="→" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center" Margin="8,0" FontSize="12"/>
+                                <TextBox Text="{Binding EndIpAddress, UpdateSourceTrigger=PropertyChanged}" 
+                                         Style="{StaticResource CompactTextBox}"
+                                         Width="110"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Discovery Progress -->
+                        <Border Background="{DynamicResource CardBrush}" 
+                                CornerRadius="6" Padding="12,6" Margin="10,0,0,0"
+                                Visibility="{Binding IsDiscovering, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⏳" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel>
+                                    <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+                                        <Run Text="Scanning: "/>
+                                        <Run Text="{Binding DiscoveryProgress, Mode=OneWay}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"/>
+                                        <Run Text=" / "/>
+                                        <Run Text="{Binding DiscoveryTotal, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <ProgressBar Value="{Binding DiscoveryProgress}" 
+                                                 Maximum="{Binding DiscoveryTotal}"
+                                                 Height="4" Width="100" Margin="0,4,0,0"
+                                                 Style="{StaticResource ModernProgressBar}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding OpenAddComputerCommand}"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="➕" Margin="0,0,6,0"/>
+                                <TextBlock Text="Add"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding AddThisComputerCommand}"
+                                ToolTip="Add this computer (localhost) and test agent connection"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💻" Margin="0,0,6,0"/>
+                                <TextBlock Text="Add This PC"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding RefreshStatusCommand}"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔄" Margin="0,0,6,0"/>
+                                <TextBlock Text="Refresh"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding SyncAllCommand}"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⏱" Margin="0,0,6,0"/>
+                                <TextBlock Text="Sync All"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Monitor Toggle -->
+                        <ToggleButton IsChecked="{Binding IsMonitoring}"
+                                      Command="{Binding ToggleMonitoringCommand}"
+                                      Style="{StaticResource MonitorToggleButton}"/>
+                        
+                        <!-- Separator -->
+                        <Rectangle Width="1" Height="24" Fill="{DynamicResource BorderBrush}" Margin="8,0"/>
+                        
+                        <!-- History Button -->
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding OpenHistoryCommand}"
+                                ToolTip="View sync history"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋" Margin="0,0,6,0"/>
+                                <TextBlock Text="History"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Export Menu Button -->
+                        <Button x:Name="ExportButton"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="ExportButton_Click"
+                                ToolTip="Export reports">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" Margin="0,0,6,0"/>
+                                <TextBlock Text="Export ▾"/>
+                            </StackPanel>
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Export Status (CSV)" Command="{Binding ExportStatusCsvCommand}"/>
+                                    <MenuItem Header="Export History (CSV)" Command="{Binding ExportHistoryCsvCommand}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Export Full Report (HTML)" Command="{Binding ExportReportHtmlCommand}"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Computer List -->
+            <Border Grid.Row="3" Margin="15,10" 
+                    Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="8">
+                <Grid>
+                    <!-- Empty State -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Visibility="{Binding Computers.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=invert}">
+                        <TextBlock Text="🖥" FontSize="48" HorizontalAlignment="Center" 
+                                   Foreground="{DynamicResource TextDisabledBrush}" Margin="0,0,0,15"/>
+                        <TextBlock Text="No computers added yet" 
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Click 'Discover' to scan your network or 'Add' to add manually" 
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextDisabledBrush}"
+                                   HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    
+                    <!-- Data Grid -->
+                    <DataGrid ItemsSource="{Binding Computers}"
+                              SelectedItem="{Binding SelectedComputer}"
+                              Style="{StaticResource ModernDataGrid}"
+                              Margin="1"
+                              ColumnHeaderStyle="{StaticResource DataGridColumnHeader}"
+                              CellStyle="{StaticResource DataGridCell}"
+                              RowStyle="{StaticResource DataGridRow}"
+                              Visibility="{Binding Computers.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                        
+                        <DataGrid.Columns>
+                            <!-- Selection Checkbox -->
+                            <DataGridTemplateColumn Width="45">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  HorizontalAlignment="Center"
+                                                  Style="{StaticResource ModernCheckBox}"
+                                                  Click="CheckBox_Click"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <!-- Status Indicator -->
+                            <DataGridTemplateColumn Header="" Width="50">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Width="12" Height="12" CornerRadius="6"
+                                                Background="{Binding StatusColor, Converter={StaticResource HexToColorBrushConverter}}"
+                                                HorizontalAlignment="Center"
+                                                ToolTip="{Binding StatusText}">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="{Binding StatusColorMedia}" 
+                                                                  BlurRadius="8" ShadowDepth="0" Opacity="0.6"/>
+                                            </Border.Effect>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <!-- Hostname -->
+                            <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="FontWeight" Value="Medium"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            
+                            <!-- IP Address -->
+                            <DataGridTextColumn Header="IP Address" Binding="{Binding IpAddress}" Width="130" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="FontFamily" Value="Consolas"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            
+                            <!-- Current Time -->
+                            <DataGridTextColumn Header="System Time" Binding="{Binding CurrentTimeDisplay}" Width="100" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="FontFamily" Value="Consolas"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            
+                            <!-- Time Offset -->
+                            <DataGridTemplateColumn Header="Offset" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TimeOffsetDisplay}" 
+                                                   FontFamily="Consolas"
+                                                   VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsOutOfSync}" Value="True">
+                                                            <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <!-- Last Sync -->
+                            <DataGridTextColumn Header="Last Sync" Binding="{Binding LastSyncDisplay}" Width="90" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="FontSize" Value="11"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            
+                            <!-- Agent Status -->
+                            <DataGridTemplateColumn Header="Agent" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4" Padding="6,2"
+                                                HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#1A6CCB5F"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AgentInstalled}" Value="False">
+                                                            <Setter Property="Background" Value="#1AFF6B6B"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="10" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Online"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding AgentInstalled}" Value="False">
+                                                                <Setter Property="Text" Value="Offline"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <!-- Actions -->
+                            <DataGridTemplateColumn Header="" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="Sync" 
+                                                    Style="{StaticResource SmallPrimaryButton}"
+                                                    Command="{Binding DataContext.SyncComputerCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="0,0,5,0"/>
+                                            <Button Content="✕" 
+                                                    Style="{StaticResource SmallDangerButton}"
+                                                    Command="{Binding DataContext.RemoveComputerCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="Remove"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Stats Bar -->
+            <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}" Padding="20,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Stats -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Border Background="{DynamicResource CardBrush}" CornerRadius="4" Padding="12,6" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Total:" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding TotalCount}" 
+                                           FontWeight="Bold" FontSize="14"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Background="#1A6CCB5F" CornerRadius="4" Padding="12,6" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="●" Foreground="{DynamicResource SuccessBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Synced:" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding SyncedCount}" 
+                                           FontWeight="Bold" FontSize="14"
+                                           Foreground="{DynamicResource SuccessBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Background="#1AFCE100" CornerRadius="4" Padding="12,6" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="●" Foreground="{DynamicResource WarningBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Out of Sync:" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding OutOfSyncCount}" 
+                                           FontWeight="Bold" FontSize="14"
+                                           Foreground="{DynamicResource WarningBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Background="#1AFF6B6B" CornerRadius="4" Padding="12,6">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="●" Foreground="{DynamicResource ErrorBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Unreachable:" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding UnreachableCount}" 
+                                           FontWeight="Bold" FontSize="14"
+                                           Foreground="{DynamicResource ErrorBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Selection Actions -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                Visibility="{Binding SelectedCount, Converter={StaticResource CountToVisibilityConverter}}">
+                        <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                            <Run Text=" selected"/>
+                        </TextBlock>
+                        <Button Content="Sync Selected" 
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding SyncSelectedCommand}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Remove" 
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding RemoveSelectedCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="5" Background="{DynamicResource HeaderBrush}" 
+                    Padding="20,8" CornerRadius="0,0,8,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12" VerticalAlignment="Center"/>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="8,4"
+                                Visibility="{Binding IsMonitoring, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" 
+                                         VerticalAlignment="Center" Margin="0,0,6,0">
+                                    <Ellipse.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="1" To="0.3" Duration="0:0:1"
+                                                                     AutoReverse="True"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+                                <TextBlock Text="Monitoring Active" 
+                                           Foreground="{DynamicResource SuccessBrush}"
+                                           FontSize="11" FontWeight="Medium"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Settings Panel Overlay -->
+            <Grid Grid.RowSpan="6" 
+                  Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Background="#80000000" MouseLeftButtonDown="SettingsOverlay_Click"/>
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        Width="450" HorizontalAlignment="Right"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="25">
+                            <TextBlock Text="Settings" Style="{StaticResource SectionHeader}" FontSize="20"/>
+                            
+                            <!-- Time Source Section -->
+                            <TextBlock Text="TIME SOURCE" Style="{StaticResource FieldLabel}" Margin="0,20,0,10"/>
+                            <Border Style="{StaticResource CardBorder}" Padding="15">
+                                <StackPanel>
+                                    <RadioButton Content="System Time (Local Computer)" 
+                                                 GroupName="TimeSource" 
+                                                 IsChecked="{Binding UseHostTimeSource, Mode=TwoWay}"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 Margin="0,0,0,10"/>
+                                    <RadioButton Content="NTP Server (Internet)" 
+                                                 GroupName="TimeSource"
+                                                 IsChecked="{Binding UseNtpTimeSource, Mode=TwoWay}"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 Margin="0,0,0,10"/>
+                                    <RadioButton Content="GPS Serial Input" 
+                                                 GroupName="TimeSource"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 IsChecked="{Binding UseGpsTimeSource, Mode=TwoWay}"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- GPS Settings -->
+                            <Border Style="{StaticResource CardBorder}" Padding="15" Margin="0,15,0,0"
+                                    Visibility="{Binding UseGpsTimeSource, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="GPS SERIAL SETTINGS" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="100"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                            <TextBlock Text="COM Port" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox Style="{StaticResource ModernComboBox}"
+                                                      ItemsSource="{Binding AvailableComPorts}"
+                                                      Text="{Binding SyncConfig.GpsPortName}"
+                                                      IsEditable="True"/>
+                                        </StackPanel>
+                                        
+                                        <Button Grid.Column="1" Content="↻" 
+                                                Style="{StaticResource IconButtonStyle}"
+                                                Command="{Binding RefreshComPortsCommand}"
+                                                VerticalAlignment="Bottom" Margin="0,0,10,0"/>
+                                        
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Baud Rate" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox Style="{StaticResource ModernComboBox}"
+                                                      ItemsSource="{Binding CommonBaudRates}"
+                                                      SelectedItem="{Binding SyncConfig.GpsBaudRate}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                                        <Button Content="Connect GPS" 
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Command="{Binding ConnectGpsCommand}"
+                                                Margin="0,0,10,0"/>
+                                        <Button Content="Disconnect" 
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Command="{Binding DisconnectGpsCommand}"/>
+                                    </StackPanel>
+                                    
+                                    <Border Background="{DynamicResource BackgroundBrush}" 
+                                            CornerRadius="4" Padding="10" Margin="0,15,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Status:" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                       Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding GpsStatusText}" 
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" 
+                                                       FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Sync Settings -->
+                            <TextBlock Text="SYNC SETTINGS" Style="{StaticResource FieldLabel}" Margin="0,20,0,10"/>
+                            <Border Style="{StaticResource CardBorder}" Padding="15">
+                                <StackPanel>
+                                    <TextBlock Text="Tolerance (seconds)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding SyncConfig.ToleranceSeconds}" 
+                                             Style="{StaticResource ModernTextBox}" 
+                                             Width="100" HorizontalAlignment="Left" Margin="0,0,0,15"/>
+                                    
+                                    <TextBlock Text="Check Interval (seconds)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding SyncConfig.CheckIntervalSeconds}" 
+                                             Style="{StaticResource ModernTextBox}" 
+                                             Width="100" HorizontalAlignment="Left" Margin="0,0,0,15"/>
+                                    
+                                    <TextBlock Text="Agent Port" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding SyncConfig.DefaultAgentPort}" 
+                                             Style="{StaticResource ModernTextBox}" 
+                                             Width="100" HorizontalAlignment="Left" Margin="0,0,0,15"/>
+                                    
+                                    <TextBlock Text="Shared Secret" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding SyncConfig.AgentSecret}" 
+                                             Style="{StaticResource ModernTextBox}"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Action Buttons -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,0">
+                                <Button Content="Export" 
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding ExportConfigCommand}"
+                                        Margin="0,0,10,0"/>
+                                <Button Content="Import" 
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding ImportConfigCommand}"
+                                        Margin="0,0,10,0"/>
+                                <Button Content="Close" 
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding CloseSettingsCommand}"
+                                        Margin="0,0,10,0"/>
+                                <Button Content="Save" 
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Command="{Binding SaveSettingsCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Add Computer Dialog -->
+            <Grid Grid.RowSpan="6" 
+                  Visibility="{Binding IsAddComputerOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Background="#80000000" MouseLeftButtonDown="AddComputerOverlay_Click"/>
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        Width="400" Height="280"
+                        CornerRadius="12"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" BlurRadius="30" ShadowDepth="0" Opacity="0.5"/>
+                    </Border.Effect>
+                    <StackPanel Margin="25">
+                        <TextBlock Text="Add Computer" Style="{StaticResource SectionHeader}" FontSize="18"/>
+                        <TextBlock Text="Enter the IP address of the computer to add" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,0,20"/>
+                        
+                        <TextBlock Text="IP Address *" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding NewComputerIp, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Hostname (optional)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding NewComputerHostname, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 Margin="0,0,0,25"/>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Cancel" 
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding CloseAddComputerCommand}"
+                                    Margin="0,0,10,0"/>
+                            <Button Content="Add Computer" 
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding AddComputerCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- History Dialog -->
+            <Grid Grid.RowSpan="6" 
+                  Visibility="{Binding IsHistoryOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Background="#80000000" MouseLeftButtonDown="HistoryOverlay_Click"/>
+                <Border Background="{DynamicResource SurfaceBrush}" 
+                        Width="800" Height="500"
+                        CornerRadius="12"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" BlurRadius="30" ShadowDepth="0" Opacity="0.5"/>
+                    </Border.Effect>
+                    <Grid Margin="25">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="📋 Sync History" Style="{StaticResource SectionHeader}" FontSize="18" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SyncHistory.Count, StringFormat=' ({0} entries)'}" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+                        
+                        <DataGrid Grid.Row="1" 
+                                  ItemsSource="{Binding SyncHistory}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  Style="{StaticResource ModernDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeader}"
+                                  CellStyle="{StaticResource DataGridCell}"
+                                  RowStyle="{StaticResource DataGridRow}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" Binding="{Binding Timestamp, StringFormat=HH:mm:ss}" Width="80"/>
+                                <DataGridTextColumn Header="Date" Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd}" Width="90"/>
+                                <DataGridTextColumn Header="Computer" Binding="{Binding ComputerName}" Width="150"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="70"/>
+                                <DataGridTextColumn Header="Drift Before" Binding="{Binding DriftBeforeDisplay}" Width="90"/>
+                                <DataGridTextColumn Header="Drift After" Binding="{Binding DriftAfterDisplay}" Width="85"/>
+                                <DataGridTextColumn Header="Duration" Binding="{Binding DurationDisplay}" Width="70"/>
+                                <DataGridTextColumn Header="Error" Binding="{Binding ErrorMessage}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                            <Button Content="Clear History" 
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    Command="{Binding ClearHistoryCommand}"
+                                    Margin="0,0,10,0"/>
+                            <Button Content="Export CSV" 
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding ExportHistoryCsvCommand}"
+                                    Margin="0,0,10,0"/>
+                            <Button Content="Close" 
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding CloseHistoryCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

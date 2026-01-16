@@ -1,0 +1,99 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.CertificationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel>
+                <TextBlock Text="Certifications &amp; Calibrations" Style="{DynamicResource HeadingLarge}" Margin="0,0,0,5"/>
+                <TextBlock Text="Track equipment certifications and calibration schedules" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"/>
+            </StackPanel>
+            
+            <Button Grid.Column="1" Style="{DynamicResource PrimaryButton}" Command="{Binding AddCertificationCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="Plus" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Add Certification"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+        
+        <!-- Summary Cards -->
+        <Grid Grid.Row="1" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Style="{DynamicResource CardBorder}" Margin="0,0,15,0">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="AlertCircleOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource ErrorBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding ExpiredCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource ErrorBrush}"/>
+                    <TextBlock Text="Expired" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="1" Style="{DynamicResource CardBorder}" Margin="0,0,15,0">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="ClockAlertOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource WarningBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="Expiring Soon" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="2" Style="{DynamicResource CardBorder}" Margin="0,0,15,0">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="WrenchOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource InfoBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding CalibrationDueCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource InfoBrush}"/>
+                    <TextBlock Text="Calibration Due" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="3" Style="{DynamicResource CardBorder}">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="CheckCircleOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource SuccessBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding ValidCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource SuccessBrush}"/>
+                    <TextBlock Text="Valid" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- Certifications List -->
+        <Border Grid.Row="2" Style="{DynamicResource CardBorder}" Padding="0">
+            <DataGrid ItemsSource="{Binding Certifications}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Asset #" Binding="{Binding Equipment.AssetNumber}" Width="120"/>
+                    <DataGridTextColumn Header="Equipment" Binding="{Binding Equipment.Description}" Width="*"/>
+                    <DataGridTextColumn Header="Certificate Type" Binding="{Binding CertificateType}" Width="150"/>
+                    <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="130"/>
+                    <DataGridTextColumn Header="Issue Date" Binding="{Binding IssueDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="120"/>
+                    <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="120"/>
+                    <DataGridTextColumn Header="Days Left" Binding="{Binding DaysUntilExpiry}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

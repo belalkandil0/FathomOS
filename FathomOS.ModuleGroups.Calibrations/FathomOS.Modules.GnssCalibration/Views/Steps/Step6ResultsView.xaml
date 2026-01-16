@@ -1,0 +1,425 @@
+<UserControl x:Class="FathomOS.Modules.GnssCalibration.Views.Steps.Step6ResultsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:FathomOS.Modules.GnssCalibration.Converters"
+             d:DesignHeight="750" d:DesignWidth="1200"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+    
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        
+        <!-- Improved Table Styles with better contrast -->
+        <Style x:Key="TableHeader" TargetType="Border">
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style x:Key="TableHeaderText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <!-- White background with dark text for readability -->
+        <Style x:Key="TableCell" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style x:Key="TableCellAlt" TargetType="Border" BasedOn="{StaticResource TableCell}">
+            <Setter Property="Background" Value="#F9FAFB"/>
+        </Style>
+        <Style x:Key="CellText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+        </Style>
+        <Style x:Key="RowLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- Highlight row style for important values -->
+        <Style x:Key="HighlightCell" TargetType="Border">
+            <Setter Property="Background" Value="#EBF5FF"/>
+            <Setter Property="BorderBrush" Value="#BFDBFE"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style x:Key="HighlightText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1E40AF"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="20,15" Margin="0,0,0,15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="6" Padding="10,4" Margin="0,0,12,0">
+                            <TextBlock Text="STEP 6" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+                        <TextBlock Text="Statistical Results" FontSize="22" FontWeight="SemiBold"
+                                   Foreground="#1E3A5F" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="C-O (Computed minus Observed) statistical analysis with 3σ filtering" 
+                               Foreground="#666" FontSize="12" Margin="0,8,0,0"/>
+                </StackPanel>
+                
+                <!-- Status Badge -->
+                <Border Grid.Column="1" CornerRadius="25" Padding="20,10"
+                        Background="{Binding TolerancePassed, Converter={StaticResource BoolToColorConverter}, FallbackValue=#4CAF50}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="CheckCircle" 
+                                                     Width="24" Height="24" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Statistics.ToleranceStatus, FallbackValue=PASS, Mode=OneWay}" 
+                                       Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Statistics.FilteredStatistics.TwoDRMS, StringFormat='2DRMS: {0:F4}', Mode=OneWay}" 
+                                       Foreground="White" FontSize="11" Opacity="0.9"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Summary Cards -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="15" Margin="0,0,0,15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Total Points -->
+                <Border Grid.Column="0" Background="{DynamicResource InfoSubtleBrush}" CornerRadius="8" Padding="15,12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL POINTS" FontSize="9" FontWeight="Bold" Foreground="#0369A1"/>
+                        <TextBlock Text="{Binding TotalPointCount, StringFormat='{}{0:N0}', Mode=OneWay}" 
+                                   FontSize="24" FontWeight="Bold" Foreground="#0C4A6E"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Accepted Points -->
+                <Border Grid.Column="1" Background="{DynamicResource SuccessSubtleBrush}" CornerRadius="8" Padding="15,12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="ACCEPTED" FontSize="9" FontWeight="Bold" Foreground="#15803D"/>
+                        <TextBlock Text="{Binding Statistics.FilteredStatistics.SampleCount, StringFormat='{}{0:N0}', Mode=OneWay}" 
+                                   FontSize="24" FontWeight="Bold" Foreground="#166534"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Rejected Points -->
+                <Border Grid.Column="2" Background="{DynamicResource ErrorSubtleBrush}" CornerRadius="8" Padding="15,12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="REJECTED" FontSize="9" FontWeight="Bold" Foreground="#DC2626"/>
+                        <TextBlock Text="{Binding RejectedPointCount, StringFormat='{}{0:N0}', Mode=OneWay}" 
+                                   FontSize="24" FontWeight="Bold" Foreground="#991B1B"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- 2DRMS -->
+                <Border Grid.Column="3" Background="{DynamicResource PrimaryBrush}" CornerRadius="8" Padding="15,12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="2DRMS" FontSize="9" FontWeight="Bold" Foreground="White" Opacity="0.8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Statistics.FilteredStatistics.TwoDRMS, StringFormat=F4, Mode=OneWay}" 
+                                       FontSize="22" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="{Binding Project.UnitAbbreviation, Mode=OneWay}" FontSize="10" 
+                                       Foreground="White" Opacity="0.7" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Tolerance -->
+                <Border Grid.Column="4" Background="{DynamicResource PanelHighlightBrush}" CornerRadius="8" Padding="15,12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="TOLERANCE" FontSize="9" FontWeight="Bold" Foreground="#7C3AED"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Project.ToleranceValue, StringFormat=F3, Mode=OneWay}" 
+                                       FontSize="22" FontWeight="Bold" Foreground="#5B21B6"/>
+                            <TextBlock Text="{Binding Project.UnitAbbreviation, Mode=OneWay}" FontSize="10" 
+                                       Foreground="#7C3AED" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Sigma Threshold -->
+                <Border Grid.Column="5" Background="{DynamicResource WarningSubtleBrush}" CornerRadius="8" Padding="15,12">
+                    <StackPanel>
+                        <TextBlock Text="σ THRESHOLD" FontSize="9" FontWeight="Bold" Foreground="#B45309"/>
+                        <TextBlock Text="{Binding Project.SigmaThreshold, StringFormat='{}{0}σ', Mode=OneWay}" 
+                                   FontSize="22" FontWeight="Bold" Foreground="#92400E"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Statistics Tables -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Raw Data Statistics Table -->
+                <Border Grid.Column="0" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="#EF4444" CornerRadius="4" Padding="8,4" Margin="0,0,10,0">
+                                <TextBlock Text="RAW" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                            </Border>
+                            <TextBlock Text="Raw Statistics (Before Filtering)" FontSize="14" FontWeight="SemiBold" 
+                                       Foreground="#374151" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Header Row -->
+                                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource TableHeader}">
+                                    <TextBlock Text="Stat" Style="{StaticResource TableHeaderText}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource TableHeader}">
+                                    <TextBlock Text="ΔE" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource TableHeader}">
+                                    <TextBlock Text="ΔN" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="3" Style="{StaticResource TableHeader}">
+                                    <TextBlock Text="ΔH" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="4" Style="{StaticResource TableHeader}">
+                                    <TextBlock Text="Radial" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                
+                                <!-- Mean Row -->
+                                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="Mean" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaMeanEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaMeanNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaMeanHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.MeanRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- StdDev Row -->
+                                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="Std Dev" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaStdDevEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaStdDevNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="3" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaStdDevHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="4" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.StdDevRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- RMS Row -->
+                                <Border Grid.Row="3" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="RMS" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaRmsEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaRmsNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.DeltaRmsHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.RmsRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- 2DRMS Row (Highlighted) -->
+                                <Border Grid.Row="4" Grid.Column="0" Style="{StaticResource HighlightCell}"><TextBlock Text="2DRMS" Style="{StaticResource RowLabel}" FontWeight="Bold" Foreground="#1E40AF"/></Border>
+                                <Border Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource HighlightCell}">
+                                    <TextBlock Text="{Binding Statistics.RawStatistics.TwoDRMS, StringFormat=F4, Mode=OneWay}" Style="{StaticResource HighlightText}"/>
+                                </Border>
+                                
+                                <!-- CEP 50% -->
+                                <Border Grid.Row="5" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="CEP 50%" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource TableCellAlt}">
+                                    <TextBlock Text="{Binding Statistics.RawStatistics.Cep50, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}" HorizontalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- CEP 95% -->
+                                <Border Grid.Row="6" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="CEP 95%" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource TableCell}">
+                                    <TextBlock Text="{Binding Statistics.RawStatistics.Cep95, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}" HorizontalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- Max -->
+                                <Border Grid.Row="7" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="Max" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="1" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.MaxDeltaEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="2" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.MaxDeltaNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="3" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.MaxDeltaHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="4" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.RawStatistics.MaxRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- Min -->
+                                <Border Grid.Row="8" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="Min" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.MinDeltaEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.MinDeltaNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.MinDeltaHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.RawStatistics.MinRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Filtered Statistics Table -->
+                <Border Grid.Column="2" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="#22C55E" CornerRadius="4" Padding="8,4" Margin="0,0,10,0">
+                                <TextBlock Text="FILTERED" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                            </Border>
+                            <TextBlock Text="Filtered Statistics (After 3σ)" FontSize="14" FontWeight="SemiBold" 
+                                       Foreground="#374151" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Header Row -->
+                                <Border Grid.Row="0" Grid.Column="0" Background="#166534" Padding="10,8">
+                                    <TextBlock Text="Stat" Style="{StaticResource TableHeaderText}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="1" Background="#166534" Padding="10,8">
+                                    <TextBlock Text="ΔE" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="2" Background="#166534" Padding="10,8">
+                                    <TextBlock Text="ΔN" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="3" Background="#166534" Padding="10,8">
+                                    <TextBlock Text="ΔH" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                <Border Grid.Row="0" Grid.Column="4" Background="#166534" Padding="10,8">
+                                    <TextBlock Text="Radial" Style="{StaticResource TableHeaderText}"/>
+                                </Border>
+                                
+                                <!-- Mean Row -->
+                                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="Mean" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaMeanEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaMeanNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaMeanHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="1" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MeanRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- StdDev Row -->
+                                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="Std Dev" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaStdDevEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaStdDevNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="3" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaStdDevHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="2" Grid.Column="4" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.StdDevRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- RMS Row -->
+                                <Border Grid.Row="3" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="RMS" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaRmsEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaRmsNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.DeltaRmsHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="3" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.RmsRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- 2DRMS Row (Highlighted Green) -->
+                                <Border Grid.Row="4" Grid.Column="0" Background="{DynamicResource SuccessSubtleBrush}" BorderBrush="#86EFAC" BorderThickness="0,0,1,1" Padding="10,8">
+                                    <TextBlock Text="2DRMS" Style="{StaticResource RowLabel}" FontWeight="Bold" Foreground="#166534"/>
+                                </Border>
+                                <Border Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="4" Background="{DynamicResource SuccessSubtleBrush}" BorderBrush="#86EFAC" BorderThickness="0,0,1,1" Padding="10,8">
+                                    <TextBlock Text="{Binding Statistics.FilteredStatistics.TwoDRMS, StringFormat=F4, Mode=OneWay}" 
+                                               FontSize="14" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center" FontFamily="Consolas"/>
+                                </Border>
+                                
+                                <!-- CEP 50% -->
+                                <Border Grid.Row="5" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="CEP 50%" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource TableCellAlt}">
+                                    <TextBlock Text="{Binding Statistics.FilteredStatistics.Cep50, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}" HorizontalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- CEP 95% -->
+                                <Border Grid.Row="6" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="CEP 95%" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource TableCell}">
+                                    <TextBlock Text="{Binding Statistics.FilteredStatistics.Cep95, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}" HorizontalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- Max -->
+                                <Border Grid.Row="7" Grid.Column="0" Style="{StaticResource TableCellAlt}"><TextBlock Text="Max" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="1" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MaxDeltaEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="2" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MaxDeltaNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="3" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MaxDeltaHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="7" Grid.Column="4" Style="{StaticResource TableCellAlt}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MaxRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                
+                                <!-- Min -->
+                                <Border Grid.Row="8" Grid.Column="0" Style="{StaticResource TableCell}"><TextBlock Text="Min" Style="{StaticResource RowLabel}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="1" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MinDeltaEasting, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="2" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MinDeltaNorthing, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="3" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MinDeltaHeight, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                                <Border Grid.Row="8" Grid.Column="4" Style="{StaticResource TableCell}"><TextBlock Text="{Binding Statistics.FilteredStatistics.MinRadial, StringFormat=F4, Mode=OneWay}" Style="{StaticResource CellText}"/></Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,380 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.GnssCalibration.Views.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="GNSS Calibration - Help" 
+        Height="700" Width="950"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F7FA"
+        TitleCharacterCasing="Normal"
+        BorderThickness="1"
+        BorderBrush="#1E3A5F">
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Navigation -->
+        <Border Grid.Column="0" Background="#1E3A5F">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Logo Area -->
+                <Border Grid.Row="0" Padding="15,20">
+                    <StackPanel>
+                        <TextBlock Text="GNSS Calibration" Foreground="White" FontSize="17" FontWeight="Bold"/>
+                        <TextBlock Text="Help &amp; Documentation" Foreground="White" Opacity="0.7" FontSize="11" Margin="0,5,0,0"/>
+                        <TextBlock Text="Version 4.5.4" Foreground="#4A90D9" FontSize="11" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Navigation List -->
+                <ListBox Grid.Row="1" x:Name="NavList" Background="Transparent" BorderThickness="0"
+                         SelectionChanged="NavList_SelectionChanged">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Padding" Value="15,12"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#2E4A6F"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#2E4A6F"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    
+                    <ListBoxItem Tag="overview">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="InformationOutline" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Overview" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="workflow">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FormatListNumbered" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="7-Step Workflow" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="charts">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ChartLine" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="12 Chart Types" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="statistics">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ChartBar" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Statistics Guide" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="shortcuts">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Keyboard" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Keyboard Shortcuts" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+            </Grid>
+        </Border>
+        
+        <!-- Right Content -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30">
+                
+                <!-- Overview Content -->
+                <StackPanel x:Name="OverviewPanel" Visibility="Visible">
+                    <TextBlock Text="GNSS Calibration Module" FontSize="26" FontWeight="Bold" Foreground="#1E3A5F"/>
+                    <TextBlock Text="Version 4.5.4 - January 2025" FontSize="12" Foreground="#666" Margin="0,5,0,20"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="24" Foreground="#333">
+                        The GNSS Calibration Module compares positions from two GNSS systems to calculate 
+                        comprehensive accuracy metrics including 2DRMS (Two-Dimensional Root Mean Square). 
+                        This tool follows a 7-step wizard workflow for systematic data processing, 
+                        quality control, and professional report generation.
+                    </TextBlock>
+                    
+                    <TextBlock Text="Key Features" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A5F" Margin="0,25,0,12"/>
+                    <StackPanel Margin="10,0,0,0">
+                        <TextBlock Text="• NPD/CSV file parsing with intelligent auto-column detection" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• Configurable sigma-based outlier filtering (1σ to 4σ)" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• Comprehensive statistics: 2DRMS, CEP50, CEP95, Error Ellipse" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• 12 professional chart types with theme customization" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• PDF report generation with company branding" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• Excel workbook export with multiple worksheets" FontSize="13" Margin="0,4"/>
+                        <TextBlock Text="• Dark/Light theme support" FontSize="13" Margin="0,4"/>
+                    </StackPanel>
+                    
+                    <TextBlock Text="What is 2DRMS?" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A5F" Margin="0,25,0,12"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="24" Foreground="#333">
+                        2DRMS (2× Distance Root Mean Square) represents the radius of a circle containing
+                        approximately 95-98% of position fixes. It is calculated as 2 × √(σE² + σN²) where
+                        σE and σN are the standard deviations of Easting and Northing differences between 
+                        the two GNSS systems being compared.
+                    </TextBlock>
+                </StackPanel>
+                
+                <!-- Workflow Content -->
+                <StackPanel x:Name="WorkflowPanel" Visibility="Collapsed">
+                    <TextBlock Text="7-Step Workflow" FontSize="26" FontWeight="Bold" Foreground="#1E3A5F" Margin="0,0,0,20"/>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#4A90D9" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="1" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Project Setup" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Enter project details (vessel, client, location) and select the NPD/CSV data file to analyze." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#4A90D9" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="2" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Data Preview &amp; Column Mapping" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Preview the loaded data and configure column mappings. Use auto-detect or manually select columns for each coordinate." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#4A90D9" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="3" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Processing Settings" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Configure sigma threshold for outlier filtering (default 3σ), tolerance limits, and output units (meters/feet)." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#4A90D9" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="4" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Process &amp; Align Data" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Process the data to calculate delta values (ΔE, ΔN, ΔH) between the two GNSS systems. Click 'Run Analysis' to proceed." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#4A90D9" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Quality Control" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Review and filter outliers. Auto-rejected points (based on sigma) can be manually accepted/rejected. View point-by-point data." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#2E7D32" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Statistics &amp; Results" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="View comprehensive statistics including 2DRMS, CEP50, CEP95, mean/max errors, and detailed comparison tables for both raw and filtered data." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#E67E22" CornerRadius="14" Width="28" Height="28">
+                                    <TextBlock Text="7" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                </Border>
+                                <TextBlock Text="Charts &amp; Export" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Review all 12 chart types with customizable themes. Click 'Complete &amp; Export' to add initials and generate PDF/Excel reports." Margin="40,6,0,0" Foreground="#555" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Charts Content -->
+                <StackPanel x:Name="ChartsPanel" Visibility="Collapsed">
+                    <TextBlock Text="12 Professional Chart Types" FontSize="26" FontWeight="Bold" Foreground="#1E3A5F" Margin="0,0,0,20"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Foreground="#333" Margin="0,0,0,20">
+                        The module provides 12 different visualization types to analyze GNSS comparison data from multiple perspectives. 
+                        All charts support theme customization and can be exported to PNG images.
+                    </TextBlock>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,15,15">
+                                <TextBlock Text="1. Delta Scatter" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="ΔE vs ΔN with CEP50, CEP95, 2DRMS circles" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="15,0,0,15">
+                                <TextBlock Text="2. 2DRMS Circle" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Error ellipse with confidence levels (39%, 68%, 95%, 99%)" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,15">
+                                <TextBlock Text="3. Time Series" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="ΔE, ΔN, Radial error over time" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="15,0,0,15">
+                                <TextBlock Text="4. Histogram" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Radial error distribution with normal curve" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,15,15">
+                                <TextBlock Text="5. Q-Q Plot" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Normal probability plot for distribution analysis" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="15,0,0,15">
+                                <TextBlock Text="6. CDF" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Cumulative Distribution Function" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,15,15">
+                                <TextBlock Text="7. Height Analysis" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="ΔH over time with ±1σ bands" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="1" Margin="15,0,0,15">
+                                <TextBlock Text="8. Polar Error" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Error distribution by compass bearing (N/E/S/W)" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,15,15">
+                                <TextBlock Text="9. Error Components" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Bar chart: Mean, StdDev, RMS for each axis" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="4" Grid.Column="1" Margin="15,0,0,15">
+                                <TextBlock Text="10. Running Stats" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Moving average trend analysis" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,15,0">
+                                <TextBlock Text="11. Raw Position" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="System 1 vs System 2 raw positions" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="5" Grid.Column="1" Margin="15,0,0,0">
+                                <TextBlock Text="12. Filtered Position" FontWeight="SemiBold" FontSize="13" Foreground="#1E3A5F"/>
+                                <TextBlock Text="Filtered position comparison" FontSize="11" Foreground="#666" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Statistics Content -->
+                <StackPanel x:Name="StatisticsPanel" Visibility="Collapsed">
+                    <TextBlock Text="Statistics Guide" FontSize="26" FontWeight="Bold" Foreground="#1E3A5F" Margin="0,0,0,20"/>
+                    
+                    <TextBlock Text="2DRMS (Two-Distance RMS)" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A5F" Margin="0,0,0,10"/>
+                    <Border Background="White" CornerRadius="6" Padding="12" Margin="0,0,0,15">
+                        <TextBlock Text="Formula: 2DRMS = 2 × √(σE² + σN²)" FontFamily="Consolas" FontSize="13" Foreground="#1E3A5F"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Foreground="#333" Margin="0,0,0,15">
+                        The 2DRMS represents the radius of a circle centered on the mean position that
+                        contains approximately 95-98% of all position fixes. This is the primary accuracy
+                        metric for horizontal positioning in survey applications.
+                    </TextBlock>
+                    
+                    <TextBlock Text="CEP (Circular Error Probable)" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A5F" Margin="0,15,0,10"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Foreground="#333" Margin="0,0,0,15">
+                        <Run FontWeight="SemiBold">CEP50:</Run> Radius containing 50% of positions (median accuracy)
+                        <LineBreak/>
+                        <Run FontWeight="SemiBold">CEP95:</Run> Radius containing 95% of positions
+                        <LineBreak/><LineBreak/>
+                        CEP values are calculated from the actual radial distance distribution and provide
+                        intuitive measures of positioning accuracy without assuming a normal distribution.
+                    </TextBlock>
+                    
+                    <TextBlock Text="Sigma-Based Filtering" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A5F" Margin="0,15,0,10"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Foreground="#333">
+                        The sigma-based outlier filter removes points where the radial distance exceeds
+                        the configured threshold (default 3σ). Under a normal distribution:
+                        <LineBreak/>• 1σ removes ~32% of points
+                        <LineBreak/>• 2σ removes ~5% of points
+                        <LineBreak/>• 3σ removes ~0.3% of points (recommended)
+                        <LineBreak/>• 4σ removes ~0.006% of points
+                        <LineBreak/><LineBreak/>
+                        Rejected points can be manually reviewed and re-accepted in the QC step.
+                    </TextBlock>
+                </StackPanel>
+                
+                <!-- Shortcuts Content -->
+                <StackPanel x:Name="ShortcutsPanel" Visibility="Collapsed">
+                    <TextBlock Text="Keyboard Shortcuts" FontSize="26" FontWeight="Bold" Foreground="#1E3A5F" Margin="0,0,0,20"/>
+                    
+                    <Border Background="White" CornerRadius="8" Padding="25">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Ctrl + O" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Open NPD/CSV file" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Ctrl + S" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Save project" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Ctrl + N" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="New project" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Ctrl + E" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="Export to Excel" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Ctrl + P" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="Export to PDF" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="F1" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="Open Help window" FontSize="13" Margin="0,6"/>
+                            
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Escape" FontWeight="SemiBold" FontSize="13" Margin="0,6"/>
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="Close dialog / Cancel operation" FontSize="13" Margin="0,6"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</mah:MetroWindow>

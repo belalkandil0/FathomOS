@@ -1,0 +1,110 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.Dialogs.CertificationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters"
+        Title="{Binding DialogTitle}"
+        Height="550" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1">
+    
+    <mah:MetroWindow.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="25">
+            <StackPanel>
+                <TextBlock Text="EQUIPMENT" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Select Equipment" Style="{DynamicResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding EquipmentList}" 
+                          SelectedItem="{Binding SelectedEquipment}"
+                          DisplayMemberPath="Name" Margin="0,0,0,15"/>
+                
+                <TextBlock Text="Selected Asset #" Style="{DynamicResource FieldLabel}"
+                           Visibility="{Binding HasSelectedEquipment, Converter={StaticResource BoolToVisibility}}"/>
+                <TextBlock Text="{Binding SelectedEquipment.AssetNumber}" 
+                           Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"
+                           Visibility="{Binding HasSelectedEquipment, Converter={StaticResource BoolToVisibility}}"
+                           Margin="0,0,0,15"/>
+                
+                <Separator Margin="0,10"/>
+                
+                <TextBlock Text="CERTIFICATION DETAILS" FontWeight="Bold" Margin="0,15,0,10"/>
+                
+                <TextBlock Text="Certificate Type" Style="{DynamicResource FieldLabel}"/>
+                <ComboBox SelectedItem="{Binding CertificateType}" IsEditable="True" Margin="0,0,0,10">
+                    <ComboBoxItem Content="Calibration"/>
+                    <ComboBoxItem Content="Safety"/>
+                    <ComboBoxItem Content="Load Test"/>
+                    <ComboBoxItem Content="Pressure Test"/>
+                    <ComboBoxItem Content="Inspection"/>
+                    <ComboBoxItem Content="Classification"/>
+                    <ComboBoxItem Content="Manufacturer"/>
+                    <ComboBoxItem Content="Other"/>
+                </ComboBox>
+                
+                <TextBlock Text="Certificate Number" Style="{DynamicResource FieldLabel}"/>
+                <TextBox Text="{Binding CertificateNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Certifying Body" Style="{DynamicResource FieldLabel}"/>
+                <TextBox Text="{Binding CertifyingBody, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Margin="0,0,5,10">
+                        <TextBlock Text="Issue Date" Style="{DynamicResource FieldLabel}"/>
+                        <DatePicker SelectedDate="{Binding IssueDate}"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Margin="5,0,0,10">
+                        <TextBlock Text="Expiry Date *" Style="{DynamicResource FieldLabel}"/>
+                        <DatePicker SelectedDate="{Binding ExpiryDate}"/>
+                    </StackPanel>
+                </Grid>
+                
+                <TextBlock Text="Notes" Style="{DynamicResource FieldLabel}"/>
+                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" 
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="80"
+                         VerticalScrollBarVisibility="Auto"/>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Footer Buttons -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="1" Content="Cancel" Width="100" Margin="0,0,10,0"
+                        Style="{DynamicResource SecondaryButton}" Command="{Binding CancelCommand}"/>
+                
+                <Button Grid.Column="2" Content="Save" Width="100"
+                        Style="{DynamicResource PrimaryButton}" Command="{Binding SaveCommand}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

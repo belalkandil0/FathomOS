@@ -1,0 +1,73 @@
+{
+    "moduleId": "SurveyLogbook",
+    "displayName": "Survey Electronic Logbook",
+    "description": "Comprehensive survey data logging with NaviPac integration, DVR monitoring, position fixes, and DPR/Shift Handover management. Features real-time data monitoring and dynamic field configuration. Supports Excel, PDF, Word, and .slog exports.",
+    "version": "11.0.0",
+    "author": "Fathom OS Team",
+    "category": "Data Management",
+    "displayOrder": 15,
+    "icon": "icon.png",
+    
+    "CertificateCode": "SL",
+    "CertificateTitle": "Survey Electronic Logbook Processing Verification Certificate",
+    "CertificateStatement": "This is to certify that the survey data logging, DVR monitoring, position fix capture, and Daily Progress Report documentation has been successfully completed using validated data capture and processing procedures in accordance with industry standards for marine survey operations.",
+    
+    "supportedFileTypes": [".slog", ".slogz", ".npc", ".wp2", ".out2"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "Real-time NaviPac TCP/UDP integration",
+        "Real-time Data Monitor window",
+        "Dynamic field configuration system",
+        "NaviPac .out2 template import",
+        "Field template save/load system",
+        "Selectable TCP (outbound) or UDP (listener) protocols",
+        "Configurable NaviPac data field capture",
+        "Configurable data separator (comma, space, etc.)",
+        "Auto-detect or manual field mapping modes",
+        "Debug logging for NaviPac troubleshooting",
+        "Windows Firewall rule management for UDP",
+        "Automatic position fix file monitoring (.npc)",
+        "Waypoint file monitoring (.wp2)",
+        "VisualWorks DVR folder monitoring",
+        "DVR Register logging",
+        "Position Fix logging",
+        "EIVA Data Log management",
+        "DPR (Daily Progress Report) creation",
+        "Shift Handover documentation",
+        "Crew management tracking",
+        "Transponder management",
+        "Subsea equipment tracking",
+        "Excel export (ClosedXML)",
+        "PDF report generation (QuestPDF)",
+        "Word document export (DPR)",
+        "Custom .slog file format for managers",
+        "Certificate generation support"
+    ],
+    "requiredConnections": [
+        {
+            "name": "NaviPac Network",
+            "type": "TCP/IP or UDP",
+            "defaultPort": 4001,
+            "required": false,
+            "description": "TCP connects to NaviPac server, UDP listens for broadcasts"
+        }
+    ],
+    "monitoredFolders": [
+        {
+            "name": "NaviPac Fix Output",
+            "fileTypes": ["*.npc"],
+            "description": "Position fix report files from NaviPac"
+        },
+        {
+            "name": "NaviPac Waypoints",
+            "fileTypes": ["*.wp2"],
+            "description": "Waypoint definition files from NaviPac"
+        },
+        {
+            "name": "VisualWorks DVR",
+            "fileTypes": ["*.wmv", "*.mpg", "*.mp4", "*.m2t", "*.ts"],
+            "description": "DVR video recording files from VisualWorks"
+        }
+    ]
+}

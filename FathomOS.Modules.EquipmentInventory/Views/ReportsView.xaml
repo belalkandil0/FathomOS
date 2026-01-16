@@ -1,0 +1,154 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.ReportsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,30">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Reports" Style="{DynamicResource HeadingLarge}" Margin="0,0,0,5"/>
+                <TextBlock Text="Generate and export equipment reports" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"/>
+            </StackPanel>
+            
+            <!-- Custom Report Builder Button -->
+            <Button Grid.Column="1" Style="{DynamicResource PrimaryButton}" 
+                    Command="{Binding OpenReportBuilderCommand}" VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="ChartBoxOutline" Width="18" Height="18" Margin="0,0,8,0"/>
+                    <TextBlock Text="Custom Report Builder"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+        
+        <!-- Report Cards Grid -->
+        <ItemsControl Grid.Row="1">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="3"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            
+            <!-- Equipment Inventory Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,20,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#00D4AA" Offset="0"/>
+                                <GradientStop Color="#00B4D8" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <iconPacks:PackIconMaterial Kind="FileDocumentOutline" Width="28" Height="28" 
+                                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Equipment Inventory" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Complete list of all equipment with current status, location, and certification details." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Excel" Style="{DynamicResource SecondaryButton}" Margin="0,0,10,0"
+                                Command="{Binding ExportEquipmentExcelCommand}"/>
+                        <Button Content="PDF" Style="{DynamicResource SecondaryButton}"
+                                Command="{Binding ExportEquipmentPdfCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Certification Status Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,20,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left"
+                            Background="#15D29922">
+                        <iconPacks:PackIconMaterial Kind="CertificateOutline" Width="28" Height="28" 
+                                                    Foreground="{DynamicResource WarningBrush}" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Certification Status" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Overview of equipment certifications including expired, expiring soon, and valid items." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <Button Content="Generate Report" Style="{DynamicResource SecondaryButton}"
+                            Command="{Binding ExportCertificationsReportCommand}"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Calibration Due Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left"
+                            Background="#1558A6FF">
+                        <iconPacks:PackIconMaterial Kind="WrenchClock" Width="28" Height="28" 
+                                                    Foreground="{DynamicResource InfoBrush}" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Calibration Due" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="List of equipment with upcoming or overdue calibration requirements." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <Button Content="Generate Report" Style="{DynamicResource SecondaryButton}"
+                            Command="{Binding ExportCalibrationsReportCommand}"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Manifest History Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,20,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left"
+                            Background="#159E9E9E">
+                        <iconPacks:PackIconMaterial Kind="TruckOutline" Width="28" Height="28" 
+                                                    Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Manifest History" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Complete history of all inward and outward manifests with status tracking." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <Button Content="Generate Report" Style="{DynamicResource SecondaryButton}"
+                            Command="{Binding ExportManifestHistoryReportCommand}"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Location Summary Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,20,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left"
+                            Background="#153FB950">
+                        <iconPacks:PackIconMaterial Kind="MapMarkerMultipleOutline" Width="28" Height="28" 
+                                                    Foreground="{DynamicResource SuccessBrush}" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Location Summary" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Equipment count and value breakdown by location including bases and vessels." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <Button Content="Generate Report" Style="{DynamicResource SecondaryButton}"
+                            Command="{Binding ExportLocationSummaryReportCommand}"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Asset Movement Report -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <Border Width="60" Height="60" CornerRadius="12" Margin="0,0,0,20" HorizontalAlignment="Left"
+                            Background="#15F85149">
+                        <iconPacks:PackIconMaterial Kind="SwapHorizontal" Width="28" Height="28" 
+                                                    Foreground="{DynamicResource ErrorBrush}" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Asset Movement" Style="{DynamicResource HeadingMedium}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Tracking history showing all equipment movements between locations." 
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                    <Button Content="Generate Report" Style="{DynamicResource SecondaryButton}"
+                            Command="{Binding ExportAssetMovementReportCommand}"/>
+                </StackPanel>
+            </Border>
+        </ItemsControl>
+    </Grid>
+</UserControl>

@@ -1,0 +1,247 @@
+<Window x:Class="LicenseGeneratorUI.Views.EditLicenseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit License - Fathom OS" 
+        Height="750" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        MinHeight="650" MinWidth="500"
+        Background="#F8FAFC">
+
+    <Window.Resources>
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="✏️ Edit License" FontSize="20" FontWeight="SemiBold" Foreground="#1E293B"/>
+            <TextBlock x:Name="CustomerInfoText" Text="Customer: Loading..." FontSize="12" Foreground="#64748B" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Scrollable Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                
+                <!-- License Info (Read-only) -->
+                <Border Background="#E0F2FE" CornerRadius="6" Padding="12" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="License Information" FontWeight="SemiBold" Foreground="#0369A1" Margin="0,0,0,8"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="License Key:" Grid.Row="0" Grid.Column="0" Foreground="#64748B" FontSize="11"/>
+                            <TextBlock x:Name="LicenseKeyText" Text="XXXX-XXXX-XXXX-XXXX" Grid.Row="0" Grid.Column="1" FontSize="11" FontFamily="Consolas"/>
+                            
+                            <TextBlock Text="Expires:" Grid.Row="1" Grid.Column="0" Foreground="#64748B" FontSize="11" Margin="0,3,0,0"/>
+                            <TextBlock x:Name="ExpiresText" Text="2025-12-31" Grid.Row="1" Grid.Column="1" FontSize="11" Margin="0,3,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- White-Label Branding Section -->
+                <Border Background="White" CornerRadius="6" Padding="15" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="🏷️ White-Label Branding" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="Optional branding for resellers and OEM partners" FontSize="11" Foreground="#64748B" Margin="0,0,0,12"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Brand Name -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,10">
+                                <TextBlock Text="Brand / Company Name" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="BrandNameTextBox" 
+                                         Style="{StaticResource ModernTextBox}" 
+                                         ToolTip="e.g., Acme Survey Solutions"/>
+                            </StackPanel>
+
+                            <!-- Licensee Code -->
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,10">
+                                <TextBlock Text="Licensee Code" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="LicenseeCodeTextBox" 
+                                         Style="{StaticResource ModernTextBox}" 
+                                         MaxLength="2"
+                                         CharacterCasing="Upper"
+                                         ToolTip="2 characters: letters (A-Z) or numbers (0-9), e.g., S7, AC"
+                                         TextChanged="LicenseeCode_TextChanged"/>
+                            </StackPanel>
+
+                            <!-- Licensee Code Status -->
+                            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
+                                <TextBlock x:Name="LicenseeCodeStatus" 
+                                           Text="" 
+                                           FontSize="11" 
+                                           Foreground="#64748B"/>
+                            </StackPanel>
+
+                            <!-- Support Code (Read-only) -->
+                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,10">
+                                <TextBlock Text="Support Code" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="SupportCodeTextBox" 
+                                             Style="{StaticResource ModernTextBox}" 
+                                             IsReadOnly="True"
+                                             Background="#F1F5F9"/>
+                                    <Button Grid.Column="1" 
+                                            Content="🔄" 
+                                            Style="{StaticResource SmallButton}" 
+                                            ToolTip="Regenerate Support Code"
+                                            Click="RegenerateSupportCode_Click"
+                                            Margin="5,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Logo Preview -->
+                            <StackPanel Grid.Row="2" Grid.Column="2" Grid.RowSpan="2" Margin="0,0,0,10">
+                                <TextBlock Text="Logo Preview" Style="{StaticResource FieldLabel}"/>
+                                <Border Background="#F1F5F9" 
+                                        BorderBrush="#E2E8F0" 
+                                        BorderThickness="1" 
+                                        CornerRadius="4"
+                                        Width="100" Height="60"
+                                        HorizontalAlignment="Left">
+                                    <Image x:Name="LogoPreview" 
+                                           Stretch="Uniform" 
+                                           Margin="5"/>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Logo Upload -->
+                            <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,5">
+                                <TextBlock Text="Brand Logo (≤20KB PNG)" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="📁 Browse..." 
+                                            Style="{StaticResource SmallButton}" 
+                                            Click="BrowseLogo_Click"/>
+                                    <Button x:Name="ClearLogoBtn" 
+                                            Content="✕ Clear" 
+                                            Style="{StaticResource SmallButton}" 
+                                            Click="ClearLogo_Click"
+                                            Margin="5,0,0,0"
+                                            Visibility="Collapsed"/>
+                                    <TextBlock x:Name="LogoFilename" 
+                                               Text="" 
+                                               FontSize="11" 
+                                               Foreground="#64748B" 
+                                               VerticalAlignment="Center"
+                                               Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tier Selection -->
+                <StackPanel Margin="0,0,0,15">
+                    <TextBlock Text="License Tier" Style="{StaticResource SectionHeader}"/>
+                    <ComboBox x:Name="TierCombo" 
+                              Padding="10,8" 
+                              FontSize="13"
+                              SelectionChanged="TierCombo_SelectionChanged"/>
+                </StackPanel>
+
+                <!-- Module Selection -->
+                <Border Background="White" CornerRadius="6" Padding="15" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" MinHeight="150"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                            <TextBlock Text="Licensed Modules" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock x:Name="TierDescriptionText" 
+                                       Text="Select modules for this license" 
+                                       FontSize="11" 
+                                       Foreground="#64748B"/>
+                        </StackPanel>
+                        
+                        <WrapPanel x:Name="ModulesPanel" Grid.Row="1" Orientation="Horizontal">
+                            <!-- Dynamic checkboxes will be added here -->
+                        </WrapPanel>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="CancelBtn" Content="Cancel" Style="{StaticResource SecondaryButton}" Click="Cancel_Click" Margin="0,0,10,0"/>
+            <Button x:Name="SaveBtn" Content="💾 Save Changes" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,93 @@
+<UserControl x:Class="FathomOS.Modules.SurveyListing.Views.Steps.Step4_DataReview"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             >
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="20,20,20,10">
+            <TextBlock Text="Review Extracted Data" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="Verify that the survey data has been extracted correctly before processing." 
+                       Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Action Bar -->
+        <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" Padding="20,10" Margin="20,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="Load Data" Click="LoadData_Click" Width="100" Margin="0,0,10,0"
+                            IsEnabled="{Binding CanLoad}"/>
+                    <Button Content="Export Preview" Click="ExportPreview_Click" Width="100"
+                            IsEnabled="{Binding IsDataLoaded}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="20,0"/>
+
+                <CheckBox Grid.Column="2" Content="I confirm the data is correct" 
+                          IsChecked="{Binding IsDataConfirmed}" IsEnabled="{Binding IsDataLoaded}"
+                          FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <!-- Data Grid -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding SurveyPoints}" AutoGenerateColumns="False"
+                  IsReadOnly="True" Margin="20,10" CanUserAddRows="False"
+                  VirtualizingPanel.IsVirtualizing="True" EnableRowVirtualization="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="#" Binding="{Binding RecordNumber}" Width="60"/>
+                <DataGridTextColumn Header="Date/Time" Binding="{Binding DateTimeFormatted}" Width="150"/>
+                <DataGridTextColumn Header="Easting" Binding="{Binding Easting, StringFormat=F4}" Width="120"/>
+                <DataGridTextColumn Header="Northing" Binding="{Binding Northing, StringFormat=F4}" Width="120"/>
+                <DataGridTextColumn Header="Depth" Binding="{Binding DepthFormatted}" Width="100"/>
+                <DataGridTextColumn Header="Altitude" Binding="{Binding AltitudeFormatted}" Width="80"/>
+                <DataGridTextColumn Header="Heading" Binding="{Binding HeadingFormatted}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Statistics -->
+        <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}" Padding="20,10" Margin="20,0,20,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Total Records" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding TotalRecords}" FontSize="18" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Time Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding TimeRange}" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Depth Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding DepthRange}" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Warnings" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding RecordsWithWarnings}" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,119 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.HelpDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Help &amp; User Guide"
+        Height="700" Width="900"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="CanResizeWithGrip"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1">
+    
+    <!-- Resources must be declared BEFORE they are used -->
+    <mah:MetroWindow.Resources>
+        <Style x:Key="HelpNavButton" TargetType="RadioButton">
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="8" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource CardBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource CardBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="HelpHeading" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+        
+        <Style x:Key="HelpSubheading" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,20,0,10"/>
+        </Style>
+        
+        <Style x:Key="HelpParagraph" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        
+        <Style x:Key="HelpBullet" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="20,5,0,5"/>
+        </Style>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Navigation Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                BorderThickness="0,0,1,0" BorderBrush="{DynamicResource BorderBrush}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="15">
+                    <TextBlock Text="HELP TOPICS" FontSize="11" FontWeight="SemiBold" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,15" Opacity="0.7"/>
+                    
+                    <RadioButton x:Name="NavGettingStarted" Content="Getting Started" IsChecked="True"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="GettingStarted"/>
+                    <RadioButton x:Name="NavDashboard" Content="Dashboard Overview"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Dashboard"/>
+                    <RadioButton x:Name="NavEquipment" Content="Managing Equipment"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Equipment"/>
+                    <RadioButton x:Name="NavManifests" Content="Manifests &amp; Transfers"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Manifests"/>
+                    <RadioButton x:Name="NavLocations" Content="Locations &amp; Bases"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Locations"/>
+                    <RadioButton x:Name="NavSuppliers" Content="Suppliers"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Suppliers"/>
+                    <RadioButton x:Name="NavMaintenance" Content="Maintenance Tracking"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Maintenance"/>
+                    <RadioButton x:Name="NavCertifications" Content="Certifications"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Certifications"/>
+                    <RadioButton x:Name="NavReports" Content="Reports &amp; Export"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Reports"/>
+                    <RadioButton x:Name="NavKeyboard" Content="Keyboard Shortcuts"
+                                 Style="{StaticResource HelpNavButton}" Checked="HelpNav_Checked" Tag="Keyboard"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+        
+        <!-- Content Area -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="30">
+            <StackPanel x:Name="HelpContent">
+                <!-- Content will be set dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</mah:MetroWindow>

@@ -1,0 +1,673 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SoundVelocity.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:converters="clr-namespace:FathomOS.Modules.SoundVelocity.Converters"
+        Title="CTD/Sound Velocity Profile - S7 Fathom"
+        Height="900" Width="1400"
+        MinHeight="700" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource PrimaryBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource PrimaryBrush}"
+        TitleCharacterCasing="Normal">
+
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <converters:StepToVisibilityConverter x:Key="StepToVis"/>
+        <converters:EnumDescriptionConverter x:Key="EnumDesc"/>
+        <converters:IndexPlusOneConverter x:Key="IndexPlusOne"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" Padding="20,15">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="WaveArrowUp" Width="28" Height="28" 
+                                                 Foreground="{DynamicResource PrimaryBrush}" 
+                                                 VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="CTD/Sound Velocity Profile Processing" 
+                               FontSize="18" FontWeight="SemiBold" 
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="🌙" Command="{Binding ToggleThemeCommand}" 
+                            Width="35" Height="30" Margin="0,0,20,0" ToolTip="Toggle Theme"/>
+                    <TextBlock Text="Step " Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentStep}" Foreground="{DynamicResource PrimaryBrush}" 
+                               FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text=" of 5" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Step Indicator -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <!-- Step 1 -->
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="24" Height="24" Fill="{DynamicResource PrimaryBrush}"/>
+                    <TextBlock Text="1. Project &amp; File" Margin="5,0,15,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
+                <Rectangle Width="25" Height="2" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center"/>
+                <!-- Step 2 -->
+                <StackPanel Orientation="Horizontal" Margin="10,0">
+                    <Ellipse Width="24" Height="24">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStep2OrHigher}" Value="True">
+                                        <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="2. Data Preview" Margin="5,0,15,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+                <Rectangle Width="25" Height="2" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center"/>
+                <!-- Step 3 -->
+                <StackPanel Orientation="Horizontal" Margin="10,0">
+                    <Ellipse Width="24" Height="24">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStep3OrHigher}" Value="True">
+                                        <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="3. Settings" Margin="5,0,15,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+                <Rectangle Width="25" Height="2" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center"/>
+                <!-- Step 4 -->
+                <StackPanel Orientation="Horizontal" Margin="10,0">
+                    <Ellipse Width="24" Height="24">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStep4OrHigher}" Value="True">
+                                        <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="4. Chart/Smooth" Margin="5,0,15,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+                <Rectangle Width="25" Height="2" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center"/>
+                <!-- Step 5 -->
+                <StackPanel Orientation="Horizontal" Margin="10,0">
+                    <Ellipse Width="24" Height="24">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStep5}" Value="True">
+                                        <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="5. Export" Margin="5,0,0,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="2" Margin="15">
+            
+            <!-- ==================== STEP 1: Project Info + File Selection ==================== -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=1}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Project Info -->
+                <Border Style="{DynamicResource CardBorder}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Project Information" Style="{DynamicResource SectionHeader}"/>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Project Title:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Column="1" Text="{Binding ProjectTitle}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="1" Text="Vessel Name:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding VesselName}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="2" Text="Location:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Location}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="3" Text="KP:" Style="{DynamicResource FieldLabel}"/>
+                                <mah:NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding KP}" StringFormat="F3" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="4" Text="Equipment:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Equipment}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="5" Text="Observed By:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ObservedBy}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="6" Text="Checked By:" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding CheckedBy}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock Grid.Row="7" Text="Cast Date/Time:" Style="{DynamicResource FieldLabel}"/>
+                                <mah:DateTimePicker Grid.Row="7" Grid.Column="1" SelectedDateTime="{Binding CastDateTime}" Margin="0,0,0,8"/>
+                            </Grid>
+
+                            <!-- Coordinates -->
+                            <TextBlock Text="Position" Style="{DynamicResource SectionHeader}" Margin="0,15,0,0"/>
+                            <TextBlock Text="Coordinate Format:" Style="{DynamicResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding CoordinateFormatOptions}" 
+                                      SelectedItem="{Binding CoordinateFormat}" Margin="0,0,0,8">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            
+                            <TextBlock Text="Latitude (e.g., 54;30;15.5N):" Style="{DynamicResource FieldLabel}"/>
+                            <TextBox Text="{Binding LatitudeString, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding CalculatedLatitude, StringFormat=→ {0:F6}°}" 
+                                       Foreground="{DynamicResource PrimaryBrush}" FontSize="11" Margin="0,0,0,8"/>
+                            
+                            <TextBlock Text="Longitude (e.g., 18;15;30.0E):" Style="{DynamicResource FieldLabel}"/>
+                            <TextBox Text="{Binding LongitudeString, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding CalculatedLongitude, StringFormat=→ {0:F6}°}" 
+                                       Foreground="{DynamicResource PrimaryBrush}" FontSize="11"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Right: File Selection -->
+                <Border Grid.Column="1" Style="{DynamicResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Load CTD/SVP File" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <TextBlock Text="The module will automatically detect the file format and parse the data." 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+                        <Button Content="📂  Select File..." Command="{Binding LoadFileCommand}" 
+                                Height="50" FontSize="16" Margin="0,0,0,20"/>
+                        
+                        <!-- File Info (shown after loading) -->
+                        <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Padding="15"
+                                Visibility="{Binding HasLoadedFile, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="✓ File Loaded Successfully" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="{DynamicResource SuccessBrush}" Margin="0,0,0,10"/>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="File:" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding LoadedFileName}" 
+                                               Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    
+                                    <TextBlock Grid.Row="1" Text="Format:" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DetectedFileType}" 
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    
+                                    <TextBlock Grid.Row="2" Text="Rows:" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LoadedRowCount}" 
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    
+                                    <TextBlock Grid.Row="3" Text="Columns:" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LoadedColumnCount}" 
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Supported formats info -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="12" Margin="0,20,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Supported File Formats:" FontWeight="SemiBold" 
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Valeport MIDAS CTD (.000, .001, .002)" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                                <TextBlock Text="• CSV / Comma-delimited (.csv, .txt)" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                                <TextBlock Text="• QINSy Export (.npd)" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                                <TextBlock Text="• Space-delimited (.log, .dat)" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                                <TextBlock Text="• Semicolon-delimited (SAIV)" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ==================== STEP 2: Data Preview & Column Mapping ==================== -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=2}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Column Detection Summary -->
+                <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="Auto-Detected Column Mapping" Style="{DynamicResource SectionHeader}"/>
+                        <TextBlock Text="Verify the detected columns below. Adjust if needed using the dropdowns." 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="Depth/Pressure:" Style="{DynamicResource FieldLabel}" FontWeight="SemiBold"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}" 
+                                          SelectedIndex="{Binding DepthColumnIndex, Converter={StaticResource IndexPlusOne}}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="5,0">
+                                <TextBlock Text="Sound Velocity:" Style="{DynamicResource FieldLabel}" FontWeight="SemiBold"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}" 
+                                          SelectedIndex="{Binding SvColumnIndex, Converter={StaticResource IndexPlusOne}}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="5,0">
+                                <TextBlock Text="Temperature:" Style="{DynamicResource FieldLabel}" FontWeight="SemiBold"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}" 
+                                          SelectedIndex="{Binding TemperatureColumnIndex, Converter={StaticResource IndexPlusOne}}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" Margin="5,0">
+                                <TextBlock Text="Salinity/Cond:" Style="{DynamicResource FieldLabel}" FontWeight="SemiBold"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}" 
+                                          SelectedIndex="{Binding SalinityColumnIndex, Converter={StaticResource IndexPlusOne}}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4" Margin="10,0,0,0">
+                                <TextBlock Text="Density:" Style="{DynamicResource FieldLabel}" FontWeight="SemiBold"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}" 
+                                          SelectedIndex="{Binding DensityColumnIndex, Converter={StaticResource IndexPlusOne}}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data Preview Grid -->
+                <Border Grid.Row="1" Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Text="Data Preview (first 100 rows)" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding PreviewData}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="{DynamicResource CardBrush}"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  GridLinesVisibility="None" CanUserAddRows="False"
+                                  CanUserSortColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding RowIndex}" Width="50"/>
+                                <DataGridTextColumn Header="Col A" Binding="{Binding Col0, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col B" Binding="{Binding Col1, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col C" Binding="{Binding Col2, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col D" Binding="{Binding Col3, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col E" Binding="{Binding Col4, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col F" Binding="{Binding Col5, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col G" Binding="{Binding Col6, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Col H" Binding="{Binding Col7, StringFormat=F3}" Width="90"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ==================== STEP 3: Processing Settings ==================== -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=3}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{DynamicResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Calculation Settings" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <TextBlock Text="Calculation Mode:" Style="{DynamicResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding CalculationModeOptions}" 
+                                  SelectedItem="{Binding SelectedCalculationMode}" Margin="0,0,0,15">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        
+                        <TextBlock Text="Sound Velocity Formula:" Style="{DynamicResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding SvFormulaOptions}" 
+                                  SelectedItem="{Binding SelectedSvFormula}" Margin="0,0,0,15">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        
+                        <TextBlock Text="Density Formula:" Style="{DynamicResource FieldLabel}"
+                                   Visibility="{Binding ShowTemperatureSalinity, Converter={StaticResource BoolToVis}}"/>
+                        <ComboBox ItemsSource="{Binding DensityFormulaOptions}" 
+                                  SelectedItem="{Binding SelectedDensityFormula}" Margin="0,0,0,15"
+                                  Visibility="{Binding ShowTemperatureSalinity, Converter={StaticResource BoolToVis}}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{DynamicResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Processing Options" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <TextBlock Text="Input Type:" Style="{DynamicResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding InputTypeOptions}" 
+                                  SelectedItem="{Binding SelectedInputType}" Margin="0,0,0,15">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        
+                        <TextBlock Text="Depth Interval (m):" Style="{DynamicResource FieldLabel}"/>
+                        <mah:NumericUpDown Value="{Binding DepthInterval}" Minimum="0.1" Maximum="100" 
+                                           Interval="0.5" StringFormat="F1" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Transducer Depth (m):" Style="{DynamicResource FieldLabel}"/>
+                        <mah:NumericUpDown Value="{Binding TransducerDepth}" Minimum="0" Maximum="50" 
+                                           Interval="0.5" StringFormat="F1" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Use latitude for gravity calculation" 
+                                  IsChecked="{Binding UseLatitudeForGravity}"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ==================== STEP 4: Visualization & Smoothing ==================== -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=4}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="320"/>
+                </Grid.ColumnDefinitions>
+                
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Text="Sound Velocity Profile Chart" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <oxy:PlotView Grid.Row="1" Model="{Binding SvpPlotModel}" 
+                                      Background="Transparent" MinHeight="400"/>
+                    </Grid>
+                </Border>
+                
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Smoothing Controls -->
+                        <Border Style="{DynamicResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Data Smoothing" Style="{DynamicResource SectionHeader}"/>
+                                
+                                <CheckBox Content="Enable Smoothing" IsChecked="{Binding EnableSmoothing}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                                
+                                <StackPanel Visibility="{Binding EnableSmoothing, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Method:" Style="{DynamicResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding SmoothingMethodOptions}" 
+                                              SelectedItem="{Binding SelectedSmoothingMethod}" Margin="0,0,0,10">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDesc}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Text="Window Size:" Style="{DynamicResource FieldLabel}"/>
+                                    <Slider Value="{Binding SmoothingWindowSize}" Minimum="3" Maximum="21" 
+                                            TickFrequency="2" IsSnapToTickEnabled="True" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{Binding SmoothingWindowSize, StringFormat=Window: {0} points}" 
+                                               Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,10"/>
+                                    
+                                    <Button Content="Apply Smoothing" Command="{Binding ApplySmoothingCommand}" Height="30"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Chart Display Options -->
+                        <Border Style="{DynamicResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Chart Display" Style="{DynamicResource SectionHeader}"/>
+                                <CheckBox Content="Show Raw Data" IsChecked="{Binding ShowRawData}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Show Smoothed Data" IsChecked="{Binding ShowSmoothedData}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"
+                                          IsEnabled="{Binding EnableSmoothing}"/>
+                                <CheckBox Content="Sound Velocity" IsChecked="{Binding ShowSvProfile}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Temperature" IsChecked="{Binding ShowTemperatureProfile}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Salinity" IsChecked="{Binding ShowSalinityProfile}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Density" IsChecked="{Binding ShowDensityProfile}" 
+                                          Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                <Button Content="Refresh Chart" Command="{Binding RefreshChartCommand}" Height="30"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Statistics -->
+                        <Border Style="{DynamicResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Statistics" Style="{DynamicResource SectionHeader}"/>
+                                <TextBlock Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5">
+                                    <Run Text="Points: "/><Run Text="{Binding Statistics.PointCount, Mode=OneWay}" FontWeight="SemiBold"/>
+                                </TextBlock>
+                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3">
+                                    <Run Text="Depth: "/><Run Text="{Binding Statistics.MinDepth, StringFormat=F1, Mode=OneWay}"/>
+                                    <Run Text=" - "/><Run Text="{Binding Statistics.MaxDepth, StringFormat=F1, Mode=OneWay}"/><Run Text=" m"/>
+                                </TextBlock>
+                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3">
+                                    <Run Text="SV: "/><Run Text="{Binding Statistics.MinSoundVelocity, StringFormat=F2, Mode=OneWay}"/>
+                                    <Run Text=" - "/><Run Text="{Binding Statistics.MaxSoundVelocity, StringFormat=F2, Mode=OneWay}"/><Run Text=" m/s"/>
+                                </TextBlock>
+                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}">
+                                    <Run Text="Temp: "/><Run Text="{Binding Statistics.MinTemperature, StringFormat=F2, Mode=OneWay}"/>
+                                    <Run Text=" - "/><Run Text="{Binding Statistics.MaxTemperature, StringFormat=F2, Mode=OneWay}"/><Run Text=" °C"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- ==================== STEP 5: Export ==================== -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=5}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="350"/>
+                </Grid.ColumnDefinitions>
+                
+                <Border Style="{DynamicResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Text="Processed Data" Style="{DynamicResource SectionHeader}"/>
+                        
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding ProcessedDataPoints}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="{DynamicResource CardBrush}"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  GridLinesVisibility="None" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Depth (m)" Binding="{Binding Depth, StringFormat=F2}" Width="90"/>
+                                <DataGridTextColumn Header="SV (m/s)" Binding="{Binding SoundVelocity, StringFormat=F2}" Width="90"/>
+                                <DataGridTextColumn Header="Temp (°C)" Binding="{Binding Temperature, StringFormat=F2}" Width="90"/>
+                                <DataGridTextColumn Header="Sal/Cond" Binding="{Binding SalinityOrConductivity, StringFormat=F3}" Width="90"/>
+                                <DataGridTextColumn Header="Density" Binding="{Binding Density, StringFormat=F4}" Width="90"/>
+                                <DataGridTextColumn Header="Press (dbar)" Binding="{Binding Pressure, StringFormat=F2}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+                
+                <StackPanel Grid.Column="1">
+                    <Border Style="{DynamicResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Export Options" Style="{DynamicResource SectionHeader}"/>
+                            
+                            <CheckBox Content="USR (QINSy)" IsChecked="{Binding ExportUsr}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                            <CheckBox Content="VEL (EIVA/NaviModel)" IsChecked="{Binding ExportVel}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                            <CheckBox Content="PRO (Generic Profile)" IsChecked="{Binding ExportPro}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                            <CheckBox Content="Excel Report (.xlsx)" IsChecked="{Binding ExportExcel}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                            <CheckBox Content="CSV (Comma Separated)" IsChecked="{Binding ExportCsv}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                            
+                            <Border Background="{DynamicResource CardBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,10"
+                                    Visibility="{Binding EnableSmoothing, Converter={StaticResource BoolToVis}}">
+                                <CheckBox Content="Export Smoothed Data Files" IsChecked="{Binding ExportSmoothed}" 
+                                          Foreground="{DynamicResource WarningBrush}" FontWeight="SemiBold"/>
+                            </Border>
+                            
+                            <TextBlock Text="Output Folder:" Style="{DynamicResource FieldLabel}"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding OutputDirectory}" IsReadOnly="True" FontSize="11"/>
+                                <Button Grid.Column="1" Content="..." Width="30" Command="{Binding BrowseOutputCommand}"/>
+                            </Grid>
+                            
+                            <Button Content="📁  Export Files" Command="{Binding ExportCommand}" 
+                                    Height="45" FontSize="14" Style="{DynamicResource PrimaryButton}"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Style="{DynamicResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Summary" Style="{DynamicResource SectionHeader}"/>
+                            <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
+                                <Run Text="Project: "/><Run Text="{Binding ProjectTitle, Mode=OneWay}" FontWeight="SemiBold"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
+                                <Run Text="Vessel: "/><Run Text="{Binding VesselName, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
+                                <Run Text="Location: "/><Run Text="{Binding Location, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
+                                <Run Text="Date: "/><Run Text="{Binding CastDateTime, StringFormat=yyyy-MM-dd HH:mm, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0">
+                                <Run Text="Points: "/><Run Text="{Binding ProcessedDataPoints.Count, Mode=OneWay}" FontWeight="SemiBold"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" Padding="15,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="1" Content="← Previous" Width="100" Margin="0,0,10,0"
+                        Command="{Binding PreviousStepCommand}" Style="{DynamicResource SecondaryButton}"/>
+                <Button Grid.Column="2" Content="{Binding NextButtonText}" Width="100"
+                        Command="{Binding NextStepCommand}" Style="{DynamicResource PrimaryButton}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

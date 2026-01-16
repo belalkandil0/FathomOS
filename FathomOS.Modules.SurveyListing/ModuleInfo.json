@@ -1,0 +1,26 @@
+{
+    "moduleId": "SurveyListing",
+    "displayName": "Survey Listing Generator",
+    "description": "Generate survey listings from NPD files with route alignment, tide corrections, smoothing, and multiple export formats (Excel, DXF, PDF).",
+    "version": "1.0.45",
+    "author": "Fathom OS",
+    "category": "Data Processing",
+    "displayOrder": 10,
+    "icon": "icon.png",
+    "supportedFileTypes": [".npd", ".rlx", ".s7p", ".tide"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "NPD file parsing with column mapping",
+        "RLX route alignment processing",
+        "Tide corrections with interpolation",
+        "Position and depth smoothing",
+        "KP and DCC calculations",
+        "Interactive survey editor with CAD tools",
+        "Spline fitting (Catmull-Rom, B-Spline, Cubic, Natural)",
+        "Interval point generation",
+        "Excel, DXF, PDF, and text export",
+        "Split-screen Plan/Profile views",
+        "Real-time smoothing preview"
+    ]
+}

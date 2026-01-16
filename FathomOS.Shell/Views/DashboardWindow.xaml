@@ -1,0 +1,445 @@
+<Window x:Class="FathomOS.Shell.Views.DashboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Fathom OS" 
+        Height="750" Width="1100"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip">
+    
+    <Window.Resources>
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Window Control Button Style -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Close Button Style -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WindowControlButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Theme Toggle Button Style -->
+        <Style x:Key="ThemeToggleStyle" TargetType="Button">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="Toggle Theme"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="18">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Module Tile Style -->
+        <Style x:Key="ModuleTileStyle" TargetType="Button">
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="180"/>
+            <Setter Property="Margin" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="TileBorder" 
+                                Background="{DynamicResource TileBackgroundBrush}"
+                                BorderBrush="{DynamicResource TileBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="2" Opacity="0.15" BlurRadius="10" Direction="270"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TileBorder" Property="Background" Value="{DynamicResource TileHoverBrush}"/>
+                                <Setter TargetName="TileBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="TileBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect ShadowDepth="4" Opacity="0.25" BlurRadius="20" Direction="270"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="TileBorder" Property="Background" Value="{DynamicResource TilePressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <!-- Main Window Border with rounded corners -->
+    <Border x:Name="MainBorder" 
+            Background="{DynamicResource WindowBackgroundBrush}" 
+            BorderBrush="{DynamicResource WindowBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>  <!-- Title Bar -->
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="*"/>    <!-- Content -->
+                <RowDefinition Height="Auto"/> <!-- Footer -->
+            </Grid.RowDefinitions>
+            
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="{DynamicResource TitleBarBrush}" 
+                    CornerRadius="10,10,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- App Icon and Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="🌊" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Fathom OS" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TitleTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <!-- Theme Toggle -->
+                        <Button x:Name="BtnThemeToggle" Style="{StaticResource ThemeToggleStyle}" 
+                                Content="🌙" Click="ThemeToggle_Click" Margin="0,0,8,0"
+                                VerticalAlignment="Center"/>
+                        
+                        <!-- Minimize -->
+                        <Button Style="{StaticResource WindowControlButton}" Content="&#xE949;" 
+                                Click="Minimize_Click"/>
+                        <!-- Maximize -->
+                        <Button x:Name="BtnMaximize" Style="{StaticResource WindowControlButton}" 
+                                Content="&#xE739;" Click="Maximize_Click"/>
+                        <!-- Close -->
+                        <Button Style="{StaticResource CloseButtonStyle}" Content="&#xE106;" 
+                                Click="Close_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Header -->
+            <Border Grid.Row="1" Background="{DynamicResource HeaderBackgroundBrush}" Padding="30,25">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="FATHOM" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text=" OS" FontSize="38" FontWeight="Light" Foreground="{DynamicResource HeaderTextBrush}"/>
+                        </StackPanel>
+                        <TextBlock Text="Hydrographic Survey Data Processing Platform" 
+                                   FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}" 
+                                   Margin="2,6,0,0" Opacity="0.75"/>
+                    </StackPanel>
+                    
+                    <!-- Quick Actions -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource ModernButtonStyle}" Margin="5,0"
+                                Background="{DynamicResource ButtonBackgroundBrush}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📂" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Open Project" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource ModernButtonStyle}" Margin="5,0" Click="Settings_Click"
+                                Background="{DynamicResource ButtonBackgroundBrush}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Main Content -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="10">
+                <StackPanel>
+                    <!-- Navigation Header (shown when inside a group) -->
+                    <Border x:Name="GroupNavigationHeader" Visibility="Collapsed"
+                            Background="{DynamicResource TileBackgroundBrush}"
+                            CornerRadius="10" Padding="15,12" Margin="15,5,15,15">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Home Button -->
+                            <Button x:Name="BtnHome" Click="Home_Click" 
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Background="{DynamicResource AccentBrush}"
+                                    ToolTip="Return to Main Dashboard">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏠" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Home" Foreground="White" FontWeight="Medium" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <!-- Current Group Title -->
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0,0,0">
+                                <TextBlock x:Name="TxtCurrentGroupName" Text="Calibrations" 
+                                           FontSize="18" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock x:Name="TxtCurrentGroupDescription" Text="Sensor calibration and verification tools" 
+                                           FontSize="12" Opacity="0.6"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Module Groups Section (shown on main dashboard) -->
+                    <StackPanel x:Name="GroupsSection" Visibility="Collapsed">
+                        <TextBlock Text="MODULE GROUPS" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource SectionHeaderBrush}" 
+                                   Margin="18,15,0,12" Opacity="0.6"/>
+                        
+                        <ItemsControl x:Name="GroupTiles">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                    
+                    <!-- Modules Section -->
+                    <TextBlock x:Name="TxtModulesHeader" Text="MODULES" FontSize="12" FontWeight="SemiBold" 
+                               Foreground="{DynamicResource SectionHeaderBrush}" 
+                               Margin="18,15,0,12" Opacity="0.6"/>
+                    
+                    <ItemsControl x:Name="ModuleTiles">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    
+                    <!-- No Modules Message -->
+                    <Border x:Name="NoModulesPanel" Visibility="Collapsed"
+                            Background="{DynamicResource TileBackgroundBrush}" 
+                            CornerRadius="10" Padding="40" Margin="15">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📦" FontSize="42" HorizontalAlignment="Center" Opacity="0.4"/>
+                            <TextBlock Text="No modules loaded" FontSize="15" FontWeight="Medium"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       HorizontalAlignment="Center" Margin="0,12,0,6"/>
+                            <TextBlock Text="Place modules in the 'Modules' folder and restart" FontSize="12" 
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       HorizontalAlignment="Center" Opacity="0.6"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Separator (only on main dashboard) -->
+                    <Border x:Name="RecentProjectsSeparator" Height="1" Background="{DynamicResource SeparatorBrush}" Margin="18,25,18,15" Opacity="0.2"/>
+                    
+                    <!-- Recent Projects Section (only on main dashboard) -->
+                    <StackPanel x:Name="RecentProjectsSection">
+                        <TextBlock Text="RECENT PROJECTS" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource SectionHeaderBrush}" 
+                                   Margin="18,5,0,12" Opacity="0.6"/>
+                        
+                        <ItemsControl x:Name="RecentProjects">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource ListItemBackgroundBrush}" 
+                                            Padding="16,12" Margin="15,4" CornerRadius="8"
+                                            Cursor="Hand" MouseLeftButtonUp="RecentProject_Click">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource ListItemHoverBrush}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Background="{DynamicResource AccentBrush}" CornerRadius="6" 
+                                                    Width="36" Height="36" VerticalAlignment="Center" Margin="0,0,14,0">
+                                                <TextBlock Text="📄" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextBrush}"/>
+                                                <TextBlock Text="{Binding Path}" FontSize="11" 
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                                           Opacity="0.65" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="Open" Padding="18,8"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Background="{DynamicResource AccentBrush}"
+                                                    Foreground="White"
+                                                    Click="OpenRecentProject_Click" Tag="{Binding Path}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
+                        <TextBlock x:Name="TxtNoRecentProjects" 
+                                   Text="No recent projects" 
+                                   FontStyle="Italic" FontSize="13"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   Margin="22,8" Visibility="Visible" Opacity="0.5"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+            
+            <!-- Footer -->
+            <Border Grid.Row="3" Background="{DynamicResource FooterBackgroundBrush}" 
+                    Padding="25,10" CornerRadius="0,0,10,10">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Fathom OS v1.0.44" 
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="11" Opacity="0.6"/>
+                        <TextBlock Text="  •  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Opacity="0.4"/>
+                        <TextBlock Text="© 2024 Fathom OS" 
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="11" Opacity="0.6"/>
+                        <TextBlock Text="  •  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Opacity="0.4"/>
+                        <!-- License Status -->
+                        <Border x:Name="LicenseBadge" Background="#2E7D32" CornerRadius="8" Padding="8,2" Margin="0,0,6,0"
+                                ToolTip="Click to view license details" Cursor="Hand" MouseLeftButtonDown="LicenseBadge_Click">
+                            <TextBlock x:Name="TxtLicenseEdition" Text="PRO" 
+                                       Foreground="White"
+                                       FontSize="10" FontWeight="Bold"/>
+                        </Border>
+                        <TextBlock x:Name="TxtLicenseStatus" Text="Licensed" 
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="11" Opacity="0.7" VerticalAlignment="Center"/>
+                        <TextBlock Text="  •  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Opacity="0.4"/>
+                        <Border Background="Transparent" CornerRadius="6" Padding="6,2" Margin="0"
+                                ToolTip="View processing certificates" Cursor="Hand" MouseLeftButtonDown="CertificatesButton_Click"
+                                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
+                            <TextBlock Text="📜 Certificates" 
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="10" FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource AccentBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,6,0">
+                            <TextBlock x:Name="TxtModuleCount" Text="0" 
+                                       Foreground="White"
+                                       FontSize="11" FontWeight="SemiBold"/>
+                        </Border>
+                        <TextBlock Text="modules loaded" 
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="11" Opacity="0.6" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

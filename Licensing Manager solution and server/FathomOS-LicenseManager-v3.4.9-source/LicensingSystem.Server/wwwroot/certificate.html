@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fathom OS - License Certificate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme (Default) */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --accent-primary: #0ea5e9;
+            --accent-secondary: #8b5cf6;
+            --success: #22c55e;
+            --warning: #eab308;
+            --error: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0b0f14;
+            --bg-secondary: #0f1419;
+            --bg-card: #161b22;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #21262d;
+            --accent-primary: #38bdf8;
+            --accent-secondary: #a78bfa;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .certificate {
+            max-width: 800px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .header {
+            padding: 2.5rem 2.5rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-tagline {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .certificate-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .certificate-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .content {
+            padding: 2rem 2.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-valid {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .info-value.highlight {
+            color: var(--accent-primary);
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .license-id-box {
+            background: linear-gradient(135deg, 
+                rgba(14, 165, 233, 0.1), 
+                rgba(139, 92, 246, 0.1));
+            border: 2px solid var(--accent-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .license-id-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .license-id-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            color: var(--accent-primary);
+            letter-spacing: 0.05em;
+        }
+
+        .modules-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modules-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .module-tag {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .footer {
+            padding: 1.5rem 2.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .support-code {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .support-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .verification-info {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .copyright {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .qr-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .qr-info {
+            flex: 1;
+        }
+
+        .qr-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .qr-description {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2rem auto 0;
+            transition: all 0.3s ease;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .theme-toggle, .print-btn {
+                display: none;
+            }
+            .certificate {
+                box-shadow: none;
+                border: none;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--error);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+        <span id="themeIcon">🌙</span>
+    </button>
+
+    <div class="certificate" id="certificate">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading certificate...</p>
+        </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print Certificate
+    </button>
+
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeIcon').textContent = '☀️';
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Check if license is expired
+        function isExpired(expiresAt) {
+            if (!expiresAt) return false;
+            return new Date(expiresAt) < new Date();
+        }
+
+        // Render certificate
+        function renderCertificate(data) {
+            const expired = isExpired(data.expiresAt);
+            const statusClass = expired ? 'status-expired' : 'status-valid';
+            const statusText = expired ? 'EXPIRED' : 'VALID LICENSE';
+            const statusIcon = expired 
+                ? '<svg class="status-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+                : '<svg class="status-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+
+            const brandDisplay = data.brand 
+                ? `<div class="brand-tagline">${data.brand} Edition</div>`
+                : '<div class="brand-tagline">Professional Survey Software</div>';
+
+            const modulesHtml = data.modules && data.modules.length > 0
+                ? data.modules.map(m => `<span class="module-tag">${m.replace('Module:', '')}</span>`).join('')
+                : '<span class="module-tag">All Modules</span>';
+
+            document.getElementById('certificate').innerHTML = `
+                <div class="header">
+                    <div class="logo-container">
+                        <div class="logo">F</div>
+                        <div class="brand-text">
+                            <div class="brand-name">Fathom OS</div>
+                            ${brandDisplay}
+                        </div>
+                    </div>
+                    <h1 class="certificate-title">Software License Certificate</h1>
+                    <p class="certificate-subtitle">Official licensing document for authorized software use</p>
+                </div>
+
+                <div class="content">
+                    <div style="text-align: center;">
+                        <span class="status-badge ${statusClass}">
+                            ${statusIcon}
+                            ${statusText}
+                        </span>
+                    </div>
+
+                    <div class="license-id-box">
+                        <div class="license-id-label">License ID</div>
+                        <div class="license-id-value">${data.licenseId || 'N/A'}</div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Licensed To</div>
+                            <div class="info-value">${data.customerName || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">${data.customerEmail || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Edition</div>
+                            <div class="info-value">${data.edition || 'Professional'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">License Type</div>
+                            <div class="info-value">${data.licenseType || 'Online'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Issued Date</div>
+                            <div class="info-value">${formatDate(data.issuedAt)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Expiration Date</div>
+                            <div class="info-value">${formatDate(data.expiresAt)}</div>
+                        </div>
+                    </div>
+
+                    <div class="modules-section">
+                        <div class="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                            Licensed Modules
+                        </div>
+                        <div class="modules-list">
+                            ${modulesHtml}
+                        </div>
+                    </div>
+
+                    <div class="qr-section">
+                        <div class="qr-code" id="qrcode">
+                            <!-- QR Code placeholder -->
+                            <svg viewBox="0 0 100 100" fill="none">
+                                <rect width="100" height="100" fill="white"/>
+                                <text x="50" y="55" text-anchor="middle" font-size="10" fill="#94a3b8">QR Code</text>
+                            </svg>
+                        </div>
+                        <div class="qr-info">
+                            <div class="qr-title">Verify This Certificate</div>
+                            <div class="qr-description">
+                                Scan the QR code or visit the verification URL to confirm the authenticity of this license certificate.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-row">
+                        <div>
+                            <div class="support-label">Support Code</div>
+                            <div class="support-code">${data.supportCode || 'N/A'}</div>
+                        </div>
+                        <div class="verification-info">
+                            <div>Certificate ID: ${data.certificateId || data.licenseId || 'N/A'}</div>
+                            <div>Generated: ${formatDate(new Date().toISOString())}</div>
+                        </div>
+                    </div>
+                    <div class="copyright">
+                        © ${new Date().getFullYear()} Fathom OS. All rights reserved. 
+                        This certificate is digitally signed and tamper-evident.
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('certificate').innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title">Certificate Not Found</div>
+                    <div class="error-message">${message}</div>
+                </div>
+            `;
+        }
+
+        // Load certificate data
+        async function loadCertificate() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const licenseId = urlParams.get('id') || urlParams.get('license');
+            
+            if (!licenseId) {
+                // Check if data is embedded in URL hash
+                if (window.location.hash) {
+                    try {
+                        const data = JSON.parse(decodeURIComponent(window.location.hash.substring(1)));
+                        renderCertificate(data);
+                        return;
+                    } catch (e) {
+                        console.error('Failed to parse embedded data:', e);
+                    }
+                }
+                
+                showError('No license ID provided. Please use a valid certificate URL.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/certificates/verify/${licenseId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Certificate not found or invalid');
+                }
+                
+                const data = await response.json();
+                renderCertificate(data);
+            } catch (error) {
+                console.error('Error loading certificate:', error);
+                showError(error.message || 'Failed to load certificate. Please check the URL and try again.');
+            }
+        }
+
+        // Initialize
+        loadCertificate();
+    </script>
+</body>
+</html>

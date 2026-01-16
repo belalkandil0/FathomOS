@@ -1,0 +1,173 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SurveyListing.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:local="clr-namespace:FathomOS.Modules.SurveyListing.Views"
+        mc:Ignorable="d"
+        Title="Fathom OS Survey Listing" 
+        Height="850" Width="1300"
+        MinHeight="650" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        TitleCharacterCasing="Normal"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+        BorderThickness="1"
+        ShowTitleBar="True"
+        SaveWindowPosition="True">
+    
+    <!-- MahApps.Metro Resource Dictionaries -->
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </mah:MetroWindow.Resources>
+    
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <Button Click="NewProject_Click" ToolTip="New Project">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="FileDocumentOutline" Width="16" Height="16"/>
+                    <TextBlock Text="New" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Click="OpenProject_Click" ToolTip="Open Project">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="FolderOpen" Width="16" Height="16"/>
+                    <TextBlock Text="Open" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Click="SaveProject_Click" ToolTip="Save Project">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="ContentSave" Width="16" Height="16"/>
+                    <TextBlock Text="Save" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Border Width="1" Background="{DynamicResource MahApps.Brushes.Separator}" Margin="6,4"/>
+            <Button Click="DxfToSurveyListing_Click" ToolTip="DXF to Survey Listing (Standalone Tool)">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="VectorPolyline" Width="16" Height="16"/>
+                    <TextBlock Text="DXF Tool" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <Button x:Name="ThemeButton" Click="ToggleTheme_Click" ToolTip="Change Theme">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="ThemeIcon" Text="🌙" FontSize="14" Margin="0,0,5,0"/>
+                    <TextBlock x:Name="ThemeLabel" Text="Dark" FontSize="12"/>
+                </StackPanel>
+            </Button>
+            <Button Click="Help_Click" ToolTip="Help">
+                <iconPacks:PackIconMaterial Kind="HelpCircleOutline" Width="16" Height="16"/>
+            </Button>
+            <Button Click="About_Click" ToolTip="About">
+                <iconPacks:PackIconMaterial Kind="InformationOutline" Width="16" Height="16"/>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Step Indicator -->
+        <Border Grid.Row="0" Background="{DynamicResource MahApps.Brushes.Gray10}" Padding="20,15">
+            <ItemsControl x:Name="StepIndicator" ItemsSource="{Binding Steps}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Click="StepIndicator_Click" Tag="{Binding StepNumber}"
+                                Background="Transparent" BorderThickness="0" 
+                                Cursor="Hand" IsEnabled="{Binding IsEnabled}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <!-- Step Circle -->
+                                <Border Width="36" Height="36" CornerRadius="18"
+                                        Background="{Binding StepBackground}"
+                                        BorderBrush="{Binding StepBorder}" BorderThickness="2">
+                                    <TextBlock Text="{Binding StepNumber}" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontWeight="Bold" FontSize="14"
+                                               Foreground="{Binding StepForeground}"/>
+                                </Border>
+                                <!-- Step Label -->
+                                <TextBlock Text="{Binding StepName}" Margin="10,0,0,0" VerticalAlignment="Center"
+                                           FontSize="13"
+                                           Foreground="{Binding LabelForeground}" FontWeight="{Binding LabelWeight}"/>
+                                <!-- Connector Line (except last) -->
+                                <Border Width="50" Height="2" Margin="12,0" VerticalAlignment="Center"
+                                        Background="{DynamicResource MahApps.Brushes.Gray6}"
+                                        Visibility="{Binding ConnectorVisibility}"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <!-- Step Content Area -->
+        <Border Grid.Row="1" Padding="30">
+            <ContentControl x:Name="StepContent" Content="{Binding CurrentStepView}"/>
+        </Border>
+
+        <!-- Navigation Buttons -->
+        <Border Grid.Row="2" Background="{DynamicResource MahApps.Brushes.Gray10}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Project Info -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <iconPacks:PackIconMaterial Kind="FileDocument" Width="16" Height="16" 
+                                                 Margin="0,0,8,0" VerticalAlignment="Center"
+                                                 Foreground="{DynamicResource MahApps.Brushes.Gray3}"/>
+                    <TextBlock x:Name="ProjectNameLabel" Text="Untitled Project" 
+                               FontSize="13"
+                               Foreground="{DynamicResource MahApps.Brushes.Gray3}" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Back Button -->
+                <Button Grid.Column="1" x:Name="BackButton" Content="← Back" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Width="110" Height="38" Margin="0,0,10,0"
+                        Click="Back_Click" IsEnabled="{Binding CanGoBack}"/>
+
+                <!-- Next Button -->
+                <Button Grid.Column="2" x:Name="NextButton" Content="Next →" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
+                        Width="110" Height="38" Margin="0,0,10,0"
+                        Click="Next_Click" IsEnabled="{Binding CanGoNext}"/>
+
+                <!-- Process/Finish Button -->
+                <Button Grid.Column="3" x:Name="ProcessButton"
+                        Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
+                        Width="140" Height="38"
+                        Click="Process_Click" Visibility="{Binding ProcessButtonVisibility}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Rocket" Width="16" Height="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="Process" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

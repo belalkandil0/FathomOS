@@ -1,0 +1,29 @@
+{
+    "moduleId": "SoundVelocity",
+    "displayName": "Sound Velocity Profile",
+    "description": "Process CTD cast data, calculate sound velocity using Chen-Millero or Del Grosso formulas, and export to industry formats (USR, VEL, PRO, Excel)",
+    "version": "1.2.0",
+    "author": "S7 Solutions",
+    "category": "Data Processing",
+    "displayOrder": 15,
+    "icon": "icon.png",
+    "supportedFileTypes": [".000", ".001", ".002", ".003", ".svp", ".ctd", ".bp3", ".txt", ".csv"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "Valeport MIDAS SVX2 CTD file parsing with auto-detection",
+        "Multiple input format support (Valeport, QINSy, EIVA, CSV, etc.)",
+        "Automatic column detection for Depth, SV, Temperature, Salinity, Density",
+        "Depth/Pressure input unit selection",
+        "Auto SV formula selection based on depth (Chen-Millero ≤1000m, Del Grosso >1000m)",
+        "Chen-Millero sound velocity calculation (depth ≤1000m)",
+        "Del Grosso sound velocity calculation (depth >1000m)",
+        "UNESCO EOS-80 density calculation",
+        "Conductivity to salinity conversion (UNESCO 1981)",
+        "Data interpolation at regular depth intervals",
+        "Real-time data smoothing with multiple algorithms",
+        "Export to USR (QINSy), VEL (EIVA), PRO formats",
+        "Excel report generation with statistics",
+        "Displays all data rows (no preview limit)"
+    ]
+}

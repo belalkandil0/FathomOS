@@ -1,0 +1,407 @@
+<UserControl x:Class="FathomOS.Modules.GnssCalibration.Views.Steps.Step7ExportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:oxy="http://oxyplot.org/wpf"
+             xmlns:converters="clr-namespace:FathomOS.Modules.GnssCalibration.Converters"
+             d:DesignHeight="800" d:DesignWidth="1200"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </UserControl.Resources>
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="20,15" Margin="0,0,0,15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="6" Padding="10,4" Margin="0,0,12,0">
+                            <TextBlock Text="STEP 7" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+                        <TextBlock Text="Charts &amp; Review" FontSize="22" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="Review analysis charts before finalizing and exporting reports" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,8,0,0"/>
+                </StackPanel>
+                
+                <!-- Chart Theme Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Chart Theme:" VerticalAlignment="Center" Margin="0,0,10,0" 
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <ComboBox Width="180" Height="32"
+                              ItemsSource="{Binding AvailableColorPresets}"
+                              SelectedItem="{Binding SelectedColorPreset}"
+                              FontSize="12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Charts Section -->
+        <mah:MetroTabControl Grid.Row="1" Margin="0,0,0,15">
+            <!-- Delta Scatter Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartScatterPlot" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Delta Scatter" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="280"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="0,0,15,0">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                        </Border.Effect>
+                        <oxy:PlotView Model="{Binding DeltaScatterPlotModel}" Margin="5"/>
+                    </Border>
+                    
+                    <!-- Info Panel -->
+                    <Border Grid.Column="1" Background="{DynamicResource CardBrush}" CornerRadius="8" Padding="15">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                        </Border.Effect>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="PROJECT INFORMATION" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                                
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="Vessel" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding Project.VesselName, FallbackValue=---}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"/>
+                                </StackPanel>
+                                
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="Survey Date" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding Project.SurveyDate, StringFormat=yyyy-MM-dd, FallbackValue=---}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"/>
+                                </StackPanel>
+                                
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="Location" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding Project.Location, FallbackValue=---}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                
+                                <Separator Margin="0,10"/>
+                                
+                                <TextBlock Text="SYSTEMS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                                
+                                <Border Background="{DynamicResource InfoSubtleBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="GNSS 1 (Reference)" FontSize="9" Foreground="{DynamicResource InfoBrush}"/>
+                                        <TextBlock Text="{Binding Project.System1Name, FallbackValue=---}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <Border Background="{DynamicResource WarningSubtleBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="GNSS 2 (Comparison)" FontSize="9" Foreground="{DynamicResource AccentBrush}"/>
+                                        <TextBlock Text="{Binding Project.System2Name, FallbackValue=---}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <Separator Margin="0,10"/>
+                                
+                                <TextBlock Text="KEY RESULTS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                                
+                                <Border CornerRadius="8" Padding="12"
+                                        Background="{Binding TolerancePassed, Converter={StaticResource BoolToColorConverter}, FallbackValue=#4CAF50}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Statistics.ToleranceStatus, FallbackValue=PASS}" 
+                                                   Foreground="White" FontSize="16" FontWeight="Bold"/>
+                                        <TextBlock Foreground="White" FontSize="11" Opacity="0.9" Margin="0,4,0,0">
+                                            <Run Text="2DRMS: "/>
+                                            <Run Text="{Binding Statistics.FilteredStatistics.TwoDRMS, StringFormat=F4, Mode=OneWay}"/>
+                                            <Run Text=" "/>
+                                            <Run Text="{Binding Project.UnitAbbreviation, Mode=OneWay}"/>
+                                        </TextBlock>
+                                        <TextBlock Foreground="White" FontSize="11" Opacity="0.9">
+                                            <Run Text="Tolerance: "/>
+                                            <Run Text="{Binding Project.ToleranceValue, StringFormat=F3, Mode=OneWay}"/>
+                                            <Run Text=" "/>
+                                            <Run Text="{Binding Project.UnitAbbreviation, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </mah:MetroTabItem>
+            
+            <!-- 2DRMS Circle Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="CircleOutline" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="2DRMS Circle" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding ErrorEllipsePlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Time Series Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartLine" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Time Series" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding TimeSeriesPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Histogram Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartBar" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Histogram" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding HistogramPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Q-Q Plot -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartDonut" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Q-Q Plot" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding QqPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- CDF Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartAreaspline" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="CDF" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding CdfPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Height Analysis Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ArrowExpandVertical" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Height" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding HeightAnalysisPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Polar Error Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Compass" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Polar" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding PolarErrorPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Error Components Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartBox" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Components" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding ErrorComponentsPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Running Stats Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ChartTimelineVariant" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Running" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding RunningStatsPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Raw Position Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="MapMarkerMultiple" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Raw Pos" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding RawPositionPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+            
+            <!-- Filtered Position Chart -->
+            <mah:MetroTabItem>
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="MapMarkerCheck" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Filtered" VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Margin="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    </Border.Effect>
+                    <oxy:PlotView Model="{Binding FilteredPositionPlotModel}" Margin="5"/>
+                </Border>
+            </mah:MetroTabItem>
+        </mah:MetroTabControl>
+
+        <!-- Bottom Navigation Bar for Step 7 -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Back Button -->
+                <Button Grid.Column="0" Command="{Binding PreviousStepCommand}"
+                        Style="{DynamicResource SecondaryButton}"
+                        MinWidth="110" Padding="14,10">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ArrowLeft" Width="16" Height="16" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Back" VerticalAlignment="Center" FontSize="14"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Info Text (center) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <iconPacks:PackIconMaterial Kind="InformationOutline" Width="16" Height="16" 
+                                                 Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Review charts above, then complete analysis and export reports" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Complete & Export Button -->
+                <Button Grid.Column="2" Command="{Binding ShowCompletionPopupCommand}"
+                        Height="48" Padding="25,0" Background="#22C55E" Foreground="White" 
+                        BorderThickness="0" FontSize="15" FontWeight="Bold">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#16A34A"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="#15803D"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="FileExportOutline" Width="20" Height="20" 
+                                                     VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Complete &amp; Export" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,142 @@
+<UserControl x:Class="FathomOS.Modules.SurveyListing.Views.Steps.Step5_TideCorrections"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:FathomOS.Modules.SurveyListing.Converters"
+             >
+    
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Tide &amp; Corrections" FontSize="24" FontWeight="Light"/>
+                <TextBlock Text="Configure tidal corrections and vertical offsets (optional)." 
+                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Tide File -->
+            <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" 
+                    CornerRadius="4" Padding="20" Margin="0,0,0,15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Tide File" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TideFileName}" Margin="0,5,0,0"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" 
+                                   Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Browse..." Click="BrowseTide_Click" Width="80" Margin="0,0,5,0"/>
+                        <Button Content="Clear" Click="ClearTide_Click" Width="60"/>
+                    </StackPanel>
+
+                    <!-- Tide Info -->
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,15,0,0"
+                                Visibility="{Binding IsTideLoaded, Converter={StaticResource BoolToVisibility}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Time Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="{Binding TideTimeRange}" FontSize="12"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Records" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="{Binding TideRecordCount}" FontSize="12"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Tide Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="{Binding TideRange}" FontSize="12"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="Convert tide to US Survey Feet (file is in meters)" 
+                                  IsChecked="{Binding UseFeetForTide}" Margin="0,15,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Corrections -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Vertical Offsets -->
+                <Border Grid.Column="0" BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                        BorderThickness="1" CornerRadius="4" Padding="20" Margin="0,0,10,0">
+                    <StackPanel>
+                        <TextBlock Text="Vertical Offsets" FontWeight="SemiBold" Margin="0,0,0,15"/>
+
+                        <CheckBox Content="Apply tidal corrections" IsChecked="{Binding ApplyTidalCorrections}" Margin="0,0,0,10"/>
+                        <CheckBox Content="Apply vertical offsets" IsChecked="{Binding ApplyVerticalOffsets}" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Bathy to Altimeter Offset (ft)" FontSize="12" Margin="0,0,0,3"/>
+                        <TextBox Text="{Binding BathyToAltimeterOffset}" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Bathy to ROV Reference Offset (ft)" FontSize="12" Margin="0,0,0,3"/>
+                        <TextBox Text="{Binding BathyToRovRefOffset}" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Depth Exaggeration (for CAD)" FontSize="12" Margin="0,0,0,3"/>
+                        <TextBox Text="{Binding DepthExaggeration}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Survey Fixes -->
+                <Border Grid.Column="1" BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                        BorderThickness="1" CornerRadius="4" Padding="20" Margin="10,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Survey Fixes (Optional)" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding SurveyFixes}" AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False" MinHeight="150">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="80"/>
+                                <DataGridTextColumn Header="KP" Binding="{Binding Kp, StringFormat=F6}" Width="80"/>
+                                <DataGridTextColumn Header="Easting" Binding="{Binding Easting, StringFormat=F2}" Width="*"/>
+                                <DataGridTextColumn Header="Northing" Binding="{Binding Northing, StringFormat=F2}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="Add" Click="AddFix_Click" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="Import CSV" Click="ImportFixes_Click" Width="80"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

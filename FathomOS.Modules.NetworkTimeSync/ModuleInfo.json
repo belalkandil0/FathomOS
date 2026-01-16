@@ -1,0 +1,31 @@
+{
+    "moduleId": "NetworkTimeSync",
+    "displayName": "Network Time Sync",
+    "description": "Discover, monitor, and synchronize time across network computers. Supports NTP servers, GPS serial input, and manual time setting with continuous monitoring.",
+    "version": "2.0.0",
+    "author": "Fathom OS",
+    "category": "Utilities",
+    "displayOrder": 30,
+    "icon": "icon.png",
+    "supportedFileTypes": [".nts", ".timesync"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "IP Range Network Discovery with Cancel",
+        "Smart IP Range Detection from Network Adapters",
+        "Manual Computer Entry",
+        "NTP Server Time Sync",
+        "Local NTP Server Support",
+        "GPS Serial Input (NMEA)",
+        "Reference Computer Time Source",
+        "Continuous Monitoring",
+        "One-Time Force Sync",
+        "Dark/Light Theme Toggle",
+        "Modern UI with Status Indicators",
+        "Computer Dashboard with Actions",
+        "Agent-Based Architecture"
+    ],
+    "CertificateCode": "NT",
+    "CertificateTitle": "Network Time Synchronization Verification Certificate",
+    "CertificateStatement": "This is to certify that network time synchronization has been successfully completed across all specified systems, ensuring temporal consistency within acceptable tolerances for survey and marine operations."
+}

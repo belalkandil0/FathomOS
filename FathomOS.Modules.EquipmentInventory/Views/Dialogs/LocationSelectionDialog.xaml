@@ -1,0 +1,90 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.Dialogs.LocationSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Select Location"
+        Height="450" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        TitleCharacterCasing="Normal"
+        BorderThickness="1"
+        BorderBrush="{DynamicResource AccentBrush}"
+        GlowBrush="{DynamicResource AccentBrush}">
+    
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <iconPacks:PackIconMaterial Kind="MapMarkerOutline" Width="28" Height="28" 
+                                            Foreground="{DynamicResource AccentBrush}" 
+                                            VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="Select Destination" Style="{DynamicResource HeadingMedium}"/>
+            </StackPanel>
+            <TextBlock Text="Choose the location to move selected equipment to." 
+                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+        </StackPanel>
+        
+        <!-- Search -->
+        <TextBox Grid.Row="1" x:Name="SearchBox" Margin="0,0,0,15"
+                 mah:TextBoxHelper.Watermark="Search locations..."
+                 mah:TextBoxHelper.ClearTextButton="True"
+                 TextChanged="SearchBox_TextChanged"/>
+        
+        <!-- Location List -->
+        <ListBox Grid.Row="2" x:Name="LocationsList"
+                 Background="Transparent" BorderThickness="0"
+                 SelectionChanged="LocationsList_SelectionChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="5,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <iconPacks:PackIconMaterial Kind="MapMarkerOutline"
+                                                    Width="20" Height="20" Margin="0,0,12,0"
+                                                    Foreground="{DynamicResource AccentBrush}"
+                                                    VerticalAlignment="Center"/>
+                        
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding LocationType}" FontSize="11"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        
+        <!-- Buttons -->
+        <Grid Grid.Row="3" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="1" Content="Cancel" Style="{DynamicResource SecondaryButton}"
+                    Click="Cancel_Click" Padding="20,10" Margin="0,0,10,0"/>
+            <Button Grid.Column="2" x:Name="SelectButton" Style="{DynamicResource PrimaryButton}"
+                    Click="Select_Click" Padding="20,10" IsEnabled="False">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="Check" Width="16" Height="16" 
+                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Select"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>

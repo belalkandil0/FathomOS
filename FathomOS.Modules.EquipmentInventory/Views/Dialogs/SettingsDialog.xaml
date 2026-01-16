@@ -1,0 +1,304 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.Dialogs.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters"
+        Title="Settings"
+        Height="700" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="CanResizeWithGrip"
+        MinHeight="600" MinWidth="550"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1">
+    
+    <mah:MetroWindow.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Tabbed Settings -->
+        <TabControl Grid.Row="0" Margin="10" Background="Transparent">
+            
+            <!-- Organization & Labels Tab -->
+            <TabItem Header="Labels &amp; IDs">
+                <ScrollViewer Padding="15" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        
+                        <!-- Organization Section -->
+                        <TextBlock Text="ORGANIZATION" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Organization Name (displayed on labels)" Style="{DynamicResource FieldLabel}"/>
+                        <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged}" 
+                                 mah:TextBoxHelper.Watermark="e.g., subsea 7, S7 Solutions"
+                                 Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="Organization Code (for unique IDs)" Style="{DynamicResource FieldLabel}"/>
+                        <TextBox Text="{Binding OrganizationCode, UpdateSourceTrigger=PropertyChanged}" 
+                                 mah:TextBoxHelper.Watermark="e.g., S7"
+                                 MaxLength="5"
+                                 Margin="0,0,0,5"
+                                 ToolTip="2-5 character code used in equipment IDs (e.g., S7WSS04068)"/>
+                        <TextBlock Text="Used in unique IDs: {OrgCode}{CategoryCode}{Sequence} → S7WSS04068" 
+                                   FontSize="11" FontStyle="Italic"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,0,15"/>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Unique ID Generation -->
+                        <TextBlock Text="UNIQUE ID GENERATION" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Auto-generate unique ID when creating equipment" 
+                                  IsChecked="{Binding AutoGenerateUniqueId}" 
+                                  Margin="0,0,0,10"
+                                  ToolTip="Automatically assigns a unique ID based on category when adding new equipment"/>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Label Content -->
+                        <TextBlock Text="LABEL CONTENT" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Show organization name on labels" 
+                                  IsChecked="{Binding ShowOrganizationOnLabel}" 
+                                  Margin="0,0,0,5"/>
+                        <CheckBox Content="Show unique ID below QR code" 
+                                  IsChecked="{Binding ShowUniqueIdOnLabel}" 
+                                  Margin="0,0,0,15"/>
+                        
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Printer Configuration Tab -->
+            <TabItem Header="Label Printer">
+                <ScrollViewer Padding="15" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        
+                        <!-- Printer Selection -->
+                        <TextBlock Text="PRINTER SELECTION" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Select Label Printer" Style="{DynamicResource FieldLabel}"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" 
+                                      ItemsSource="{Binding AvailablePrinters}" 
+                                      SelectedItem="{Binding SelectedPrinter}"
+                                      DisplayMemberPath="DisplayName"/>
+                            <Button Grid.Column="1" Content="↻" 
+                                    Command="{Binding RefreshPrintersCommand}"
+                                    ToolTip="Refresh printer list"
+                                    Width="35" Margin="10,0,0,0" FontSize="16"/>
+                        </Grid>
+                        
+                        <TextBlock Text="Printer Type" Style="{DynamicResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding PrinterTypes}" 
+                                  SelectedItem="{Binding SelectedPrinterType}"
+                                  Margin="0,0,0,5"/>
+                        <TextBlock Text="Select the type to optimize print settings for your printer model" 
+                                   FontSize="11" FontStyle="Italic"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,0,15"/>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Label Size -->
+                        <TextBlock Text="LABEL SIZE" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Label Size" Style="{DynamicResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding LabelSizes}" 
+                                  SelectedValue="{Binding SelectedLabelSize}"
+                                  SelectedValuePath="Size"
+                                  DisplayMemberPath="DisplayName"
+                                  Margin="0,0,0,10"/>
+                        
+                        <!-- Custom Size (visible when Custom selected) -->
+                        <StackPanel Visibility="{Binding IsCustomLabelSize, Converter={StaticResource BoolToVisibility}}"
+                                    Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Width (mm)" Style="{DynamicResource FieldLabel}"/>
+                                    <mah:NumericUpDown Value="{Binding CustomLabelWidth}" 
+                                                       Minimum="10" Maximum="200" 
+                                                       StringFormat="F0"/>
+                                </StackPanel>
+                                
+                                <TextBlock Grid.Column="1" Text="×" 
+                                           VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                           Margin="0,0,0,5"/>
+                                
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Height (mm)" Style="{DynamicResource FieldLabel}"/>
+                                    <mah:NumericUpDown Value="{Binding CustomLabelHeight}" 
+                                                       Minimum="10" Maximum="200" 
+                                                       StringFormat="F0"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Print Quality -->
+                        <TextBlock Text="PRINT QUALITY" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Print Resolution (DPI)" Style="{DynamicResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding DpiOptions}" 
+                                          SelectedItem="{Binding PrinterDpi}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="Default Copies" Style="{DynamicResource FieldLabel}"/>
+                                <mah:NumericUpDown Value="{Binding DefaultCopies}" 
+                                                   Minimum="1" Maximum="99"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Separator Margin="0,20,0,20"/>
+                        
+                        <!-- Print Options -->
+                        <TextBlock Text="PRINT OPTIONS" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Show print preview before printing" 
+                                  IsChecked="{Binding ShowPrintPreview}" 
+                                  Margin="0,0,0,5"/>
+                        <CheckBox Content="Auto-print label after saving equipment" 
+                                  IsChecked="{Binding AutoPrintAfterSave}" 
+                                  Margin="0,0,0,15"/>
+                        
+                        <!-- Test Print -->
+                        <Button Content="Print Test Label" 
+                                Command="{Binding TestPrintCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="20,8" Margin="0,10,0,0">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconMaterial Kind="Printer" Width="16" Height="16" 
+                                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Print Test Label" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                        
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Connection Tab -->
+            <TabItem Header="Connection">
+                <ScrollViewer Padding="15" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        
+                        <!-- Server Settings -->
+                        <TextBlock Text="SERVER CONNECTION" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="API Server URL" Style="{DynamicResource FieldLabel}"/>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding ApiBaseUrl, UpdateSourceTrigger=PropertyChanged}"
+                                     mah:TextBoxHelper.Watermark="https://api.example.com"/>
+                            <Button Grid.Column="1" Content="Test" Command="{Binding TestConnectionCommand}"
+                                    Width="60" Margin="10,0,0,0"/>
+                        </Grid>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Sync Settings -->
+                        <TextBlock Text="SYNCHRONIZATION" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Enable automatic sync" IsChecked="{Binding AutoSyncEnabled}" Margin="0,0,0,10"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="Sync interval: " VerticalAlignment="Center"/>
+                            <mah:NumericUpDown Value="{Binding SyncIntervalMinutes}" Minimum="1" Maximum="60" Width="80"/>
+                            <TextBlock Text=" minutes" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <Separator Margin="0,10,0,20"/>
+                        
+                        <!-- Defaults -->
+                        <TextBlock Text="DEFAULTS" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Default Location Code" Style="{DynamicResource FieldLabel}"/>
+                        <TextBox Text="{Binding DefaultLocationCode}" 
+                                 mah:TextBoxHelper.Watermark="e.g., BASE-01"
+                                 Margin="0,0,0,15"/>
+                        
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Appearance Tab -->
+            <TabItem Header="Appearance">
+                <ScrollViewer Padding="15" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        
+                        <TextBlock Text="THEME" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Use dark theme" IsChecked="{Binding UseDarkTheme}" Margin="0,0,0,10"/>
+                        
+                        <Separator Margin="0,20,0,20"/>
+                        
+                        <TextBlock Text="NOTIFICATIONS" FontWeight="Bold" FontSize="12" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Show notifications" IsChecked="{Binding ShowNotifications}" Margin="0,0,0,10"/>
+                        
+                        <Separator Margin="0,20,0,20"/>
+                        
+                        <Button Content="Reset All to Defaults" Command="{Binding ResetToDefaultsCommand}"
+                                HorizontalAlignment="Left" Padding="15,8"/>
+                        
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+        </TabControl>
+        
+        <!-- Footer -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                
+                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
+                        Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,10,0"/>
+                
+                <Button Grid.Column="2" Content="Save" Command="{Binding SaveCommand}"
+                        Style="{DynamicResource PrimaryButton}" Width="90"/>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

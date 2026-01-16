@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dotfuscator Community Edition Configuration for Fathom OS
+  
+  SETUP INSTRUCTIONS:
+  
+  Method 1 - Visual Studio Integration:
+  1. Open Visual Studio
+  2. Go to Tools > PreEmptive Protection - Dotfuscator Community
+  3. File > Open Project > Select this file
+  4. Build > Build Solution
+  
+  Method 2 - Command Line:
+  1. Find Dotfuscator path (typically):
+     C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscator.exe
+  2. Run: dotfuscator.exe FathomOS.Dotfuscator.xml
+  
+  Method 3 - MSBuild Integration (see FathomOS.Shell.csproj for post-build event)
+-->
+<dotfuscator version="2.3">
+  <propertylist>
+    <property name="configdir" value="." />
+    <property name="inputdir" value=".\FathomOS.Shell\bin\Release\net8.0-windows" />
+    <property name="outputdir" value=".\FathomOS.Shell\bin\Release\net8.0-windows\Dotfuscated" />
+  </propertylist>
+  
+  <global>
+    <option>monoaliasing</option>
+    <option>transformaliasing</option>
+    <option>preservealiasing</option>
+    <option>library</option>
+  </global>
+  
+  <input>
+    <asmlist>
+      <inputassembly refid="1">
+        <option>honoraliasing</option>
+        <option>stripaliasing</option>
+        <file dir="${inputdir}" name="FathomOS.Shell.exe" />
+      </inputassembly>
+      <inputassembly refid="2">
+        <option>honoraliasing</option>
+        <option>stripaliasing</option>
+        <file dir="${inputdir}" name="FathomOS.Core.dll" />
+      </inputassembly>
+      <inputassembly refid="3">
+        <option>honoraliasing</option>
+        <option>stripaliasing</option>
+        <file dir="${inputdir}" name="LicensingSystem.Client.dll" />
+      </inputassembly>
+      <inputassembly refid="4">
+        <option>honoraliasing</option>
+        <option>stripaliasing</option>
+        <file dir="${inputdir}" name="LicensingSystem.Shared.dll" />
+      </inputassembly>
+    </asmlist>
+  </input>
+  
+  <output>
+    <file dir="${outputdir}" />
+  </output>
+  
+  <!-- Renaming Configuration -->
+  <renaming>
+    <option>xmlserialiazation</option>
+    
+    <!-- Renaming scheme: use unprintable characters -->
+    <mapping>
+      <mapaliasing>true</mapaliasing>
+      <mapaliasaliasing>false</mapaliasaliasing>
+    </mapping>
+    
+    <!-- Exclude WPF XAML-related types from renaming -->
+    <excludelist>
+      <!-- WPF Windows and Controls -->
+      <type name="FathomOS.Shell.Views.*" regex="true" excludetype="true">
+        <option>excludealiasing</option>
+      </type>
+      
+      <!-- Public license API that might be accessed by modules -->
+      <type name="FathomOS.Shell.App" excludetype="false">
+        <method name="get_IsPro" signature="bool()" />
+        <method name="get_IsLicensed" signature="bool()" />
+        <method name="get_LicenseManager" />
+        <propertymember name="IsPro" />
+        <propertymember name="IsLicensed" />
+        <propertymember name="LicenseManager" />
+      </type>
+      
+      <!-- JSON serialized types must keep property names -->
+      <type name="LicensingSystem.Shared.*" regex="true">
+        <option>excludealiasing</option>
+      </type>
+      
+      <!-- Keep module interface names for discovery -->
+      <type name="FathomOS.Core.Interfaces.IModule" excludetype="true">
+        <option>excludealiasing</option>
+      </type>
+    </excludelist>
+  </renaming>
+  
+  <!-- Control Flow Obfuscation -->
+  <controlflow level="high">
+    <includelist>
+      <!-- Apply maximum obfuscation to licensing code -->
+      <type name="LicensingSystem.Client.*" regex="true" />
+      <type name="FathomOS.Shell.Security.*" regex="true" />
+    </includelist>
+  </controlflow>
+  
+  <!-- String Encryption -->
+  <stringencrypt>
+    <includelist>
+      <!-- Encrypt all strings in licensing code -->
+      <type name="LicensingSystem.Client.*" regex="true" />
+      <type name="FathomOS.Shell.Security.*" regex="true" />
+      <type name="FathomOS.Shell.App" />
+    </includelist>
+  </stringencrypt>
+  
+  <!-- Removal of unused code -->
+  <removal>
+    <option>disablealiasing</option>
+  </removal>
+  
+  <!-- Watermarking (optional - for tracking pirated copies) -->
+  <watermark>
+    <watermarklist>
+      <watermarkinput>FathomOS-Licensed-Build</watermarkinput>
+    </watermarklist>
+  </watermark>
+  
+</dotfuscator>

@@ -1,0 +1,288 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.LocationEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters"
+        Title="{Binding WindowTitle}"
+        Height="650" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="CanResizeWithGrip"
+        MinHeight="500" MinWidth="500"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1">
+    
+    <mah:MetroWindow.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Content with Tabs -->
+        <TabControl Grid.Row="0" Margin="15"
+                    Background="Transparent"
+                    BorderThickness="0">
+            
+            <!-- TAB 1: Location Details -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="MapMarker" Width="16" Height="16" 
+                                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Location Details" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,15">
+                    <StackPanel>
+                        <!-- Header -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                            <Border Width="48" Height="48" CornerRadius="12" Margin="0,0,15,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#00D4AA" Offset="0"/>
+                                        <GradientStop Color="#00B4D8" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <iconPacks:PackIconMaterial Kind="MapMarker" Width="24" Height="24" 
+                                                            Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding WindowTitle}" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Enter location details below" FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <!-- Location Name -->
+                        <TextBlock Text="Location Name *" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                        <TextBox x:Name="NameTextBox" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14" Padding="12,10"
+                                 mah:TextBoxHelper.Watermark="Enter location name"
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 mah:TextBoxHelper.ClearTextButton="True"/>
+                        
+                        <!-- Location Code -->
+                        <TextBlock Text="Location Code *" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,20,0,8"/>
+                        <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14" Padding="12,10" MaxLength="10" CharacterCasing="Upper"
+                                 mah:TextBoxHelper.Watermark="e.g., BASE01, VSL001"
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
+                        
+                        <!-- Location Type -->
+                        <TextBlock Text="Location Type *" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,20,0,8"/>
+                        <ComboBox ItemsSource="{Binding LocationTypes}" SelectedItem="{Binding SelectedType}"
+                                  FontSize="14" Padding="12,10"
+                                  Background="{DynamicResource CardBrush}"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  BorderBrush="{DynamicResource BorderBrush}"/>
+                        
+                        <!-- Description -->
+                        <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,20,0,8"/>
+                        <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14" Padding="12,10" Height="80"
+                                 TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top"
+                                 mah:TextBoxHelper.Watermark="Optional description"
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
+                        
+                        <!-- Address -->
+                        <TextBlock Text="Address" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,20,0,8"/>
+                        <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14" Padding="12,10"
+                                 mah:TextBoxHelper.Watermark="Street address"
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
+                        
+                        <!-- Contact -->
+                        <TextBlock Text="Contact Person" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,20,0,8"/>
+                        <TextBox Text="{Binding ContactPerson, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14" Padding="12,10"
+                                 mah:TextBoxHelper.Watermark="Contact name"
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
+                        
+                        <!-- Is Active -->
+                        <CheckBox Content="Location is Active" IsChecked="{Binding IsActive}"
+                                  Margin="0,20,0,0" FontSize="14"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- TAB 2: Assigned Users -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="AccountGroup" Width="16" Height="16" 
+                                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Assigned Users" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding AssignedUsersCount, StringFormat=' ({0})'}" 
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </TabItem.Header>
+                
+                <Grid Margin="10,15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                        <TextBlock Text="Users Assigned to this Location" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="These users can receive shipments and manage inventory at this location"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    
+                    <!-- Assigned Users List -->
+                    <Border Grid.Row="1" Background="{DynamicResource CardBrush}" 
+                            CornerRadius="8" Padding="0">
+                        <Grid>
+                            <!-- Empty State -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Visibility="{Binding HasNoAssignedUsers, Converter={StaticResource BoolToVisibility}}">
+                                <iconPacks:PackIconMaterial Kind="AccountOff" Width="48" Height="48"
+                                                            HorizontalAlignment="Center"
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"
+                                                            Opacity="0.5"/>
+                                <TextBlock Text="No users assigned" HorizontalAlignment="Center"
+                                           Margin="0,10,0,0" FontSize="14"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Add users from the list below" HorizontalAlignment="Center"
+                                           FontSize="12" Margin="0,5,0,0"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.7"/>
+                            </StackPanel>
+                            
+                            <!-- Users List -->
+                            <ListBox ItemsSource="{Binding AssignedUsers}" 
+                                     SelectedItem="{Binding SelectedAssignedUser}"
+                                     Background="Transparent" BorderThickness="0"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="10,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <!-- Avatar -->
+                                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                                    Background="{DynamicResource AccentBrush}">
+                                                <TextBlock Text="{Binding Initials}" 
+                                                           FontSize="14" FontWeight="Bold" Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            
+                                            <!-- Name & Email -->
+                                            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Email}" FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Access Level -->
+                                            <ComboBox Grid.Column="2" Width="100" Margin="10,0"
+                                                      ItemsSource="{Binding DataContext.AccessLevels, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                      SelectedItem="{Binding AccessLevel}"
+                                                      FontSize="12" Padding="8,5"/>
+                                            
+                                            <!-- Remove Button -->
+                                            <Button Grid.Column="3" 
+                                                    Command="{Binding DataContext.RemoveUserCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="Remove user" Padding="8"
+                                                    Background="Transparent" BorderThickness="0">
+                                                <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14"
+                                                                            Foreground="{DynamicResource ErrorBrush}"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Add User Section -->
+                    <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                            CornerRadius="8" Padding="12" Margin="0,15,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableUsers}"
+                                      SelectedItem="{Binding SelectedAvailableUser}"
+                                      DisplayMemberPath="DisplayName"
+                                      mah:TextBoxHelper.Watermark="Select a user to add..."
+                                      FontSize="14" Padding="10,8"
+                                      IsEditable="True"
+                                      mah:TextBoxHelper.ClearTextButton="True"/>
+                            
+                            <Button Grid.Column="1" Content="Add User" 
+                                    Command="{Binding AddUserCommand}"
+                                    Margin="10,0,0,0" Padding="20,8"
+                                    Style="{DynamicResource PrimaryButton}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Error Message -->
+        <Border Grid.Row="0" Background="#33E53935" CornerRadius="8" Padding="15" 
+                Margin="25,0,25,80" VerticalAlignment="Bottom"
+                Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#E53935" 
+                       TextWrapping="Wrap" FontSize="13"/>
+        </Border>
+        
+        <!-- Footer Buttons -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" 
+                BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}"
+                Padding="25,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Column="1" Content="Cancel" Width="100" Margin="0,0,10,0"
+                        Click="CancelButton_Click" IsCancel="True"
+                        Style="{DynamicResource SecondaryButton}"/>
+                        
+                <Button Grid.Column="2" Content="Save" Width="100"
+                        Command="{Binding SaveCommand}"
+                        Style="{DynamicResource PrimaryButton}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

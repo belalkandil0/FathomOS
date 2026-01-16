@@ -1,0 +1,997 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.TreeInclination.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:converters="clr-namespace:FathomOS.Modules.TreeInclination.Converters"
+        Title="Tree Inclination Analysis - Fathom OS"
+        Height="900" Width="1500"
+        MinHeight="750" MinWidth="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource AccentBrush}"
+        ResizeMode="CanResizeWithGrip"
+        TitleCharacterCasing="Normal"
+        Loaded="OnWindowLoaded">
+
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <converters:StatusToColorConverter x:Key="StatusToColor"/>
+        <converters:StepToBackgroundConverter x:Key="StepToBackground"/>
+        
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="2" Opacity="0.15" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Gradient Action Button -->
+        <Style x:Key="GradientButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="24,14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#3B82F6" Offset="0"/>
+                                    <GradientStop Color="#8B5CF6" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#2563EB" Offset="0"/>
+                                            <GradientStop Color="#7C3AED" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Cyan Outline Button -->
+        <Style x:Key="CyanOutlineButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#22D3EE"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                BorderBrush="#22D3EE" BorderThickness="2" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1A3A4A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Simple Outline Button -->
+        <Style x:Key="OutlineButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Stat Card -->
+        <Style x:Key="StatCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,16"/>
+        </Style>
+        
+        <!-- Section Icon -->
+        <Style x:Key="SectionIcon" TargetType="Border">
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewProjectCommand}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding LoadProjectCommand}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveProjectCommand}"/>
+        <KeyBinding Gesture="F1" Command="{Binding ShowHelpCommand}"/>
+    </Window.InputBindings>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Border Width="40" Height="40" CornerRadius="10" Margin="0,0,12,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#3B82F6" Offset="0"/>
+                                <GradientStop Color="#8B5CF6" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <iconPacks:PackIconMaterial Kind="TreeOutline" Width="22" Height="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Tree Inclination" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Analysis Module" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <!-- Step Progress -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!-- Step 1 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=1}">
+                            <TextBlock Text="1" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Project" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 2 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=2}">
+                            <TextBlock Text="2" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Import" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 3 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=3}">
+                            <TextBlock Text="3" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Corners" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 4 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=4}">
+                            <TextBlock Text="4" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Corrections" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 5 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=5}">
+                            <TextBlock Text="5" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Results" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 6 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=6}">
+                            <TextBlock Text="6" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Visualize" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <Border Width="24" Height="2" Background="{DynamicResource BorderBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- Step 7 -->
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBackground}, ConverterParameter=7}">
+                            <TextBlock Text="7" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Export" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <!-- Quick Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button ToolTip="New" Command="{Binding NewProjectCommand}" Style="{StaticResource OutlineButton}" Padding="10" Margin="0,0,4,0">
+                        <iconPacks:PackIconMaterial Kind="FilePlusOutline" Width="18" Height="18"/>
+                    </Button>
+                    <Button ToolTip="Open" Command="{Binding LoadProjectCommand}" Style="{StaticResource OutlineButton}" Padding="10" Margin="0,0,4,0">
+                        <iconPacks:PackIconMaterial Kind="FolderOpenOutline" Width="18" Height="18"/>
+                    </Button>
+                    <Button ToolTip="Save" Command="{Binding SaveProjectCommand}" Style="{StaticResource OutlineButton}" Padding="10" Margin="0,0,4,0">
+                        <iconPacks:PackIconMaterial Kind="ContentSaveOutline" Width="18" Height="18"/>
+                    </Button>
+                    <Button ToolTip="Toggle Theme" Command="{Binding ToggleThemeCommand}" Style="{StaticResource OutlineButton}" Padding="10" Margin="0,0,4,0">
+                        <iconPacks:PackIconMaterial Kind="{Binding ThemeIcon}" Width="18" Height="18"/>
+                    </Button>
+                    <Button ToolTip="Help" Command="{Binding ShowHelpCommand}" Style="{StaticResource OutlineButton}" Padding="10">
+                        <iconPacks:PackIconMaterial Kind="HelpCircleOutline" Width="18" Height="18"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- MAIN CONTENT -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24">
+            <Grid>
+                <!-- STEP 1 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep1, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#3B82F6" Offset="0"/>
+                                            <GradientStop Color="#6366F1" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="FileDocumentOutline" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="PROJECT DETAILS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Enter project identification" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <TextBlock Text="Project Name" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="Client Name" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="Vessel Name" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding VesselName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="Structure Name" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding StructureName, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="2">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#10B981" Offset="0"/>
+                                            <GradientStop Color="#14B8A6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="CubeOutline" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="STRUCTURE SETTINGS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Define geometry and tolerances" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Structure Type" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <ComboBox SelectedItem="{Binding StructureType}" ItemsSource="{Binding StructureTypes}" Margin="0,0,0,16"/>
+                                    <TextBlock Text="Width (m)" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <mah:NumericUpDown Value="{Binding StructureWidth}" Minimum="0" Maximum="500" StringFormat="F2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Geometry" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <ComboBox SelectedItem="{Binding GeometryType}" ItemsSource="{Binding GeometryTypes}" Margin="0,0,0,16"/>
+                                    <TextBlock Text="Length (m)" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <mah:NumericUpDown Value="{Binding StructureLength}" Minimum="0" Maximum="500" StringFormat="F2"/>
+                                </StackPanel>
+                            </Grid>
+                            
+                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="16" Margin="0,20,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Max Inclination (°)" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,6"/>
+                                        <mah:NumericUpDown Value="{Binding MaxAllowedInclination}" Minimum="0" Maximum="10" StringFormat="F2" Interval="0.1"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Max Misclosure (m)" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,6"/>
+                                        <mah:NumericUpDown Value="{Binding MaxAllowedMisclosure}" Minimum="0" Maximum="1" StringFormat="F3" Interval="0.01"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 2 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep2, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0" Margin="0,0,0,20">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#8B5CF6" Offset="0"/>
+                                            <GradientStop Color="#EC4899" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="FileUploadOutline" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="NPD DATA FILES" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Import depth data files for each corner" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Import Files" Command="{Binding LoadFilesCommand}" Style="{StaticResource GradientButton}" Margin="0,0,8,0">
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <iconPacks:PackIconMaterial Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Import Files" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
+                                <Button Content="Clear All" Command="{Binding ClearFilesCommand}" Style="{StaticResource OutlineButton}"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="20" Margin="0,0,0,20">
+                            <UniformGrid Columns="4">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding LoadedFiles.Count}" FontSize="28" FontWeight="Bold" Foreground="#22D3EE" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Files" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Corners.Count}" FontSize="28" FontWeight="Bold" Foreground="#22D3EE" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Corners" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="0" FontSize="28" FontWeight="Bold" Foreground="#22D3EE" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Points" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Border Width="32" Height="32" CornerRadius="16" HorizontalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#EF4444"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CanCalculate}" Value="True">
+                                                        <Setter Property="Background" Value="#22C55E"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <iconPacks:PackIconMaterial Kind="Check" Width="16" Height="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding CanCalculate, Converter={StaticResource BoolToVisibility}}"/>
+                                    </Border>
+                                    <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,4,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Pending"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CanCalculate}" Value="True">
+                                                        <Setter Property="Text" Value="Ready"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </UniformGrid>
+                        </Border>
+                        
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="300"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <DataGrid Grid.Column="0" ItemsSource="{Binding LoadedFiles}" SelectedItem="{Binding SelectedFile}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource CardBrush}" Foreground="{DynamicResource TextPrimaryBrush}" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderBrush}" RowHeaderWidth="0" CanUserAddRows="False" MinHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="180"/>
+                                    <DataGridTextColumn Header="Corner" Binding="{Binding CornerName}" Width="80"/>
+                                    <DataGridTextColumn Header="Points" Binding="{Binding PointCount}" Width="70"/>
+                                    <DataGridTextColumn Header="Avg Depth" Binding="{Binding RawDepthAverage, StringFormat=F3}" Width="100"/>
+                                    <DataGridTextColumn Header="Heading" Binding="{Binding HeadingDisplay}" Width="80"/>
+                                    <DataGridCheckBoxColumn Header="Closure" Binding="{Binding IsClosurePoint}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            
+                            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16" Margin="16,0,0,0" Visibility="{Binding SelectedFile, Converter={StaticResource NullToVisibility}, ConverterParameter=Inverse}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SelectedFile.FileName}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" Margin="0,0,0,12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Points" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding SelectedFile.PointCount}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Heading" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding SelectedFile.HeadingDisplay}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Text="Depth Profile" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                    <Border CornerRadius="8" ClipToBounds="True" Height="120">
+                                        <oxy:PlotView Model="{Binding SelectedFileChart}" Background="Transparent"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding HasLoadedFiles, Converter={StaticResource InverseBoolToVisibility}}">
+                                <Border Width="64" Height="64" CornerRadius="16" Background="{DynamicResource SurfaceBrush}" HorizontalAlignment="Center" Margin="0,0,0,16">
+                                    <iconPacks:PackIconMaterial Kind="FileUploadOutline" Width="28" Height="28" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Click 'Import Files' to load NPD data" FontSize="14" Foreground="{DynamicResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 3 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="380"/>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#F59E0B" Offset="0"/>
+                                            <GradientStop Color="#EF4444" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="MapMarkerMultipleOutline" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="CORNER COORDINATES" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Configure X, Y positions" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Button Content="Generate Coords" Command="{Binding GenerateCoordsCommand}" Style="{StaticResource CyanOutlineButton}" Margin="0,0,8,0"/>
+                                <Button Command="{Binding SetHeadingFromGyroCommand}" Style="{StaticResource CyanOutlineButton}" ToolTip="{Binding AverageCornerHeadingDisplay}" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconMaterial Kind="Compass" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="From Gyro" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding RefreshChartsCommand}" Style="{StaticResource CyanOutlineButton}" ToolTip="Refresh plan view after editing coordinates">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconMaterial Kind="Refresh" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            
+                            <DataGrid ItemsSource="{Binding CornersWithoutClosure}" AutoGenerateColumns="False" CanUserAddRows="False" Height="260" 
+                                      Background="Transparent" BorderThickness="0" 
+                                      RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource CardBrush}" 
+                                      Foreground="{DynamicResource TextPrimaryBrush}" 
+                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderBrush}" 
+                                      RowHeaderWidth="0"
+                                      CellEditEnding="DataGrid_CellEditEnding">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Corner" Binding="{Binding Name}" Width="60" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="X (m)" Binding="{Binding X, StringFormat=F3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="75"/>
+                                    <DataGridTextColumn Header="Y (m)" Binding="{Binding Y, StringFormat=F3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="75"/>
+                                    <DataGridTextColumn Header="Raw Depth" Binding="{Binding RawDepthAverage, StringFormat=F3}" Width="85" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="Hdg" Binding="{Binding HeadingDisplay}" Width="50" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            
+                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="16" Margin="0,16,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Structure Heading:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <mah:NumericUpDown Grid.Column="1" Value="{Binding StructureHeading}" Minimum="0" Maximum="360" StringFormat="F1" Margin="12,0,0,0" Width="120" HorizontalAlignment="Left"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                        
+                        <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="12" ClipToBounds="True">
+                            <Grid>
+                                <oxy:PlotView Model="{Binding Step3PlanViewChart}" Background="Transparent"/>
+                                <TextBlock Text="PLAN VIEW" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,12,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 4 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#06B6D4" Offset="0"/>
+                                            <GradientStop Color="#3B82F6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="WavesArrowUp" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="TIDE &amp; DRAFT CORRECTION" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Apply tide and draft corrections to depths" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <CheckBox Content="Apply Tide Correction" IsChecked="{Binding ApplyTideCorrection}" Margin="0,0,0,16" FontWeight="Medium"/>
+                            
+                            <StackPanel Visibility="{Binding ApplyTideCorrection, Converter={StaticResource BoolToVisibility}}">
+                                <!-- Tide File Section -->
+                                <TextBlock Text="FROM TIDE FILE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,8"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Button Command="{Binding LoadTideFileCommand}" Style="{StaticResource CyanOutlineButton}" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconMaterial Kind="FileUploadOutline" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Load File" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ClearTideCommand}" Style="{StaticResource OutlineButton}" ToolTip="Clear loaded tide data">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Clear" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding TideFileName}" FontSize="12" Foreground="#22D3EE" Margin="0,0,0,16" Visibility="{Binding TideFileName, Converter={StaticResource NullToVisibility}}"/>
+                                
+                                <!-- OR Manual Entry -->
+                                <TextBlock Text="— OR MANUAL VALUE —" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <mah:NumericUpDown Grid.Column="0" Value="{Binding TideValue}" Minimum="-10" Maximum="10" StringFormat="F3" Interval="0.01"/>
+                                    <TextBlock Grid.Column="1" Text="m" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                            
+                            <!-- Draft Offset Section -->
+                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="DRAFT OFFSET" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <mah:NumericUpDown Grid.Column="0" Value="{Binding DraftOffset}" Minimum="-10" Maximum="10" StringFormat="F3" Interval="0.01"/>
+                                        <TextBlock Grid.Column="1" Text="m" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </Grid>
+                                    <TextBlock Text="Sensor depth below waterline" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Apply Button -->
+                            <Button Command="{Binding ApplyCorrectionsCommand}" Style="{StaticResource GradientButton}" HorizontalAlignment="Stretch" Margin="0,20,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Check" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Apply Corrections" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        
+                        <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="CORRECTED DEPTHS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                                <DataGrid ItemsSource="{Binding Corners}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" RowBackground="{DynamicResource CardBrush}" AlternatingRowBackground="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderBrush}" RowHeaderWidth="0" CanUserAddRows="False" MaxHeight="300">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Corner" Binding="{Binding Name}" Width="70"/>
+                                        <DataGridTextColumn Header="Raw Depth (m)" Binding="{Binding RawDepthAverage, StringFormat=F3}" Width="100"/>
+                                        <DataGridTextColumn Header="Tide (m)" Binding="{Binding TideCorrection, StringFormat=+0.000;-0.000;0.000}" Width="80"/>
+                                        <DataGridTextColumn Header="Corrected (m)" Binding="{Binding CorrectedDepth, StringFormat=F3}" Width="100"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                
+                                <!-- Formula explanation -->
+                                <Border Background="{DynamicResource CardBrush}" CornerRadius="8" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Formula:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock Text="Corrected = Raw + Tide + Draft" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" FontFamily="Consolas"/>
+                                        <TextBlock Text="Positive tide = high water = deeper seabed below chart datum" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 5 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep5, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0" Margin="0,0,0,24">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#22C55E" Offset="0"/>
+                                            <GradientStop Color="#10B981" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="ChartArc" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="INCLINATION RESULTS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Calculate and review results" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Command="{Binding CalculateCommand}" Style="{StaticResource GradientButton}" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Calculator" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Calculate" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        
+                        <Grid Grid.Row="1" Visibility="{Binding HasResult, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Border Grid.Row="0" CornerRadius="12" Padding="20" Margin="0,0,0,20" Background="{Binding ResultStatus, Converter={StaticResource StatusToColor}, ConverterParameter=Background}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <iconPacks:PackIconMaterial Kind="CheckCircle" Width="24" Height="24" Foreground="White" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ResultStatusText}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <UniformGrid Grid.Row="1" Columns="4">
+                                <Border Style="{StaticResource StatCard}" Margin="0,0,12,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Total Inclination" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding TotalInclination, StringFormat={}{0:F3}°}" FontSize="32" FontWeight="Bold" Foreground="#22D3EE" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatCard}" Margin="0,0,12,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Bearing" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding InclinationBearing, StringFormat={}{0:F1}°}" FontSize="32" FontWeight="Bold" Foreground="#A78BFA" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatCard}" Margin="0,0,12,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Pitch" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding PitchAngle, StringFormat={}{0:F3}°}" FontSize="32" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource StatCard}">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Roll" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding RollAngle, StringFormat={}{0:F3}°}" FontSize="32" FontWeight="Bold" Foreground="#FB923C" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                        </Grid>
+                        
+                        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding HasResult, Converter={StaticResource InverseBoolToVisibility}}">
+                            <iconPacks:PackIconMaterial Kind="CalculatorVariantOutline" Width="48" Height="48" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                            <TextBlock Text="Click 'Calculate' to process inclination" FontSize="14" Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 6 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep6, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <Border Style="{StaticResource SectionIcon}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#EC4899" Offset="0"/>
+                                        <GradientStop Color="#8B5CF6" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <iconPacks:PackIconMaterial Kind="ChartLine" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="VISUALIZATION" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Interactive charts and 3D model" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedVisualizationTab}">
+                            <TabItem Header="Depth Profile">
+                                <oxy:PlotView Model="{Binding DepthProfileChart}" Background="Transparent" Margin="8"/>
+                            </TabItem>
+                            <TabItem Header="Plan View">
+                                <oxy:PlotView Model="{Binding PlanViewChart}" Background="Transparent" Margin="8"/>
+                            </TabItem>
+                            <TabItem Header="Vector Diagram">
+                                <oxy:PlotView Model="{Binding VectorDiagramChart}" Background="Transparent" Margin="8"/>
+                            </TabItem>
+                            <TabItem Header="3D Model">
+                                <Grid>
+                                    <Viewport3D x:Name="MainViewport3D" ClipToBounds="True">
+                                        <Viewport3D.Camera>
+                                            <PerspectiveCamera Position="2,2,2" LookDirection="-1,-1,-1" UpDirection="0,0,1" FieldOfView="60"/>
+                                        </Viewport3D.Camera>
+                                        <ModelVisual3D Content="{Binding Structure3DModel}"/>
+                                        <ModelVisual3D>
+                                            <ModelVisual3D.Content>
+                                                <AmbientLight Color="#404040"/>
+                                            </ModelVisual3D.Content>
+                                        </ModelVisual3D>
+                                        <ModelVisual3D>
+                                            <ModelVisual3D.Content>
+                                                <DirectionalLight Color="White" Direction="-1,-1,-1"/>
+                                            </ModelVisual3D.Content>
+                                        </ModelVisual3D>
+                                    </Viewport3D>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">
+                                        <Button Content="Reset" Click="ResetCamera_Click" Style="{StaticResource OutlineButton}" Margin="0,0,4,0"/>
+                                        <Button Content="Top" Click="TopView_Click" Style="{StaticResource OutlineButton}" Margin="0,0,4,0"/>
+                                        <Button Content="Side" Click="SideView_Click" Style="{StaticResource OutlineButton}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </Border>
+                
+                <!-- STEP 7 -->
+                <Border Style="{StaticResource ModernCard}" Visibility="{Binding IsStep7, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="380"/>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Border Style="{StaticResource SectionIcon}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#14B8A6" Offset="0"/>
+                                            <GradientStop Color="#22D3EE" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <iconPacks:PackIconMaterial Kind="ClipboardCheckOutline" Width="24" Height="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="SIGNATORY APPROVAL" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Review, approve and certify" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <TextBlock Text="Signatory Name *" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding ReviewerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+                            
+                            <TextBlock Text="Professional Title *" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <ComboBox ItemsSource="{Binding SignatoryTitles}" SelectedItem="{Binding ReviewerTitle}" Margin="0,0,0,12"/>
+                            
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Credentials (optional)" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding ReviewerCredentials, UpdateSourceTrigger=PropertyChanged}" ToolTip="e.g., BSc, MSc, MRICS"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Initials" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding ReviewerInitials, UpdateSourceTrigger=PropertyChanged}" MaxLength="5"/>
+                                </StackPanel>
+                            </Grid>
+                            
+                            <TextBlock Text="Review Comments" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding ReviewComments, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,16"/>
+                            
+                            <CheckBox Content="Approved for Release" IsChecked="{Binding IsApproved}" FontSize="14" FontWeight="SemiBold" Foreground="#22C55E" Margin="0,0,0,16"/>
+                            
+                            <!-- Generate Certificate Button -->
+                            <Button Command="{Binding GenerateCertificateCommand}" Margin="0,8,0,0" Height="44">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="border" CornerRadius="10" Padding="20,10">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#14B8A6" Offset="0"/>
+                                                                <GradientStop Color="#22D3EE" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <iconPacks:PackIconMaterial Kind="Certificate" Width="20" Height="20" Foreground="White" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Generate Certificate" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="border" Property="Background">
+                                                                <Setter.Value>
+                                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                        <GradientStop Color="#0D9488" Offset="0"/>
+                                                                        <GradientStop Color="#06B6D4" Offset="1"/>
+                                                                    </LinearGradientBrush>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <TextBlock Text="Approval required to generate certificate" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="EXPORT OPTIONS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+                            <UniformGrid Columns="2" Rows="2">
+                                <Button Command="{Binding ExportExcelCommand}" Style="{StaticResource CyanOutlineButton}" Margin="0,0,12,12" Padding="20">
+                                    <StackPanel>
+                                        <iconPacks:PackIconMaterial Kind="MicrosoftExcel" Width="32" Height="32" Foreground="#22D3EE" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="Excel Report" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ExportPdfCommand}" Style="{StaticResource CyanOutlineButton}" Margin="0,0,0,12" Padding="20">
+                                    <StackPanel>
+                                        <iconPacks:PackIconMaterial Kind="FilePdfBox" Width="32" Height="32" Foreground="#22D3EE" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="PDF Report" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ExportDxfCommand}" Style="{StaticResource CyanOutlineButton}" Margin="0,0,12,0" Padding="20">
+                                    <StackPanel>
+                                        <iconPacks:PackIconMaterial Kind="VectorSquare" Width="32" Height="32" Foreground="#22D3EE" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="DXF Drawing" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ExportChartsCommand}" Style="{StaticResource CyanOutlineButton}" Padding="20">
+                                    <StackPanel>
+                                        <iconPacks:PackIconMaterial Kind="ImageMultipleOutline" Width="32" Height="32" Foreground="#22D3EE" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="Save Charts" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+        
+        <!-- FOOTER -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="24,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Column="0" Command="{Binding PreviousStepCommand}" Style="{StaticResource OutlineButton}" Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="ArrowLeft" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Back" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="2" Command="{Binding NextStepCommand}" Style="{StaticResource GradientButton}" Visibility="{Binding CanGoNext, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding NextButtonText}" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterial Kind="ArrowRight" Width="16" Height="16" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+        
+        <!-- Loading Overlay -->
+        <Border Grid.RowSpan="3" Background="#80000000" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <mah:ProgressRing IsActive="True" Width="60" Height="60"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="White" Margin="0,16,0,0" FontSize="14"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

@@ -1,0 +1,178 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="800">
+            
+            <!-- Header -->
+            <StackPanel Margin="0,0,0,30">
+                <TextBlock Text="Settings" Style="{DynamicResource HeadingLarge}" Margin="0,0,0,5"/>
+                <TextBlock Text="Configure module preferences and options" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"/>
+            </StackPanel>
+            
+            <!-- General Settings -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <iconPacks:PackIconMaterial Kind="Cog" Width="20" Height="20" 
+                                                    Foreground="{DynamicResource AccentBrush}" Margin="0,0,12,0"/>
+                        <TextBlock Text="General" Style="{DynamicResource HeadingMedium}"/>
+                    </StackPanel>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Company Name" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Name displayed on reports and labels" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <TextBox Grid.Column="1" Text="{Binding CompanyName}"/>
+                    </Grid>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Asset Number Prefix" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Prefix for auto-generated asset numbers" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <TextBox Grid.Column="1" Text="{Binding AssetNumberPrefix}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Sync Settings -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <iconPacks:PackIconMaterial Kind="Sync" Width="20" Height="20" 
+                                                    Foreground="{DynamicResource AccentBrush}" Margin="0,0,12,0"/>
+                        <TextBlock Text="Synchronization" Style="{DynamicResource HeadingMedium}"/>
+                    </StackPanel>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="API Server URL" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="URL of the synchronization server" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <TextBox Grid.Column="1" Text="{Binding ApiBaseUrl}"/>
+                    </Grid>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Auto-sync Enabled" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Automatically sync changes when online" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding AutoSyncEnabled}" VerticalAlignment="Center"/>
+                    </Grid>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Sync Interval (minutes)" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="How often to check for updates" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <TextBox Grid.Column="1" Text="{Binding SyncIntervalMinutes}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Label Settings -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <iconPacks:PackIconMaterial Kind="Qrcode" Width="20" Height="20" 
+                                                    Foreground="{DynamicResource AccentBrush}" Margin="0,0,12,0"/>
+                        <TextBlock Text="QR Code Labels" Style="{DynamicResource HeadingMedium}"/>
+                    </StackPanel>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Label Size" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Size of printed QR code labels" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" SelectedIndex="1">
+                            <ComboBoxItem Content="Small (25mm)"/>
+                            <ComboBoxItem Content="Medium (50mm)"/>
+                            <ComboBoxItem Content="Large (75mm)"/>
+                        </ComboBox>
+                    </Grid>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Include Company Logo" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Add company logo to printed labels" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding IncludeLogoOnLabels}" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Backup Settings -->
+            <Border Style="{DynamicResource CardBorder}" Margin="0,0,0,20">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <iconPacks:PackIconMaterial Kind="CloudUpload" Width="20" Height="20" 
+                                                    Foreground="{DynamicResource AccentBrush}" Margin="0,0,12,0"/>
+                        <TextBlock Text="Backup" Style="{DynamicResource HeadingMedium}"/>
+                    </StackPanel>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Backup Location" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Where to store local backups" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Browse..." Style="{DynamicResource SecondaryButton}"
+                                Command="{Binding BrowseBackupLocationCommand}"/>
+                    </Grid>
+                    
+                    <Button Content="Create Backup Now" Style="{DynamicResource PrimaryButton}" 
+                            HorizontalAlignment="Left" Command="{Binding CreateBackupCommand}"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Save Button -->
+            <Button Content="Save Settings" Style="{DynamicResource PrimaryButton}" 
+                    HorizontalAlignment="Right" Command="{Binding SaveSettingsCommand}"/>
+            
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

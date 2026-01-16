@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fathom OS — License Portal</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        header h1 span {
+            font-size: 3rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #1e293b;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-item {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-item label {
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .value {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .device-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .device-card h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hardware-list {
+            list-style: none;
+        }
+
+        .hardware-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hardware-list li:last-child {
+            border-bottom: none;
+        }
+
+        .hardware-list .component {
+            color: var(--text-secondary);
+        }
+
+        .hardware-list .value {
+            font-family: 'Consolas', monospace;
+            color: var(--accent);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent);
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .transfer-steps {
+            counter-reset: step;
+        }
+
+        .transfer-step {
+            position: relative;
+            padding-left: 50px;
+            padding-bottom: 30px;
+            border-left: 2px solid var(--border);
+            margin-left: 15px;
+        }
+
+        .transfer-step:last-child {
+            border-left: none;
+            padding-bottom: 0;
+        }
+
+        .transfer-step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: -15px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .transfer-step.completed::before {
+            background: var(--success);
+            content: '✓';
+        }
+
+        .transfer-step h4 {
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span>⚓</span> Fathom OS</h1>
+            <p>License Management Portal</p>
+        </header>
+
+        <!-- Step 1: Verify License -->
+        <div id="verify-section" class="card">
+            <h2>🔐 Verify Your License</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Enter your license details to manage your activation.
+            </p>
+            
+            <div class="form-group">
+                <label for="licenseKey">License Key</label>
+                <input type="text" id="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="supportCode">Support Code (Optional)</label>
+                <input type="text" id="supportCode" placeholder="SUP-XX-XXXXX">
+            </div>
+            
+            <button class="btn btn-primary btn-block" onclick="verifyLicense()">
+                <span>🔍</span> Verify License
+            </button>
+            
+            <div id="verify-error" class="alert alert-error hidden" style="margin-top: 20px;">
+                <span>❌</span>
+                <span id="verify-error-text"></span>
+            </div>
+        </div>
+
+        <!-- Step 2: License Status (hidden initially) -->
+        <div id="status-section" class="hidden">
+            <div class="card">
+                <h2>📋 License Status</h2>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Customer</label>
+                        <div class="value" id="customerName">-</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Edition</label>
+                        <div class="value" id="edition">-</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Status</label>
+                        <div class="value"><span id="licenseStatus" class="status-badge">-</span></div>
+                    </div>
+                    <div class="info-item">
+                        <label>Expires</label>
+                        <div class="value" id="expiresAt">-</div>
+                    </div>
+                    <div class="info-item">
+                        <label>License ID</label>
+                        <div class="value" id="licenseId" style="font-family: monospace; font-size: 0.9rem;">-</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Support Code</label>
+                        <div class="value" id="displaySupportCode" style="font-family: monospace;">-</div>
+                    </div>
+                </div>
+                
+                <!-- Active Device -->
+                <div id="activeDeviceCard" class="device-card">
+                    <h3>💻 Active Device</h3>
+                    <div id="noActiveDevice" class="hidden">
+                        <p style="color: var(--text-secondary);">No device is currently activated with this license.</p>
+                    </div>
+                    <div id="hasActiveDevice">
+                        <ul class="hardware-list">
+                            <li>
+                                <span class="component">Machine Name</span>
+                                <span class="value" id="machineName">-</span>
+                            </li>
+                            <li>
+                                <span class="component">Last Seen</span>
+                                <span class="value" id="lastSeen">-</span>
+                            </li>
+                            <li>
+                                <span class="component">Activated</span>
+                                <span class="value" id="activatedAt">-</span>
+                            </li>
+                        </ul>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-warning" onclick="showHardwareInfo()">
+                                <span>🔧</span> View Hardware Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div style="margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button id="transferBtn" class="btn btn-primary" onclick="showTransferSection()">
+                        <span>🔄</span> Transfer to New Device
+                    </button>
+                    <button id="deactivateBtn" class="btn btn-danger" onclick="deactivateDevice()">
+                        <span>🔓</span> Deactivate This Device
+                    </button>
+                    <button class="btn" style="background: var(--bg-card);" onclick="resetPortal()">
+                        <span>↩️</span> Back to Verify
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Info Modal -->
+        <div id="hardware-section" class="hidden">
+            <div class="card">
+                <h2>🔧 Hardware Fingerprint</h2>
+                
+                <div class="alert alert-info">
+                    <span>ℹ️</span>
+                    <div>
+                        <strong>What is a Hardware Fingerprint?</strong><br>
+                        Your license is bound to specific hardware components in your computer to prevent unauthorized sharing.
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0 15px;">Components Tracked:</h3>
+                <ul class="hardware-list">
+                    <li>
+                        <span class="component">🖥️ CPU ID</span>
+                        <span class="value" id="hwCpuId">****</span>
+                    </li>
+                    <li>
+                        <span class="component">🔌 Motherboard Serial</span>
+                        <span class="value" id="hwMotherboard">****</span>
+                    </li>
+                    <li>
+                        <span class="component">🌐 MAC Address</span>
+                        <span class="value" id="hwMac">****</span>
+                    </li>
+                    <li>
+                        <span class="component">💾 Disk Serial</span>
+                        <span class="value" id="hwDisk">****</span>
+                    </li>
+                </ul>
+                
+                <div class="alert alert-warning" style="margin-top: 20px;">
+                    <span>⚠️</span>
+                    <div>
+                        If you change significant hardware (like replacing the motherboard), you may need to transfer your license to the new hardware.
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: var(--bg-card); margin-top: 20px;" onclick="hideHardwareInfo()">
+                    <span>←</span> Back to Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Transfer Section -->
+        <div id="transfer-section" class="hidden">
+            <div class="card">
+                <h2>🔄 Transfer License</h2>
+                
+                <div class="transfer-steps">
+                    <div class="transfer-step" id="step1">
+                        <h4>Enter New Device Hardware ID</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                            Find your Hardware ID in: <strong>Fathom OS → Help → License Info → Copy Hardware ID</strong>
+                        </p>
+                        <div class="form-group">
+                            <label for="newHardwareId">New Device Hardware ID</label>
+                            <input type="text" id="newHardwareId" placeholder="Paste the Hardware ID from your new device">
+                        </div>
+                        <div class="form-group">
+                            <label for="newMachineName">New Machine Name (Optional)</label>
+                            <input type="text" id="newMachineName" placeholder="e.g., WORKSTATION-02">
+                        </div>
+                        <div class="form-group">
+                            <label for="transferReason">Reason for Transfer (Optional)</label>
+                            <textarea id="transferReason" rows="2" placeholder="e.g., Upgraded to new computer"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="requestTransfer()">
+                            <span>📧</span> Send Verification Code
+                        </button>
+                    </div>
+                    
+                    <div class="transfer-step hidden" id="step2">
+                        <h4>Enter Verification Code</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                            We've sent a 6-digit code to your email. Enter it below to complete the transfer.
+                        </p>
+                        <div class="form-group">
+                            <label for="verificationCode">Verification Code</label>
+                            <input type="text" id="verificationCode" placeholder="123456" maxlength="6" style="font-size: 1.5rem; text-align: center; letter-spacing: 8px;">
+                        </div>
+                        <button class="btn btn-success" onclick="completeTransfer()">
+                            <span>✅</span> Complete Transfer
+                        </button>
+                    </div>
+                    
+                    <div class="transfer-step hidden" id="step3">
+                        <h4>Transfer Complete!</h4>
+                        <div class="alert alert-success">
+                            <span>✅</span>
+                            <div>
+                                Your license has been transferred successfully. You can now activate Fathom OS on your new device using your license key.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: var(--bg-card); margin-top: 20px;" onclick="hideTransferSection()">
+                    <span>←</span> Cancel Transfer
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Please wait...</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2024 Fathom OS — Professional Survey Processing Software</p>
+            <p style="margin-top: 10px;">
+                Need help? Contact <a href="mailto:support@fathomos.com">support@fathomos.com</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin + '/api/portal';
+        
+        // Current session data
+        let sessionData = {
+            sessionToken: null,
+            licenseId: null,
+            email: null,
+            transferToken: null
+        };
+
+        // Verify License
+        async function verifyLicense() {
+            const licenseKey = document.getElementById('licenseKey').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const supportCode = document.getElementById('supportCode').value.trim();
+
+            if (!licenseKey || !email) {
+                showError('verify-error', 'Please enter your license key and email address.');
+                return;
+            }
+
+            showLoading(true);
+            hideError('verify-error');
+
+            try {
+                const response = await fetch(`${API_BASE}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ licenseKey, email, supportCode })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError('verify-error', data.message || 'Verification failed');
+                    return;
+                }
+
+                // Store session data
+                sessionData.sessionToken = data.sessionToken;
+                sessionData.licenseId = data.licenseId;
+                sessionData.email = email;
+
+                // Display license info
+                displayLicenseStatus(data);
+                
+                // Show status section
+                document.getElementById('verify-section').classList.add('hidden');
+                document.getElementById('status-section').classList.remove('hidden');
+
+            } catch (error) {
+                showError('verify-error', 'Connection error. Please try again.');
+                console.error('Verify error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display license status
+        function displayLicenseStatus(data) {
+            document.getElementById('customerName').textContent = data.customerName || 'N/A';
+            document.getElementById('edition').textContent = data.edition || 'N/A';
+            document.getElementById('licenseId').textContent = data.licenseId || 'N/A';
+            document.getElementById('displaySupportCode').textContent = data.supportCode || 'N/A';
+            
+            // Format expiration date
+            const expiresAt = new Date(data.expiresAt);
+            document.getElementById('expiresAt').textContent = expiresAt.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            }) + ` (${data.daysRemaining} days)`;
+
+            // Status badge
+            const statusEl = document.getElementById('licenseStatus');
+            if (data.isRevoked) {
+                statusEl.textContent = '🚫 Revoked';
+                statusEl.className = 'status-badge status-expired';
+            } else if (data.isExpired) {
+                statusEl.textContent = '⏰ Expired';
+                statusEl.className = 'status-badge status-expired';
+            } else if (data.daysRemaining <= 7) {
+                statusEl.textContent = '⚠️ Expiring Soon';
+                statusEl.className = 'status-badge status-warning';
+            } else {
+                statusEl.textContent = '✅ Active';
+                statusEl.className = 'status-badge status-active';
+            }
+
+            // Active device
+            if (data.hasActiveDevice) {
+                document.getElementById('noActiveDevice').classList.add('hidden');
+                document.getElementById('hasActiveDevice').classList.remove('hidden');
+                document.getElementById('machineName').textContent = data.activeDeviceName || 'Unknown';
+                document.getElementById('lastSeen').textContent = data.lastSeenAt 
+                    ? new Date(data.lastSeenAt).toLocaleString()
+                    : 'N/A';
+                document.getElementById('activatedAt').textContent = data.activatedAt
+                    ? new Date(data.activatedAt).toLocaleDateString()
+                    : 'N/A';
+                
+                // Show transfer/deactivate buttons
+                document.getElementById('transferBtn').classList.remove('hidden');
+                document.getElementById('deactivateBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('noActiveDevice').classList.remove('hidden');
+                document.getElementById('hasActiveDevice').classList.add('hidden');
+                
+                // Hide transfer/deactivate buttons
+                document.getElementById('transferBtn').classList.add('hidden');
+                document.getElementById('deactivateBtn').classList.add('hidden');
+            }
+
+            // Hardware info
+            if (data.activeDeviceHardware) {
+                document.getElementById('hwCpuId').textContent = data.activeDeviceHardware.cpuId || '****';
+                document.getElementById('hwMotherboard').textContent = data.activeDeviceHardware.motherboardId || '****';
+                document.getElementById('hwMac').textContent = data.activeDeviceHardware.macAddress || '****';
+                document.getElementById('hwDisk').textContent = data.activeDeviceHardware.diskSerial || '****';
+            }
+        }
+
+        // Show Hardware Info
+        function showHardwareInfo() {
+            document.getElementById('status-section').classList.add('hidden');
+            document.getElementById('hardware-section').classList.remove('hidden');
+        }
+
+        function hideHardwareInfo() {
+            document.getElementById('hardware-section').classList.add('hidden');
+            document.getElementById('status-section').classList.remove('hidden');
+        }
+
+        // Show Transfer Section
+        function showTransferSection() {
+            document.getElementById('status-section').classList.add('hidden');
+            document.getElementById('transfer-section').classList.remove('hidden');
+            // Reset steps
+            document.getElementById('step1').classList.remove('hidden', 'completed');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+        }
+
+        function hideTransferSection() {
+            document.getElementById('transfer-section').classList.add('hidden');
+            document.getElementById('status-section').classList.remove('hidden');
+        }
+
+        // Request Transfer
+        async function requestTransfer() {
+            const newHardwareId = document.getElementById('newHardwareId').value.trim();
+            const newMachineName = document.getElementById('newMachineName').value.trim();
+            const reason = document.getElementById('transferReason').value.trim();
+
+            if (!newHardwareId) {
+                alert('Please enter the Hardware ID from your new device.');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/transfer/request`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        licenseId: sessionData.licenseId,
+                        email: sessionData.email,
+                        sessionToken: sessionData.sessionToken,
+                        newHardwareId,
+                        newMachineName,
+                        reason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.message || 'Failed to request transfer');
+                    return;
+                }
+
+                sessionData.transferToken = data.transferToken;
+
+                // Move to step 2
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step2').classList.remove('hidden');
+
+                // DEBUG: Show verification code (remove in production!)
+                if (data.debugVerificationCode) {
+                    alert(`DEBUG: Verification code is ${data.debugVerificationCode}\n\n(In production, this would be sent to your email)`);
+                }
+
+            } catch (error) {
+                alert('Connection error. Please try again.');
+                console.error('Transfer request error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Complete Transfer
+        async function completeTransfer() {
+            const verificationCode = document.getElementById('verificationCode').value.trim();
+
+            if (!verificationCode || verificationCode.length !== 6) {
+                alert('Please enter the 6-digit verification code.');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/transfer/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transferToken: sessionData.transferToken,
+                        verificationCode
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.message || 'Failed to complete transfer');
+                    return;
+                }
+
+                // Move to step 3
+                document.getElementById('step2').classList.add('completed');
+                document.getElementById('step3').classList.remove('hidden');
+
+            } catch (error) {
+                alert('Connection error. Please try again.');
+                console.error('Transfer complete error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Deactivate Device
+        async function deactivateDevice() {
+            if (!confirm('Are you sure you want to deactivate this device?\n\nThis will free up the license to be used on another device.')) {
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/deactivate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        licenseId: sessionData.licenseId,
+                        email: sessionData.email,
+                        sessionToken: sessionData.sessionToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.message || 'Failed to deactivate device');
+                    return;
+                }
+
+                alert('Device deactivated successfully!\n\nYou can now activate Fathom OS on a new device.');
+                resetPortal();
+
+            } catch (error) {
+                alert('Connection error. Please try again.');
+                console.error('Deactivate error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Reset portal
+        function resetPortal() {
+            sessionData = { sessionToken: null, licenseId: null, email: null, transferToken: null };
+            document.getElementById('verify-section').classList.remove('hidden');
+            document.getElementById('status-section').classList.add('hidden');
+            document.getElementById('hardware-section').classList.add('hidden');
+            document.getElementById('transfer-section').classList.add('hidden');
+            hideError('verify-error');
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            document.getElementById(elementId.replace('error', 'error-text')).textContent = message;
+            el.classList.remove('hidden');
+        }
+
+        function hideError(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('verify-section').classList.contains('hidden')) {
+                    verifyLicense();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

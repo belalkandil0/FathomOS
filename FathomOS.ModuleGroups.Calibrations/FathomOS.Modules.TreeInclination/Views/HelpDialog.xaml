@@ -1,0 +1,501 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.TreeInclination.Views.HelpDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Tree Inclination Analysis - User Guide"
+        Height="700" Width="900"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        GlowBrush="{DynamicResource AccentBrush}"
+        TitleCharacterCasing="Normal">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Navigation Sidebar -->
+        <Border Background="{DynamicResource SurfaceBrush}" Padding="12">
+            <StackPanel>
+                <TextBlock Text="CONTENTS" FontSize="11" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,12"/>
+                <ListBox x:Name="NavigationList" BorderThickness="0" Background="Transparent"
+                         SelectionChanged="NavigationList_SelectionChanged">
+                    <ListBoxItem Content="Overview" Tag="Overview"/>
+                    <ListBoxItem Content="Quick Start" Tag="QuickStart"/>
+                    <ListBoxItem Content="Step 1: Load NPD Files" Tag="Step1"/>
+                    <ListBoxItem Content="Step 2: Corner Coordinates" Tag="Step2"/>
+                    <ListBoxItem Content="Step 3: Tide Correction" Tag="Step3"/>
+                    <ListBoxItem Content="Calculation" Tag="Calculation"/>
+                    <ListBoxItem Content="Results Interpretation" Tag="Results"/>
+                    <ListBoxItem Content="Structure Heading" Tag="Heading"/>
+                    <ListBoxItem Content="Export Options" Tag="Export"/>
+                    <ListBoxItem Content="Keyboard Shortcuts" Tag="Shortcuts"/>
+                    <ListBoxItem Content="Troubleshooting" Tag="Troubleshooting"/>
+                </ListBox>
+            </StackPanel>
+        </Border>
+        
+        <!-- Content Area -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="24">
+            <StackPanel x:Name="ContentPanel">
+                
+                <!-- Overview Section -->
+                <StackPanel x:Name="Overview">
+                    <TextBlock Text="Tree Inclination Analysis" FontSize="24" FontWeight="Bold" 
+                               Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Version 1.0 - Fathom OS Module" FontSize="12" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        The Tree Inclination Analysis module calculates the inclination (tilt) of subsea structures 
+                        such as Christmas trees, manifolds, and templates by analyzing depth measurements at multiple 
+                        corner points.
+                    </TextBlock>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Key Features:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="• Parse NPD files from NaviPac and other navigation systems" Margin="0,2"/>
+                            <TextBlock Text="• Support for 3+ corner points (4-point standard, 5/6+ advanced)" Margin="0,2"/>
+                            <TextBlock Text="• Automatic tide correction from tide files" Margin="0,2"/>
+                            <TextBlock Text="• Gyro heading extraction for true bearing calculation" Margin="0,2"/>
+                            <TextBlock Text="• Multiple coordinate input methods (E/N, dimensions, direct X/Y)" Margin="0,2"/>
+                            <TextBlock Text="• Interactive 2D/3D visualization" Margin="0,2"/>
+                            <TextBlock Text="• Export to Excel, PDF, DXF" Margin="0,2"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Quick Start Section -->
+                <StackPanel x:Name="QuickStart" Margin="0,24,0,0">
+                    <TextBlock Text="Quick Start Guide" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="12" Width="24" Height="24">
+                                    <TextBlock Text="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Load NPD files for each corner (4 corners + optional closure)" 
+                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="12" Width="24" Height="24">
+                                    <TextBlock Text="2" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Enter corner coordinates (E/N from drawings OR structure dimensions)" 
+                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="12" Width="24" Height="24">
+                                    <TextBlock Text="3" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="(Optional) Load tide file for depth corrections" 
+                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="12" Width="24" Height="24">
+                                    <TextBlock Text="4" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Click 'Calculate Inclination' to see results" 
+                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Step 1: Load NPD Files -->
+                <StackPanel x:Name="Step1" Margin="0,24,0,0">
+                    <TextBlock Text="Step 1: Load NPD Files" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        NPD files contain depth/position data logged by navigation software during ROV surveys. 
+                        Each corner of the structure should have its own NPD file with depth readings.
+                    </TextBlock>
+                    
+                    <TextBlock Text="How to Load Files:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="1. Select the depth unit (Meters, Feet, etc.) from the dropdown" Margin="0,2"/>
+                    <TextBlock Text="2. Click 'Load Files' and select your NPD files" Margin="0,2"/>
+                    <TextBlock Text="3. For each file, a dialog will appear for column mapping" Margin="0,2"/>
+                    <TextBlock Text="4. Assign a corner name (A, B, C, D or custom names)" Margin="0,2"/>
+                    <TextBlock Text="5. Mark one file as 'Closure' if you returned to Corner 1" Margin="0,2"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Column Mapping Tips:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="• Auto-detect usually finds the correct depth column" Margin="0,2" TextWrapping="Wrap"/>
+                            <TextBlock Text="• For NaviPac files, enable 'NaviPac Date/Time Split' checkbox" Margin="0,2" TextWrapping="Wrap"/>
+                            <TextBlock Text="• Select Heading/Gyro column for structure orientation" Margin="0,2" TextWrapping="Wrap"/>
+                            <TextBlock Text="• Click 'Preview Parse' to verify data before importing" Margin="0,2" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Step 2: Corner Coordinates -->
+                <StackPanel x:Name="Step2" Margin="0,24,0,0">
+                    <TextBlock Text="Step 2: Corner Coordinates" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        The module needs to know the X/Y positions of each corner to calculate inclination. 
+                        Choose from three input methods:
+                    </TextBlock>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Method 1: Easting/Northing" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+                                Enter the Easting/Northing coordinates from as-built survey drawings for each corner. 
+                                These are usually in UTM meters.
+                            </TextBlock>
+                            <TextBlock Text="1. Go to the 'Easting/Northing' tab" Margin="0,2"/>
+                            <TextBlock Text="2. Select the coordinate unit (Meters, Feet, etc.)" Margin="0,2"/>
+                            <TextBlock Text="3. Enter E/N values for each corner" Margin="0,2"/>
+                            <TextBlock Text="4. Click 'Convert to X/Y' - uses first corner as origin" Margin="0,2"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Method 2: Structure Dimensions" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+                                If you know the structure's width and length, coordinates can be auto-generated.
+                            </TextBlock>
+                            <TextBlock Text="1. Go to the 'Dimensions' tab" Margin="0,2"/>
+                            <TextBlock Text="2. Enter Width (X direction) and Length (Y direction) in meters" Margin="0,2"/>
+                            <TextBlock Text="3. Click 'Generate Coordinates'" Margin="0,2"/>
+                            <TextBlock Text="Standard layout: 1=(0,0)  2=(W,0)  3=(W,L)  4=(0,L)" FontFamily="Consolas" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Method 3: Direct X/Y Entry" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+                                Directly enter relative X/Y offsets in the grid (for irregular structures).
+                            </TextBlock>
+                            <TextBlock Text="1. Go to the 'Direct X/Y' tab" Margin="0,2"/>
+                            <TextBlock Text="2. Enter X and Y values for each corner" Margin="0,2"/>
+                            <TextBlock Text="3. First corner is typically (0,0) as the origin" Margin="0,2"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="#FEF3C7" CornerRadius="6" Padding="16" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="AlertCircleOutline" Width="20" Height="20" 
+                                                        Foreground="#D97706" Margin="0,0,12,0"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="#92400E" Width="600">
+                                <Bold>Important:</Bold> The Easting/Northing values from NPD files are typically 
+                                vessel/ROV positions, NOT the actual corner coordinates. You must enter the 
+                                structure's actual corner positions from as-built drawings.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Step 3: Tide Correction -->
+                <StackPanel x:Name="Step3" Margin="0,24,0,0">
+                    <TextBlock Text="Step 3: Tide Correction (Optional)" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        Tide corrections account for water level variations during the survey. 
+                        This is especially important for long surveys or when corners were measured at different times.
+                    </TextBlock>
+                    
+                    <TextBlock Text="To Apply Tide Corrections:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="1. Enable the 'Tide Correction' toggle" Margin="0,2"/>
+                    <TextBlock Text="2. Click 'Load Tide File'" Margin="0,2"/>
+                    <TextBlock Text="3. Select your tide file (.txt, .csv, or .tid)" Margin="0,2"/>
+                    <TextBlock Text="4. Tide values are automatically interpolated to match measurement times" Margin="0,2"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Supported Tide File Formats:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="• 7Tide format (with header metadata)" Margin="0,2"/>
+                            <TextBlock Text="• CSV with DateTime and TideHeight columns" Margin="0,2"/>
+                            <TextBlock Text="• Tab-delimited text files" Margin="0,2"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Calculation -->
+                <StackPanel x:Name="Calculation" Margin="0,24,0,0">
+                    <TextBlock Text="Calculation Methods" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        The module uses different calculation methods based on the number of corners:
+                    </TextBlock>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="4-Point Diagonal Method" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                For 4 corners, calculates pitch and roll using diagonal depth differences:
+                            </TextBlock>
+                            <TextBlock Text="• Pitch = arctan((Z3+Z4)/2 - (Z1+Z2)/2) / Length" FontFamily="Consolas" Margin="0,8,0,0"/>
+                            <TextBlock Text="• Roll = arctan((Z2+Z3)/2 - (Z1+Z4)/2) / Width" FontFamily="Consolas"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Best-Fit Plane Method" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                For 5+ corners or irregular structures, fits a plane using least-squares regression 
+                                and extracts inclination from the plane normal vector.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Results Interpretation -->
+                <StackPanel x:Name="Results" Margin="0,24,0,0">
+                    <TextBlock Text="Results Interpretation" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="Total Inclination" FontWeight="SemiBold"/>
+                            <TextBlock Grid.Column="1" TextWrapping="Wrap">Combined tilt magnitude in degrees. Green (&lt;0.5°), Yellow (0.5-1.0°), Red (&gt;1.0°)</TextBlock>
+                            
+                            <TextBlock Grid.Row="1" Text="Tilt Direction" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Margin="0,8,0,0">Compass bearing of the tilt (requires structure heading)</TextBlock>
+                            
+                            <TextBlock Grid.Row="2" Text="Pitch" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" Margin="0,8,0,0">Fore-aft tilt (positive = aft corners deeper)</TextBlock>
+                            
+                            <TextBlock Grid.Row="3" Text="Roll" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Margin="0,8,0,0">Port-starboard tilt (positive = starboard deeper)</TextBlock>
+                            
+                            <TextBlock Grid.Row="4" Text="Misclosure" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" TextWrapping="Wrap" Margin="0,8,0,0">Difference between first measurement and closure point (quality check)</TextBlock>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Structure Heading -->
+                <StackPanel x:Name="Heading" Margin="0,24,0,0">
+                    <TextBlock Text="Structure Heading" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22" Margin="0,0,0,16">
+                        Setting the structure heading enables true bearing calculation for the tilt direction.
+                    </TextBlock>
+                    
+                    <TextBlock Text="What is Structure Heading?" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,16">
+                        The compass bearing (0-360°) of the structure's forward direction, typically the line 
+                        from Corner 1 to Corner 2 (the X-axis direction).
+                    </TextBlock>
+                    
+                    <TextBlock Text="How to Set:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="• Enter manually from as-built drawings in the 'Structure Heading' field" Margin="0,2"/>
+                    <TextBlock Text="• Or click 'Use' to apply the average gyro heading from NPD files" Margin="0,2"/>
+                    
+                    <Border Background="#DBEAFE" CornerRadius="6" Padding="16" Margin="0,16,0,0">
+                        <TextBlock TextWrapping="Wrap" Foreground="#1E40AF">
+                            <Bold>Note:</Bold> The gyro heading from NPD files is the ROV/vessel heading during logging. 
+                            This only equals the structure heading if the ROV was aligned with the structure.
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Export Options -->
+                <StackPanel x:Name="Export" Margin="0,24,0,0">
+                    <TextBlock Text="Export Options" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,6,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <iconPacks:PackIconMaterial Kind="MicrosoftExcel" Width="20" Height="20" 
+                                                                Foreground="#217346" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Excel Export" FontWeight="SemiBold"/>
+                                </StackPanel>
+                                <TextBlock Text="Complete workbook with summary, corner data, and calculation details" 
+                                           TextWrapping="Wrap" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="6,0,0,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <iconPacks:PackIconMaterial Kind="FilePdfBox" Width="20" Height="20" 
+                                                                Foreground="#DC2626" Margin="0,0,8,0"/>
+                                    <TextBlock Text="PDF Report" FontWeight="SemiBold"/>
+                                </StackPanel>
+                                <TextBlock Text="Professional report with charts, data tables, and QC results" 
+                                           TextWrapping="Wrap" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,6,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <iconPacks:PackIconMaterial Kind="VectorSquare" Width="20" Height="20" 
+                                                                Foreground="#7C3AED" Margin="0,0,8,0"/>
+                                    <TextBlock Text="DXF Export" FontWeight="SemiBold"/>
+                                </StackPanel>
+                                <TextBlock Text="AutoCAD-compatible drawing with corner points and annotations" 
+                                           TextWrapping="Wrap" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="6,0,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <iconPacks:PackIconMaterial Kind="ImageOutline" Width="20" Height="20" 
+                                                                Foreground="#0891B2" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Chart Images" FontWeight="SemiBold"/>
+                                </StackPanel>
+                                <TextBlock Text="Save depth profile, plan view, and vector diagrams as PNG images" 
+                                           TextWrapping="Wrap" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+                
+                <!-- Keyboard Shortcuts -->
+                <StackPanel x:Name="Shortcuts" Margin="0,24,0,0">
+                    <TextBlock Text="Keyboard Shortcuts" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="Ctrl+Enter" FontFamily="Consolas" FontWeight="SemiBold"/>
+                            <TextBlock Grid.Column="1" Text="Calculate Inclination"/>
+                            
+                            <TextBlock Grid.Row="1" Text="Ctrl+S" FontFamily="Consolas" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Save Project" Margin="0,4,0,0"/>
+                            
+                            <TextBlock Grid.Row="2" Text="Ctrl+O" FontFamily="Consolas" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Open Project" Margin="0,4,0,0"/>
+                            
+                            <TextBlock Grid.Row="3" Text="Ctrl+N" FontFamily="Consolas" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="New Project" Margin="0,4,0,0"/>
+                            
+                            <TextBlock Grid.Row="4" Text="F1" FontFamily="Consolas" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="Open Help" Margin="0,4,0,0"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Troubleshooting -->
+                <StackPanel x:Name="Troubleshooting" Margin="0,24,0,0">
+                    <TextBlock Text="Troubleshooting" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="'Corners have identical positions' Error" FontWeight="SemiBold" 
+                                       Foreground="#DC2626" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                This occurs when the X/Y coordinates are the same for multiple corners. 
+                                The E/N values from NPD files are vessel positions, not corner positions. 
+                                Enter the actual corner coordinates from as-built drawings or use structure dimensions.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="'At least 3 corner points required' Error" FontWeight="SemiBold" 
+                                       Foreground="#DC2626" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                Load at least 3 NPD files and ensure they are assigned to different corners 
+                                (not marked as closure points). Closure points are not used in the calculation.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="No Depth Column Detected" FontWeight="SemiBold" 
+                                       Foreground="#DC2626" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                In the import dialog, manually select the depth column from the dropdown. 
+                                Common column names include: Z, Depth, Bathy, DQ Depth, Altitude.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Tilt Direction Shows '--'" FontWeight="SemiBold" 
+                                       Foreground="#DC2626" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap">
+                                Set the structure heading in the results panel to enable true bearing calculation. 
+                                Enter the compass bearing manually or click 'Use' to apply gyro heading from NPD files.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Footer -->
+                <Border Margin="0,32,0,0" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}" Padding="0,16,0,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Fathom OS - Tree Inclination Analysis Module" FontWeight="SemiBold"/>
+                        <TextBlock Text="© 2024 Fathom OS. All rights reserved." FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</mah:MetroWindow>

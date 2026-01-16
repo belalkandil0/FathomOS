@@ -1,0 +1,251 @@
+<Window x:Class="FathomOS.Modules.SurveyListing.Views.SupervisorApprovalDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Processing Certificate - Supervisor Approval"
+        Height="720" Width="650"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="#1E1E1E">
+    
+    <Window.Resources>
+        <!-- Dark Theme Styles -->
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F3F"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#0078D4"/>
+            <Setter Property="Margin" Value="0,10,0,8"/>
+        </Style>
+        
+        <Style x:Key="InfoText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        
+        <Style x:Key="ValueText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1084D8"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#555555"/>
+                    <Setter Property="Foreground" Value="#888888"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style x:Key="CancelButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#3F3F3F"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4F4F4F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#252526" Padding="20">
+            <StackPanel>
+                <TextBlock Text="🏆 Processing Certificate" FontSize="22" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Review the processing summary and approve for certification" 
+                           Style="{StaticResource InfoText}" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel>
+                
+                <!-- Processing Summary Section -->
+                <TextBlock Text="📊 PROCESSING SUMMARY" Style="{StaticResource SectionHeader}"/>
+                <Border Background="#252526" CornerRadius="4" Padding="15" Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Project Name:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtProjectName" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Total Points Processed:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtTotalPoints" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="KP Range:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TxtKpRange" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Depth Range:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="TxtDepthRange" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Processing Method:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="TxtProcessingMethod" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Processing Date/Time:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" x:Name="TxtProcessingTime" Style="{StaticResource ValueText}" Margin="10,2"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Data Quality Section -->
+                <TextBlock Text="✅ DATA QUALITY CHECKS" Style="{StaticResource SectionHeader}"/>
+                <Border Background="#252526" CornerRadius="4" Padding="15" Margin="0,0,0,15">
+                    <StackPanel>
+                        <CheckBox x:Name="ChkRouteLoaded" Content="Route file loaded and validated" IsEnabled="False" Margin="0,3"/>
+                        <CheckBox x:Name="ChkSurveyDataLoaded" Content="Survey data loaded successfully" IsEnabled="False" Margin="0,3"/>
+                        <CheckBox x:Name="ChkTideApplied" Content="Tide corrections applied (if applicable)" IsEnabled="False" Margin="0,3"/>
+                        <CheckBox x:Name="ChkCalculationsComplete" Content="KP and depth calculations completed" IsEnabled="False" Margin="0,3"/>
+                        <CheckBox x:Name="ChkDataReviewed" Content="Data coverage reviewed" IsEnabled="False" Margin="0,3"/>
+                        <CheckBox x:Name="ChkSmoothingApplied" Content="Smoothing/filtering applied" IsEnabled="False" Margin="0,3"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Input/Output Files Section -->
+                <TextBlock Text="📁 INPUT &amp; OUTPUT FILES" Style="{StaticResource SectionHeader}"/>
+                <Border Background="#252526" CornerRadius="4" Padding="15" Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Route File:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtRouteFile" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Survey Files:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtSurveyFiles" Style="{StaticResource ValueText}" Margin="10,2"/>
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Output Files:" Style="{StaticResource InfoText}" Margin="0,2"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TxtOutputFiles" Style="{StaticResource ValueText}" Margin="10,2"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Supervisor Approval Section -->
+                <TextBlock Text="👤 SUPERVISOR APPROVAL" Style="{StaticResource SectionHeader}"/>
+                <Border Background="#252526" CornerRadius="4" Padding="15" Margin="0,0,0,15">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Label Grid.Row="0" Grid.Column="0" Content="Supervisor Name:*"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtSupervisorName" Margin="0,0,0,10"/>
+                            
+                            <Label Grid.Row="1" Grid.Column="0" Content="Supervisor Title:"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtSupervisorTitle" Text="Senior Survey Engineer" Margin="0,0,0,10"/>
+                            
+                            <Label Grid.Row="2" Grid.Column="0" Content="Company:"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtCompanyName" Margin="0,0,0,10"/>
+                        </Grid>
+                        
+                        <Separator Margin="0,10" Background="#3F3F3F"/>
+                        
+                        <CheckBox x:Name="ChkApprovalConfirmation" Margin="0,5">
+                            <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC">
+                                <Run FontWeight="Bold">I confirm</Run>
+                                <Run> that I have reviewed the processing results and they are correct and complete. I approve the issuance of a Processing Certificate for this survey listing.</Run>
+                            </TextBlock>
+                        </CheckBox>
+                        
+                        <TextBlock Text="⚠️ This certificate will be digitally signed and cannot be modified after issuance." 
+                                   Style="{StaticResource InfoText}" 
+                                   Foreground="#FFB900"
+                                   Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2" Background="#252526" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" x:Name="TxtLicenseInfo" 
+                           Style="{StaticResource InfoText}" 
+                           VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="1" x:Name="BtnCancel" Content="Cancel" 
+                        Style="{StaticResource CancelButton}" 
+                        Click="BtnCancel_Click"/>
+                
+                <Button Grid.Column="3" x:Name="BtnApprove" Content="✓ Approve &amp; Generate Certificate" 
+                        Click="BtnApprove_Click"
+                        IsEnabled="False"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.VesselGyroCalibration</RootNamespace>
+    <AssemblyName>FathomOS.Modules.VesselGyroCalibration</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Vessel Gyro Calibration and Verification module for Fathom OS. Implements the calibration process for gyro compass calibration by inter-system comparison per GLSIFR0035.</Description>
+    <Copyright>Copyright © Fathom OS 2025</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      REQUIRED: Reference Core
+      This gives you access to:
+      - MahApps.Metro (UI framework)
+      - OxyPlot (charting)
+      - HelixToolkit (3D visualization)
+      - ClosedXML (Excel export)
+      - QuestPDF (PDF export)
+      - netDxf (DXF export)
+      - All Core parsers, models, services
+    -->
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+  
+  <!-- 3D Model Files (optional - place vessel.obj and vessel.mtl in Assets folder) -->
+  <ItemGroup>
+    <Content Include="Assets\vessel.obj" Condition="Exists('Assets\vessel.obj')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\vessel.mtl" Condition="Exists('Assets\vessel.mtl')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Theme resources -->
+  <ItemGroup>
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+</Project>

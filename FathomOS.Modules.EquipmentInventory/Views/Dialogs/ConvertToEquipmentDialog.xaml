@@ -1,0 +1,177 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.Dialogs.ConvertToEquipmentDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Convert to Equipment"
+        Height="650" Width="550"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        TitleCharacterCasing="Normal"
+        BorderThickness="1"
+        BorderBrush="{DynamicResource AccentBrush}"
+        GlowBrush="{DynamicResource AccentBrush}">
+    
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <iconPacks:PackIconMaterial Kind="SwapHorizontal" Width="28" Height="28" 
+                                            Foreground="{DynamicResource AccentBrush}" 
+                                            VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="Convert to Equipment" Style="{DynamicResource HeadingMedium}"/>
+            </StackPanel>
+            <TextBlock Text="Review and finalize the equipment details before adding to inventory." 
+                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+        </StackPanel>
+        
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Basic Info -->
+                <TextBlock Text="BASIC INFORMATION" FontSize="11" FontWeight="Bold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                
+                <!-- Name -->
+                <TextBlock Text="Name *" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <TextBox x:Name="NameBox" Margin="0,0,0,12"/>
+                
+                <!-- Description -->
+                <TextBlock Text="Description" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <TextBox x:Name="DescriptionBox" Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto" Margin="0,0,0,12"/>
+                
+                <!-- Row: Serial Number / Part Number -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Serial Number" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="SerialNumberBox"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Part Number" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="PartNumberBox"/>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Row: Manufacturer / Model -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Manufacturer" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="ManufacturerBox"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Model" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="ModelBox"/>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Classification -->
+                <TextBlock Text="CLASSIFICATION" FontSize="11" FontWeight="Bold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,15,0,12"/>
+                
+                <!-- Category -->
+                <TextBlock Text="Category *" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="CategoryCombo" Margin="0,0,0,12" DisplayMemberPath="Name"/>
+                
+                <!-- Equipment Type -->
+                <TextBlock Text="Equipment Type" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="TypeCombo" Margin="0,0,0,12" DisplayMemberPath="Name"/>
+                
+                <!-- Location -->
+                <TextBlock Text="LOCATION" FontSize="11" FontWeight="Bold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,15,0,12"/>
+                
+                <!-- Current Location -->
+                <TextBlock Text="Location *" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="LocationCombo" Margin="0,0,0,12" DisplayMemberPath="Name"/>
+                
+                <!-- Initial Status -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Initial Status" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="StatusCombo" SelectedIndex="0">
+                            <ComboBoxItem Content="Available" Tag="Available"/>
+                            <ComboBoxItem Content="In Storage" Tag="InStorage"/>
+                            <ComboBoxItem Content="Reserved" Tag="Reserved"/>
+                        </ComboBox>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Condition" FontSize="12" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="ConditionCombo" SelectedIndex="1">
+                            <ComboBoxItem Content="New" Tag="New"/>
+                            <ComboBoxItem Content="Good" Tag="Good"/>
+                            <ComboBoxItem Content="Fair" Tag="Fair"/>
+                            <ComboBoxItem Content="Poor" Tag="Poor"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Notes -->
+                <TextBlock Text="Notes" FontSize="12" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <TextBox x:Name="NotesBox" Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto" 
+                         mah:TextBoxHelper.Watermark="Any additional notes about this equipment..."/>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Buttons -->
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="1" Content="Cancel" Style="{DynamicResource SecondaryButton}"
+                    Click="Cancel_Click" Padding="20,10" Margin="0,0,10,0"/>
+            <Button Grid.Column="2" Style="{DynamicResource PrimaryButton}"
+                    Click="Convert_Click" Padding="20,10">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="Check" Width="16" Height="16" 
+                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Convert to Equipment"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>

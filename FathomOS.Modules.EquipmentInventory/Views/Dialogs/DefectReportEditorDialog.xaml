@@ -1,0 +1,398 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.Dialogs.DefectReportEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Equipment Failure Notification"
+        Height="800" Width="900"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        ShowTitleBar="True"
+        TitleCharacterCasing="Normal"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource AccentBrush}">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Main Content -->
+        <TabControl Grid.Row="0" Margin="20" Background="Transparent" BorderThickness="0">
+            <!-- Tab 1: Failure Details -->
+            <TabItem Header="Failure Details">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel>
+                        <!-- Basic Info -->
+                        <TextBlock Text="FAILURE DETAILS" FontSize="16" FontWeight="Bold" 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Report Number (auto-generated) -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Report Number" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="ReportNumberTextBox" IsReadOnly="True" 
+                                         Background="{DynamicResource SurfaceBrush}"/>
+                            </StackPanel>
+                            
+                            <!-- Date -->
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Report Date *" Style="{DynamicResource FieldLabel}"/>
+                                <DatePicker x:Name="ReportDatePicker" SelectedDate="{Binding ReportDate}"/>
+                            </StackPanel>
+                            
+                            <!-- Client/Project -->
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Client/Project" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="ClientProjectTextBox"/>
+                            </StackPanel>
+                            
+                            <!-- Location -->
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Location *" Style="{DynamicResource FieldLabel}"/>
+                                <ComboBox x:Name="LocationComboBox" DisplayMemberPath="DisplayName"/>
+                            </StackPanel>
+                            
+                            <!-- ROV System -->
+                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="ROV System" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="RovSystemTextBox"/>
+                            </StackPanel>
+                            
+                            <!-- Water Depth -->
+                            <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Working Water Depth (metres)" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="WaterDepthTextBox"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Equipment Origin -->
+                        <TextBlock Text="EQUIPMENT ORIGIN *" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,20,0,10"/>
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="General Vessel / ROV" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                               FontWeight="SemiBold" Margin="0,0,0,10"/>
+                                    <RadioButton x:Name="OriginMHS" Content="Modular Handling System" GroupName="Origin" Margin="0,0,0,5"/>
+                                    <RadioButton x:Name="OriginROV" Content="ROV" GroupName="Origin" Margin="0,0,0,5"/>
+                                    <RadioButton x:Name="OriginSimulator" Content="Simulator" GroupName="Origin" Margin="0,0,0,5"/>
+                                    <RadioButton x:Name="OriginTooling" Content="Tooling" GroupName="Origin" Margin="0,0,0,5"/>
+                                    <RadioButton x:Name="OriginVessel" Content="Vessel / Rig" GroupName="Origin"/>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Survey / Inspection" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                               FontWeight="SemiBold" Margin="0,0,0,10"/>
+                                    <RadioButton x:Name="OriginSurvey" Content="Survey &amp; Inspection" GroupName="Origin"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Equipment Category & Components -->
+                        <TextBlock Text="EQUIPMENT CATEGORY &amp; COMPONENTS *" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,20,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Equipment Category *" Style="{DynamicResource FieldLabel}"/>
+                                <ComboBox x:Name="CategoryComboBox" DisplayMemberPath="Name"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Major Component *" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="MajorComponentTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,15">
+                                <TextBlock Text="Minor Component" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="MinorComponentTextBox"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Tab 2: Equipment Details -->
+            <TabItem Header="Equipment">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="EQUIPMENT DETAILS" FontSize="16" FontWeight="Bold" 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+                        
+                        <!-- Ownership -->
+                        <TextBlock Text="OWNERSHIP" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                                    <TextBlock Text="Internal/External Owner" Style="{DynamicResource FieldLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="OwnerInternal" Content="Internal" GroupName="Owner" Margin="0,0,20,0" IsChecked="True"/>
+                                        <RadioButton x:Name="OwnerExternal" Content="External" GroupName="Owner"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
+                                    <TextBlock Text="Responsibility" Style="{DynamicResource FieldLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="ResponsibilityStandard" Content="Standard" GroupName="Responsibility" Margin="0,0,20,0" IsChecked="True"/>
+                                        <RadioButton x:Name="ResponsibilityProject" Content="Project" GroupName="Responsibility"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                                    <TextBlock Text="Equipment Owner" Style="{DynamicResource FieldLabel}"/>
+                                    <TextBox x:Name="EquipmentOwnerTextBox"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Equipment Identification -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="SAP ID / Vendor Asset ID" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="SapIdTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Serial Number" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="SerialNumberTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Manufacturer" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="ManufacturerTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Model" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="ModelTextBox"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Tab 3: Symptoms & Action -->
+            <TabItem Header="Symptoms &amp; Action">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="SYMPTOMS / ACTION TAKEN" FontSize="16" FontWeight="Bold" 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+                        
+                        <!-- Fault Category -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Category of Fault *" Style="{DynamicResource FieldLabel}"/>
+                            <ComboBox x:Name="FaultCategoryComboBox"/>
+                        </StackPanel>
+                        
+                        <!-- Symptoms -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Detailed Symptoms of Fault" Style="{DynamicResource FieldLabel}"/>
+                            <TextBox x:Name="SymptomsTextBox" AcceptsReturn="True" TextWrapping="Wrap" 
+                                     MinHeight="100" MaxHeight="200" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                        
+                        <!-- Photos -->
+                        <StackPanel Margin="0,0,0,15" Orientation="Horizontal">
+                            <TextBlock Text="Photos of damage taken &amp; attached" Style="{DynamicResource FieldLabel}" 
+                                       VerticalAlignment="Center" Margin="0,0,20,0"/>
+                            <RadioButton x:Name="PhotosNo" Content="No" GroupName="Photos" Margin="0,0,15,0" IsChecked="True"/>
+                            <RadioButton x:Name="PhotosYes" Content="Yes" GroupName="Photos"/>
+                        </StackPanel>
+                        
+                        <!-- Action Taken -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Action Taken" Style="{DynamicResource FieldLabel}"/>
+                            <TextBox x:Name="ActionTakenTextBox" AcceptsReturn="True" TextWrapping="Wrap" 
+                                     MinHeight="80" MaxHeight="150" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                        
+                        <!-- Parts & Replacement -->
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="Parts Available On Board *" Style="{DynamicResource FieldLabel}" 
+                                           VerticalAlignment="Center" Margin="0,0,15,0"/>
+                                <RadioButton x:Name="PartsNo" Content="No" GroupName="Parts" Margin="0,0,10,0" IsChecked="True"/>
+                                <RadioButton x:Name="PartsYes" Content="Yes" GroupName="Parts"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBlock Text="Replacement Required *" Style="{DynamicResource FieldLabel}" 
+                                           VerticalAlignment="Center" Margin="0,0,15,0"/>
+                                <RadioButton x:Name="ReplacementNo" Content="No" GroupName="Replacement" Margin="0,0,10,0" IsChecked="True"/>
+                                <RadioButton x:Name="ReplacementYes" Content="Yes" GroupName="Replacement"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Urgency -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Urgency of Replacement *" Style="{DynamicResource FieldLabel}"/>
+                            <ComboBox x:Name="UrgencyComboBox">
+                                <ComboBoxItem Content="HIGH - Critical, within 24 hours" Tag="High"/>
+                                <ComboBoxItem Content="MEDIUM - Alternative available, next port call" Tag="Medium"/>
+                                <ComboBoxItem Content="LOW - Spares on board" Tag="Low" IsSelected="True"/>
+                            </ComboBox>
+                        </StackPanel>
+                        
+                        <!-- Comments -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Further Comments / Recommendations" Style="{DynamicResource FieldLabel}"/>
+                            <TextBox x:Name="CommentsTextBox" AcceptsReturn="True" TextWrapping="Wrap" 
+                                     MinHeight="60" MaxHeight="120" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                        
+                        <!-- Port Call Info -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Next Port Call / Crew Change Date" Style="{DynamicResource FieldLabel}"/>
+                                <DatePicker x:Name="NextPortCallDatePicker"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Next Port Call Location" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="NextPortCallLocationTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                                <TextBlock Text="Repair Duration (minutes)" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="RepairDurationTextBox"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                                <TextBlock Text="Downtime Duration (minutes)" Style="{DynamicResource FieldLabel}"/>
+                                <TextBox x:Name="DowntimeTextBox"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- Tab 4: Parts Failed/Required -->
+            <TabItem Header="Parts">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="PARTS FAILED / REQUIRED" FontSize="16" FontWeight="Bold" 
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,15"/>
+                    
+                    <DataGrid Grid.Row="1" x:Name="PartsDataGrid" AutoGenerateColumns="False" 
+                              CanUserAddRows="True" CanUserDeleteRows="True"
+                              Background="Transparent" BorderThickness="1"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="{DynamicResource BorderBrush}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding LineNumber}" Width="40" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Qty Failed" Binding="{Binding QuantityFailed}" Width="70"/>
+                            <DataGridTextColumn Header="Qty Required" Binding="{Binding QuantityRequired}" Width="80"/>
+                            <DataGridTextColumn Header="SAP Number" Binding="{Binding SapNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Description *" Binding="{Binding Description}" Width="200"/>
+                            <DataGridTextColumn Header="Model Number" Binding="{Binding ModelNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="Add Part" Click="AddPart_Click" Style="{DynamicResource SecondaryButton}" Margin="0,0,10,0"/>
+                        <Button Content="Remove Selected" Click="RemovePart_Click" Style="{DynamicResource SecondaryButton}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Footer -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock x:Name="StatusText" Foreground="{DynamicResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Cancel" Click="Cancel_Click" Style="{DynamicResource SecondaryButton}" 
+                            Margin="0,0,10,0" Width="100"/>
+                    <Button Content="Save Draft" Click="SaveDraft_Click" Style="{DynamicResource SecondaryButton}" 
+                            Margin="0,0,10,0" Width="100"/>
+                    <Button x:Name="SaveButton" Content="Save" Click="Save_Click" Style="{DynamicResource PrimaryButton}" 
+                            Width="100"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.SurveyLogbook</RootNamespace>
+    <AssemblyName>FathomOS.Modules.SurveyLogbook</AssemblyName>
+    <Version>11.0.0</Version>
+    <Authors>Fathom OS Team</Authors>
+    <Company>Fathom OS</Company>
+    <Product>Fathom OS Survey Electronic Logbook</Product>
+    <Description>Survey Electronic Logbook module for Fathom OS - captures NaviPac events, DVR recordings, position fixes, and manages DPR/Shift Handover documentation.</Description>
+    <Copyright>Copyright © 2024-2025 Fathom OS</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      REQUIRED: Reference Core
+      This gives you access to:
+      - MahApps.Metro (UI framework)
+      - OxyPlot (charting)
+      - HelixToolkit (3D visualization)
+      - ClosedXML (Excel export)
+      - QuestPDF (PDF export)
+      - netDxf (DXF export)
+      - All Core parsers, models, services
+    -->
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <!-- Theme resources -->
+  <ItemGroup>
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+  <!-- Content files -->
+  <ItemGroup>
+    <None Update="ModuleInfo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

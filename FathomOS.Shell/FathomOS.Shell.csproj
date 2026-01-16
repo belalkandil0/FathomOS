@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>FathomOS.Shell</RootNamespace>
+    <AssemblyName>FathomOS</AssemblyName>
+    <Version>1.0.45</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Fathom OS - Modular Hydrographic Survey Processing Platform</Description>
+  </PropertyGroup>
+
+  <!-- Required NuGet packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+    <!-- Licensing System -->
+    <ProjectReference Include="..\LicensingSystem.Shared\LicensingSystem.Shared.csproj" />
+    <ProjectReference Include="..\LicensingSystem.Client\LicensingSystem.Client.csproj" />
+  </ItemGroup>
+
+  <!-- 
+    ============================================================================
+    AUTOMATIC MODULE DISCOVERY
+    ============================================================================
+    Discovers modules from TWO locations:
+    
+    1. ROOT MODULES: ..\FathomOS.Modules.*\
+       These appear directly on the main dashboard
+       
+    2. GROUPED MODULES: ..\FathomOS.ModuleGroups.*\FathomOS.Modules.*\
+       These appear under a group icon on the dashboard
+       
+    Just drop your module folder in the right place and it gets discovered!
+    ============================================================================
+  -->
+  <ItemGroup>
+    <!-- Regular modules at solution root -->
+    <DiscoveredModules Include="..\FathomOS.Modules.*\FathomOS.Modules.*.csproj" />
+    
+    <!-- Grouped modules inside ModuleGroups folders -->
+    <DiscoveredModules Include="..\FathomOS.ModuleGroups.*\FathomOS.Modules.*\FathomOS.Modules.*.csproj" />
+    
+    <!-- Reference all discovered modules -->
+    <ProjectReference Include="@(DiscoveredModules)" />
+  </ItemGroup>
+
+  <!-- 
+    ============================================================================
+    AUTOMATIC MODULE DEPLOYMENT (Post-Build)
+    ============================================================================
+    Copies modules and groups to bin/Modules/ structure.
+    ============================================================================
+  -->
+  <Target Name="DeployDiscoveredModules" AfterTargets="Build">
+    <Exec 
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)deploy-modules.ps1&quot; -OutputPath &quot;$(OutputPath.TrimEnd('\'))&quot; -SolutionDir &quot;$(SolutionDir.TrimEnd('\'))&quot;"
+      WorkingDirectory="$(ProjectDir)"
+      IgnoreExitCode="true"
+      ContinueOnError="true" />
+  </Target>
+
+</Project>

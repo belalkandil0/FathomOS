@@ -1,0 +1,35 @@
+{
+    "moduleId": "GnssCalibration",
+    "displayName": "GNSS Calibration",
+    "description": "Compare and validate GNSS positioning systems with statistical analysis, outlier detection, and 2DRMS calculations.",
+    "version": "4.5.4",
+    "author": "Fathom OS",
+    "category": "Calibration & Verification",
+    "displayOrder": 10,
+    "icon": "icon.png",
+    "supportedFileTypes": [".npd", ".csv", ".pos", ".gnss"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "GNSS System Comparison",
+        "2DRMS Statistical Analysis",
+        "Tolerance Specification (Pass/Fail)",
+        "Max Radial from Average Position",
+        "3-Sigma Outlier Filtering",
+        "Interactive Charts with Tooltips (12 chart types)",
+        "Project File Save/Load (.gnss)",
+        "Settings Persistence",
+        "Keyboard Shortcuts",
+        "Data Point Highlighting",
+        "Batch Processing",
+        "Comparison History",
+        "PDF Report Generation with Charts",
+        "Excel Data Export",
+        "Multi-Unit Support (m, ft, US ft)",
+        "Professional Certificate Generation"
+    ],
+    
+    "CertificateCode": "GC",
+    "CertificateTitle": "GNSS Position Verification Certificate",
+    "CertificateStatement": "This is to certify that a comprehensive GNSS position comparison analysis has been successfully completed, comparing two GNSS positioning systems and calculating 2DRMS accuracy metrics in accordance with industry standards."
+}

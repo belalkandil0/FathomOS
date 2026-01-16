@@ -1,0 +1,255 @@
+<UserControl x:Class="FathomOS.Modules.GnssCalibration.Views.Steps.Step3SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:FathomOS.Modules.GnssCalibration.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Step Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Processing Settings" Style="{DynamicResource SectionHeader}" FontSize="20"/>
+            <TextBlock Text="Configure outlier filtering and processing parameters before running the analysis." 
+                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Column 1: Outlier Filtering -->
+            <Border Grid.Column="0" Style="{DynamicResource CardBorder}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <iconPacks:PackIconMaterial Kind="FilterOutline" Width="18" Height="18" 
+                                                     Foreground="{DynamicResource AccentBrush}" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Outlier Filtering" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    
+                    <CheckBox Content="Enable automatic outlier filtering" 
+                              IsChecked="{Binding Project.AutoFilterEnabled, Mode=TwoWay}"
+                              Margin="0,0,0,15" FontSize="12"/>
+                    
+                    <TextBlock Text="Sigma Threshold (σ)" Style="{DynamicResource FieldLabel}"/>
+                    <TextBlock Text="Points beyond this threshold will be flagged as outliers" 
+                               FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <Slider Grid.Column="0" 
+                                Minimum="1" Maximum="5" 
+                                Value="{Binding Project.SigmaThreshold}"
+                                TickFrequency="0.5" IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"/>
+                        <Border Grid.Column="1" Background="{DynamicResource AccentBrush}" 
+                                CornerRadius="4" Padding="8,4" Margin="10,0,0,0">
+                            <TextBlock Text="{Binding Project.SigmaThreshold, StringFormat={}{0:F1}σ, Mode=OneWay}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       FontWeight="Bold" FontSize="14" Foreground="White"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Sigma Guide -->
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="Sigma Guide" FontWeight="SemiBold" FontSize="11" 
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="1σ" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="68.3% within (strict)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="2σ" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="95.4% within (moderate)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="3σ" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="99.7% within (recommended)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Column 2: Data Summary -->
+            <Border Grid.Column="2" Style="{DynamicResource CardBorder}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <iconPacks:PackIconMaterial Kind="ChartBox" Width="18" Height="18" 
+                                                     Foreground="{DynamicResource AccentBrush}" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Data Summary" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    
+                    <!-- File Info -->
+                    <TextBlock Text="Source File" Style="{DynamicResource FieldLabel}"/>
+                    <TextBlock Text="{Binding LoadedFileName, Mode=OneWay}" 
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" FontSize="12" Margin="0,0,0,12"/>
+                    
+                    <!-- Data Points -->
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Points:" FontSize="11"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalDataRows, Mode=OneWay}" 
+                                       FontWeight="Bold" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Time Range:" FontSize="11" Margin="0,5,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DataTimeRange, Mode=OneWay}" 
+                                       FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Columns:" FontSize="11" Margin="0,5,0,0"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AvailableColumns.Count, Mode=OneWay}" 
+                                       FontWeight="Bold" FontSize="11" Foreground="{DynamicResource AccentBrush}" Margin="0,5,0,0"/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Systems Info -->
+                    <TextBlock Text="GNSS Systems" Style="{DynamicResource FieldLabel}"/>
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Border Background="{DynamicResource AccentBrush}" Width="10" Height="10" CornerRadius="5" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding Project.System1Name, Mode=OneWay}" FontSize="11"/>
+                                <TextBlock Text=" (Reference)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{DynamicResource InfoBrush}" Width="10" Height="10" CornerRadius="5" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding Project.System2Name, Mode=OneWay}" FontSize="11"/>
+                                <TextBlock Text=" (Observed)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Column 3: Tolerance & Processing Info -->
+            <Border Grid.Column="4" Style="{DynamicResource CardBorder}">
+                <StackPanel>
+                    <!-- Tolerance Specification Section -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <iconPacks:PackIconMaterial Kind="CheckCircleOutline" Width="18" Height="18" 
+                                                     Foreground="{DynamicResource AccentBrush}" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Tolerance Specification" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    
+                    <CheckBox Content="Enable Pass/Fail tolerance check" 
+                              IsChecked="{Binding Project.ToleranceCheckEnabled, Mode=TwoWay}"
+                              Margin="0,0,0,10" FontSize="12"/>
+                    
+                    <TextBlock Text="2DRMS Tolerance" Style="{DynamicResource FieldLabel}"/>
+                    <TextBlock Text="Maximum acceptable 2DRMS value" 
+                               FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                    
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <mah:NumericUpDown Grid.Column="0" 
+                                           Value="{Binding Project.ToleranceValue}"
+                                           Minimum="0.001" Maximum="10" 
+                                           Interval="0.01"
+                                           StringFormat="F3"
+                                           FontSize="12"/>
+                        <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                                CornerRadius="4" Padding="8,4" Margin="10,0,0,0">
+                            <TextBlock Text="{Binding Project.UnitAbbreviation, Mode=OneWay}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       FontWeight="Bold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                    </Grid>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Tolerance Guide" FontWeight="SemiBold" FontSize="11" 
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="0.10 m" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="High precision GNSS" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="0.15 m" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="Standard DGNSS" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="0.50 m" FontWeight="SemiBold" FontSize="10"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="General positioning" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Separator Margin="0,5,0,15"/>
+                    
+                    <!-- Processing Steps (condensed) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16" 
+                                                     Foreground="{DynamicResource AccentBrush}" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Processing Steps" FontWeight="SemiBold" FontSize="12"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    
+                    <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
+                        <Run FontWeight="SemiBold">1.</Run> Parse file → 
+                        <Run FontWeight="SemiBold">2.</Run> Calculate C-O → 
+                        <Run FontWeight="SemiBold">3.</Run> Filter outliers → 
+                        <Run FontWeight="SemiBold">4.</Run> Statistics
+                    </TextBlock>
+                    
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="8" Margin="0,10,0,0">
+                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}">
+                            <Run FontWeight="SemiBold">C-O:</Run> System 1 - System 2
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

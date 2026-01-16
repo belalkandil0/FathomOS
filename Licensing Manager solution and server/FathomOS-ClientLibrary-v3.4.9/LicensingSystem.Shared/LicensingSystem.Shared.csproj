@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>3.4.9</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Fathom OS License Shared Models</Description>
+  </PropertyGroup>
+
+</Project>

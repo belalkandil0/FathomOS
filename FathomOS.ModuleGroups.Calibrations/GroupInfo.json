@@ -1,0 +1,6 @@
+{
+  "GroupId": "Calibrations",
+  "DisplayName": "Calibrations",
+  "Description": "Sensor calibration and verification tools",
+  "DisplayOrder": 10
+}

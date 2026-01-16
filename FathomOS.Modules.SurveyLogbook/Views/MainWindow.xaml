@@ -1,0 +1,344 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SurveyLogbook.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:converters="clr-namespace:FathomOS.Modules.SurveyLogbook.Converters"
+        xmlns:views="clr-namespace:FathomOS.Modules.SurveyLogbook.Views"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="Survey Electronic Logbook - Fathom OS"
+        Height="900" Width="1400"
+        MinHeight="700" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource AccentBrush}"
+        ResizeMode="CanResizeWithGrip"
+        TitleCharacterCasing="Normal"
+        ShowIconOnTitleBar="True"
+        ShowTitleBar="True"
+        SaveWindowPosition="True">
+
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:ConnectionStateToColorConverter x:Key="ConnectionStateToColor"/>
+        <converters:ConnectionStateToTextConverter x:Key="ConnectionStateToText"/>
+    </Window.Resources>
+
+    <!-- Title Bar Commands -->
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <!-- Connection Status -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                <Ellipse Width="8" Height="8" 
+                         Fill="{Binding IsConnected, Converter={StaticResource ConnectionStateToColor}}"
+                         Margin="0,0,6,0"/>
+                <TextBlock Text="{Binding ConnectionStatus}" 
+                           VerticalAlignment="Center"
+                           Foreground="White"
+                           FontSize="12"/>
+            </StackPanel>
+            
+            <!-- Settings Button -->
+            <Button Command="{Binding OpenSettingsCommand}" ToolTip="Settings">
+                <iconPacks:PackIconMaterial Kind="Cog" Width="16" Height="16"/>
+            </Button>
+            
+            <!-- Data Monitor Button -->
+            <Button Command="{Binding OpenDataMonitorCommand}" ToolTip="NaviPac Data Monitor">
+                <iconPacks:PackIconMaterial Kind="Monitor" Width="16" Height="16"/>
+            </Button>
+            
+            <!-- Field Configuration Button -->
+            <Button Command="{Binding OpenFieldConfigurationCommand}" ToolTip="Configure NaviPac Fields">
+                <iconPacks:PackIconMaterial Kind="TableCog" Width="16" Height="16"/>
+            </Button>
+            
+            <!-- Refresh Button -->
+            <Button Command="{Binding RefreshCommand}" ToolTip="Refresh All Data">
+                <iconPacks:PackIconMaterial Kind="Refresh" Width="16" Height="16"/>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Toolbar -->
+            <RowDefinition Height="*"/>     <!-- Content -->
+            <RowDefinition Height="Auto"/>  <!-- Status Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ============================================================ -->
+        <!-- TOOLBAR -->
+        <!-- ============================================================ -->
+        <Border Grid.Row="0" 
+                Background="{DynamicResource SurfaceBrush}" 
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Connection Controls -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <!-- Start/Stop Toggle -->
+                    <Button Command="{Binding StartCommand}"
+                            Style="{DynamicResource PrimaryButton}"
+                            Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}"
+                            Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Play" Width="14" Height="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Start Monitoring"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Command="{Binding StopCommand}"
+                            Style="{DynamicResource SecondaryButton}"
+                            Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}}"
+                            Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Stop" Width="14" Height="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Stop Monitoring"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" 
+                               Margin="10,0" Width="1" Background="{DynamicResource BorderBrush}"/>
+
+                    <!-- File Operations -->
+                    <Button Command="{Binding NewCommand}" 
+                            Style="{DynamicResource SecondaryButton}"
+                            ToolTip="New Log File (Ctrl+N)"
+                            Margin="0,0,5,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FileDocumentPlus" Width="14" Height="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="New"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Command="{Binding SaveCommand}" 
+                            Style="{DynamicResource SecondaryButton}"
+                            ToolTip="Save Log File (Ctrl+S)"
+                            Margin="0,0,5,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ContentSave" Width="14" Height="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Save"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Command="{Binding LoadCommand}" 
+                            Style="{DynamicResource SecondaryButton}"
+                            ToolTip="Load Log File (Ctrl+O)"
+                            Margin="0,0,5,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FolderOpen" Width="14" Height="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Load"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Center: Title and Project Info -->
+                <StackPanel Grid.Column="1" 
+                            HorizontalAlignment="Center" 
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="ClipboardText" 
+                                                Width="24" Height="24" 
+                                                Foreground="{DynamicResource AccentBrush}"
+                                                Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Survey Electronic Logbook" 
+                                   FontSize="16" 
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding ProjectInfo}" 
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Visibility="{Binding HasProjectInfo, Converter={StaticResource BoolToVisibility}}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Right: Export Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Command="{Binding ExportExcelCommand}" 
+                            Style="{DynamicResource SecondaryButton}"
+                            ToolTip="Export to Excel"
+                            Margin="0,0,5,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="MicrosoftExcel" Width="14" Height="14" 
+                                                        Foreground="#217346" Margin="0,0,6,0"/>
+                            <TextBlock Text="Excel"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Command="{Binding ExportPdfCommand}" 
+                            Style="{DynamicResource SecondaryButton}"
+                            ToolTip="Export to PDF">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FilePdfBox" Width="14" Height="14" 
+                                                        Foreground="#E74C3C" Margin="0,0,6,0"/>
+                            <TextBlock Text="PDF"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================ -->
+        <!-- MAIN CONTENT - TabControl with 4 Tabs -->
+        <!-- ============================================================ -->
+        <TabControl Grid.Row="1" 
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    mah:TabControlHelper.Underlined="SelectedTabItem"
+                    Margin="15">
+            
+            <!-- Tab 1: Survey Events Log -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="FormatListBulleted" 
+                                                    Width="16" Height="16" 
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center"/>
+                        <TextBlock Text="Survey Events" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <views:SurveyLogView DataContext="{Binding SurveyLogViewModel}"/>
+            </TabItem>
+            
+            <!-- Tab 2: DVR Recordings -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Video" 
+                                                    Width="16" Height="16" 
+                                                    Margin="0,0,8,0"
+                                                    Foreground="#E74C3C"
+                                                    VerticalAlignment="Center"/>
+                        <TextBlock Text="DVR Recordings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <views:DvrRecordingsView DataContext="{Binding DvrRecordingsViewModel}"/>
+            </TabItem>
+            
+            <!-- Tab 3: Position Fixes -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="MapMarker" 
+                                                    Width="16" Height="16" 
+                                                    Margin="0,0,8,0"
+                                                    Foreground="#2ECC71"
+                                                    VerticalAlignment="Center"/>
+                        <TextBlock Text="Position Fixes" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <views:PositionFixesView DataContext="{Binding PositionFixesViewModel}"/>
+            </TabItem>
+            
+            <!-- Tab 4: DPR / Shift Handover -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="FileDocument" 
+                                                    Width="16" Height="16" 
+                                                    Margin="0,0,8,0"
+                                                    Foreground="#3498DB"
+                                                    VerticalAlignment="Center"/>
+                        <TextBlock Text="DPR / Shift Handover" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <views:DprView DataContext="{Binding DprViewModel}"/>
+            </TabItem>
+        </TabControl>
+
+        <!-- ============================================================ -->
+        <!-- STATUS BAR -->
+        <!-- ============================================================ -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="15,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Status Message -->
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"/>
+
+                <!-- Connection Indicator -->
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal" 
+                            Margin="20,0">
+                    <Ellipse Width="8" Height="8" 
+                             Fill="{Binding IsConnected, Converter={StaticResource ConnectionStateToColor}}"
+                             Margin="0,0,6,0"
+                             VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ConnectionStatus}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               FontSize="11"/>
+                </StackPanel>
+
+                <!-- Entry Count -->
+                <StackPanel Grid.Column="2" 
+                            Orientation="Horizontal" 
+                            Margin="20,0">
+                    <iconPacks:PackIconMaterial Kind="Counter" 
+                                                Width="14" Height="14" 
+                                                Foreground="{DynamicResource TextSecondaryBrush}"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalEntryCount, StringFormat='{}{0} entries'}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Loading Indicator -->
+                <mah:ProgressRing Grid.Column="3"
+                                  IsActive="{Binding IsBusy}"
+                                  Width="16" Height="16"
+                                  Margin="10,0"
+                                  Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
+
+                <!-- Current Time -->
+                <TextBlock Grid.Column="4"
+                           Text="{Binding CurrentTime, StringFormat='HH:mm:ss'}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           FontFamily="Consolas"/>
+            </Grid>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Border Grid.RowSpan="3"
+                Background="#80000000"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <mah:ProgressRing IsActive="True" Width="50" Height="50"/>
+                <TextBlock Text="{Binding BusyMessage}" 
+                           Foreground="White" 
+                           FontSize="14"
+                           Margin="0,15,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

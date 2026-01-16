@@ -1,0 +1,43 @@
+{
+    "moduleId": "UsblVerification",
+    "displayName": "USBL Verification",
+    "description": "Automated USBL system verification with 7-step workflow, batch import with column mapping, quality dashboard, DXF export, and certificate generation.",
+    "version": "1.7.0",
+    "author": "S7 Solutions",
+    "category": "Quality Control",
+    "displayOrder": 25,
+    "icon": "icon.png",
+    "supportedFileTypes": [".npd", ".csv", ".txt", ".usblproj"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    
+    "certificateCode": "UV",
+    "certificateTitle": "USBL System Verification Certificate",
+    "certificateStatement": "This is to certify that the Ultra-Short BaseLine (USBL) acoustic positioning system verification has been successfully completed. The spin test and transit test results confirm that the USBL system performs within the specified tolerances for offshore survey operations.",
+    
+    "features": [
+        "7-Step guided verification workflow",
+        "Column mapping dialog with auto-detection",
+        "Batch import with per-file column configuration",
+        "NaviPac format auto-detection",
+        "Delimiter auto-detection (Tab, Comma, Semicolon)",
+        "Live chart preview - Watch data load in real-time",
+        "Auto-detect units - Guess based on coordinate magnitude",
+        "Quality dashboard - Visual gauges per dataset",
+        "Point selection - Click chart points to exclude",
+        "Report templates - Custom company branding",
+        "Verification certificate - Auto-generated PDF on pass",
+        "Spin Verification (4 headings: 0°, 90°, 180°, 270°)",
+        "Transit Verification (2 reciprocal lines)",
+        "Automatic tolerance calculations",
+        "IQR outlier detection with auto-exclude",
+        "Statistical outlier filtering (sigma-based)",
+        "Real-time smoothing with live preview",
+        "Advanced analytics charts (7 types)",
+        "3D scatter plot visualization",
+        "6 chart themes with legends",
+        "PDF, Excel, DXF, PNG, TXT export",
+        "Project save/load with auto-backup",
+        "Dark and Light theme toggle"
+    ]
+}

@@ -1,0 +1,565 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.EquipmentInventory.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters"
+        Title="Equipment &amp; Inventory - Fathom OS"
+        Height="900" Width="1500"
+        MinHeight="700" MinWidth="1200"
+        WindowStartupLocation="CenterScreen"
+        ShowTitleBar="False"
+        ShowCloseButton="False"
+        ShowMinButton="False"
+        ShowMaxRestoreButton="False"
+        UseNoneWindowStyle="True"
+        IgnoreTaskbarOnMaximize="False"
+        GlowBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        BorderBrush="{DynamicResource BorderBrush}"
+        ResizeMode="CanResizeWithGrip"
+        Background="{DynamicResource BackgroundBrush}">
+    
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:IntToVisibilityConverter x:Key="IntToVisibility"/>
+        <converters:StatusToColorConverter x:Key="StatusToColor"/>
+        <converters:ManifestStatusToColorConverter x:Key="ManifestStatusToColor"/>
+        <converters:NotificationTypeToIconConverter x:Key="NotificationTypeToIcon"/>
+        <converters:NotificationTypeToColorConverter x:Key="NotificationTypeToColor"/>
+        
+        <!-- Sidebar Nav Button Style -->
+        <Style x:Key="NavButton" TargetType="RadioButton">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Padding" Value="20,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="8" Margin="8,2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter x:Name="icon" Grid.Column="0" 
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="text" Grid.Column="1" Text="{TemplateBinding Tag}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"
+                                           VerticalAlignment="Center"/>
+                                <!-- Active indicator -->
+                                <Border x:Name="indicator" Width="4" Height="30" CornerRadius="2"
+                                        HorizontalAlignment="Left" Margin="-8,0,0,0"
+                                        Visibility="Collapsed">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#00D4AA" Offset="0"/>
+                                            <GradientStop Color="#00B4D8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter TargetName="text" Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter TargetName="text" Property="FontWeight" Value="SemiBold"/>
+                                <Setter TargetName="indicator" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource CardBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect ShadowDepth="0" BlurRadius="10" Opacity="0.1" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Toolbar Button Style -->
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource CardBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Primary Action Button -->
+        <Style x:Key="PrimaryActionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00D4AA" Offset="0"/>
+                                    <GradientStop Color="#00B4D8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00E4BA" Offset="0"/>
+                                            <GradientStop Color="#00C4E8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Theme Toggle Style -->
+        <Style x:Key="ThemeToggle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="track" Background="#30FFFFFF" CornerRadius="13" Opacity="0.5"/>
+                            <Border x:Name="thumb" Width="22" Height="22" CornerRadius="11"
+                                    HorizontalAlignment="Left" Margin="2,0,0,0"
+                                    Background="White">
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.3"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <iconPacks:PackIconMaterial x:Name="sunIcon" Kind="WeatherSunny" 
+                                                                Width="12" Height="12" Foreground="#FFA726"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <iconPacks:PackIconMaterial x:Name="moonIcon" Kind="WeatherNight" 
+                                                                Width="12" Height="12" Foreground="#5C6BC0"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="thumb" Property="Margin" Value="0,0,2,0"/>
+                                <Setter TargetName="track" Property="Background" Value="#00D4AA"/>
+                                <Setter TargetName="track" Property="Opacity" Value="1"/>
+                                <Setter TargetName="sunIcon" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="moonIcon" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>  <!-- Title Bar -->
+            <RowDefinition Height="*"/>   <!-- Content -->
+        </Grid.RowDefinitions>
+        
+        <!-- Custom Title Bar -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Logo & Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="15,0">
+                    <Border Width="30" Height="30" CornerRadius="6" Margin="0,0,12,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#00D4AA" Offset="0"/>
+                                <GradientStop Color="#00B4D8" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <iconPacks:PackIconMaterial Kind="PackageVariantClosed" Width="16" Height="16" 
+                                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Equipment &amp; Inventory" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Search Bar (Center) -->
+                <Border Grid.Column="1" Background="{DynamicResource CardBrush}" CornerRadius="8" 
+                        MaxWidth="400" HorizontalAlignment="Center" Padding="12,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <iconPacks:PackIconMaterial Kind="Magnify" Width="16" Height="16" 
+                                                    Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                    VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=300}"
+                                 Background="Transparent" BorderThickness="0" FontSize="13" Width="300"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
+                                 mah:TextBoxHelper.Watermark="Search equipment, manifests..."/>
+                    </Grid>
+                </Border>
+                
+                <!-- Right Controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="15,0">
+                    
+                    <!-- Theme Toggle -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
+                        <iconPacks:PackIconMaterial Kind="WeatherSunny" Width="14" Height="14" 
+                                                    Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ToggleButton x:Name="ThemeToggleButton" Style="{StaticResource ThemeToggle}"
+                                      IsChecked="{Binding IsDarkTheme}" Click="ThemeToggle_Click"/>
+                        <iconPacks:PackIconMaterial Kind="WeatherNight" Width="14" Height="14" 
+                                                    Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                    VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </StackPanel>
+                    
+                    <!-- Help Button -->
+                    <Button x:Name="HelpButton" Style="{StaticResource ToolbarButton}" ToolTip="Help &amp; Guide" 
+                            Margin="0,0,5,0" Click="HelpButton_Click">
+                        <iconPacks:PackIconMaterial Kind="HelpCircleOutline" Width="18" Height="18"/>
+                    </Button>
+                    
+                    <!-- Notifications -->
+                    <Button x:Name="NotificationButton" Style="{StaticResource ToolbarButton}" ToolTip="Notifications" 
+                            Margin="0,0,5,0" Click="NotificationButton_Click">
+                        <Grid>
+                            <iconPacks:PackIconMaterial Kind="BellOutline" Width="18" Height="18"/>
+                            <Border Width="8" Height="8" CornerRadius="4" Background="#FF6B6B"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-2,0"
+                                    Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVisibility}}"/>
+                        </Grid>
+                    </Button>
+                    
+                    <!-- Notifications Popup Panel -->
+                    <Popup x:Name="NotificationPopup" Placement="Bottom" PlacementTarget="{Binding ElementName=NotificationButton}"
+                           StaysOpen="False" AllowsTransparency="True" PopupAnimation="Slide">
+                        <Border Background="{DynamicResource CardBrush}" CornerRadius="10" 
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                Width="380" MaxHeight="450">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.3"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Header -->
+                                <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" CornerRadius="10,10,0,0" Padding="16,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Notifications" FontSize="16" FontWeight="SemiBold" 
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <Button Grid.Column="1" Content="Mark all read" Style="{DynamicResource SmallSecondaryButton}"
+                                                Click="MarkAllNotificationsRead_Click"/>
+                                    </Grid>
+                                </Border>
+                                
+                                <!-- Notification List -->
+                                <ScrollViewer Grid.Row="1" MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="NotificationList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" 
+                                                        Margin="12,6" Padding="12" Cursor="Hand"
+                                                        MouseLeftButtonUp="Notification_Click">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" 
+                                                                Background="{Binding NotificationType, Converter={StaticResource NotificationTypeToColor}}"
+                                                                VerticalAlignment="Top" Margin="0,0,12,0">
+                                                            <iconPacks:PackIconMaterial Kind="{Binding NotificationType, Converter={StaticResource NotificationTypeToIcon}}"
+                                                                                        Width="20" Height="20" Foreground="White"
+                                                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="{Binding Message}" FontWeight="SemiBold" 
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                                            <TextBlock Text="{Binding Details}" FontSize="12"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                                            <TextBlock Text="{Binding CreatedAt, StringFormat='MMM dd, HH:mm'}" FontSize="11"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="2" ToolTip="Dismiss" Click="DismissNotification_Click" 
+                                                                Tag="{Binding}" Background="Transparent" Padding="4"
+                                                                VerticalAlignment="Top">
+                                                            <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" 
+                                                                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                
+                                <!-- Empty State -->
+                                <StackPanel x:Name="NoNotificationsPanel" Grid.Row="1" HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center" Visibility="Collapsed" Margin="20">
+                                    <iconPacks:PackIconMaterial Kind="BellCheck" Width="48" Height="48"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="All caught up!" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,4"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="No new notifications" FontSize="13"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <!-- Footer -->
+                                <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="0,0,10,10" Padding="12,10">
+                                    <Button Content="View all notifications" Style="{DynamicResource SecondaryButton}"
+                                            HorizontalAlignment="Stretch" Click="ViewAllNotifications_Click"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Popup>
+                    
+                    <!-- User Menu -->
+                    <Button Style="{StaticResource ToolbarButton}" ToolTip="Account" Click="UserMenu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentBrush}">
+                                <TextBlock Text="{Binding CurrentUserInitials}" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <iconPacks:PackIconMaterial Kind="ChevronDown" Width="12" Height="12" 
+                                                        Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                        VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Separator -->
+                    <Border Width="1" Height="20" Background="{DynamicResource BorderBrush}" Margin="10,0"/>
+                    
+                    <!-- Window Controls -->
+                    <Button Style="{StaticResource ToolbarButton}" Click="MinimizeButton_Click" ToolTip="Minimize">
+                        <iconPacks:PackIconMaterial Kind="WindowMinimize" Width="14" Height="14"/>
+                    </Button>
+                    <Button Style="{StaticResource ToolbarButton}" Click="MaximizeButton_Click" ToolTip="Maximize">
+                        <iconPacks:PackIconMaterial x:Name="MaximizeIcon" Kind="WindowMaximize" Width="14" Height="14"/>
+                    </Button>
+                    <Button Click="CloseButton_Click" ToolTip="Close" Padding="12,8" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="Transparent" CornerRadius="8" Padding="12,8">
+                                    <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" 
+                                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#E81123"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>  <!-- Sidebar -->
+                <ColumnDefinition Width="*"/>    <!-- Content -->
+            </Grid.ColumnDefinitions>
+            
+            <!-- Sidebar Navigation -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderThickness="0,0,1,0" 
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Navigation Items -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,15">
+                        <StackPanel>
+                            
+                            <TextBlock Text="MAIN" FontSize="11" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" 
+                                       Margin="25,0,0,10" Opacity="0.6"/>
+                            
+                            <RadioButton x:Name="NavDashboard" Style="{StaticResource NavButton}" 
+                                         Tag="Dashboard" IsChecked="True" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="ViewDashboardOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavEquipment" Style="{StaticResource NavButton}" 
+                                         Tag="Equipment" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="PackageVariantClosed" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavManifests" Style="{StaticResource NavButton}" 
+                                         Tag="Manifests" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="TruckDeliveryOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavLocations" Style="{StaticResource NavButton}" 
+                                         Tag="Locations" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="MapMarkerOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavSuppliers" Style="{StaticResource NavButton}" 
+                                         Tag="Suppliers" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="TruckDelivery" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="20,15" Opacity="0.5"/>
+                            
+                            <TextBlock Text="OPERATIONS" FontSize="11" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" 
+                                       Margin="25,0,0,10" Opacity="0.6"/>
+                            
+                            <RadioButton x:Name="NavMaintenance" Style="{StaticResource NavButton}" 
+                                         Tag="Maintenance" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="WrenchOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavDefects" Style="{StaticResource NavButton}" 
+                                         Tag="Defects" Checked="NavButton_Checked" ToolTip="Defect Reports / EFN">
+                                <iconPacks:PackIconMaterial Kind="AlertCircleOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavCertifications" Style="{StaticResource NavButton}" 
+                                         Tag="Certifications" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="CertificateOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavReports" Style="{StaticResource NavButton}" 
+                                         Tag="Reports" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="ChartBoxOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavUnregistered" Style="{StaticResource NavButton}" 
+                                         Tag="Unregistered" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="PackageVariantClosedPlus" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavNotifications" Style="{StaticResource NavButton}" 
+                                         Tag="Notifications" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="BellAlertOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="20,15" Opacity="0.5"/>
+                            
+                            <TextBlock Text="SYSTEM" FontSize="11" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}" 
+                                       Margin="25,0,0,10" Opacity="0.6"/>
+                            
+                            <RadioButton x:Name="NavAdmin" Style="{StaticResource NavButton}" 
+                                         Tag="Admin" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="ShieldAccountOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" 
+                                         Tag="Settings" Checked="NavButton_Checked">
+                                <iconPacks:PackIconMaterial Kind="CogOutline" Width="20" Height="20" 
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </RadioButton>
+                            
+                        </StackPanel>
+                    </ScrollViewer>
+                    
+                    <!-- Sync Status & Quick Actions -->
+                    <Border Grid.Row="1" Background="{DynamicResource CardBrush}" Margin="12" 
+                            CornerRadius="10" Padding="15">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border Width="8" Height="8" CornerRadius="4" Background="#00D4AA" 
+                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="Sync Active" FontSize="12" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                            <Button Content="+ New Equipment" Style="{StaticResource PrimaryActionButton}"
+                                    Command="{Binding NewEquipmentCommand}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+            
+            <!-- Content Frame -->
+            <Border Grid.Column="1" Padding="25">
+                <Grid x:Name="ContentFrame">
+                    <!-- Content pages will be loaded here -->
+                    <ContentControl x:Name="PageContent" Content="{Binding CurrentPage}"/>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Loading Overlay -->
+        <Border x:Name="LoadingOverlay" Grid.RowSpan="2" Background="#80000000" 
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <mah:ProgressRing IsActive="True" Width="50" Height="50" Foreground="#00D4AA"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="White" 
+                           Margin="0,15,0,0" FontSize="14"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

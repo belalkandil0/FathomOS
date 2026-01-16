@@ -1,0 +1,504 @@
+<Window x:Class="FathomOS.Modules.MruCalibration.Views.HelpDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MRU Calibration - Help Guide"
+        Width="900" Height="700"
+        MinWidth="700" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BackgroundBrush}"
+        ShowInTaskbar="False"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <!-- Tab Item Style -->
+        <Style x:Key="HelpTabItem" TargetType="TabItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0,0,0,3"
+                                BorderBrush="Transparent"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" 
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Subsea7OrangeBrush}"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Subsea7OrangeBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Subsea7OrangeBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- SubSection Header Style -->
+        <Style x:Key="SubSectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Margin" Value="0,16,0,8"/>
+        </Style>
+
+        <!-- Body Text Style -->
+        <Style x:Key="BodyText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="22"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Bullet Point Style -->
+        <Style x:Key="BulletPoint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="22"/>
+            <Setter Property="Margin" Value="20,0,0,6"/>
+        </Style>
+
+        <!-- Tip Box Style -->
+        <Style x:Key="TipBox" TargetType="Border">
+            <Setter Property="Background" Value="#1A009688"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,12,0,12"/>
+            <Setter Property="CornerRadius" Value="0,6,6,0"/>
+        </Style>
+
+        <!-- Warning Box Style -->
+        <Style x:Key="WarningBox" TargetType="Border">
+            <Setter Property="Background" Value="#1AFF9800"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,12,0,12"/>
+            <Setter Property="CornerRadius" Value="0,6,6,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" Padding="24,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" 
+                        Background="{DynamicResource Subsea7OrangeBrush}" Margin="0,0,16,0">
+                    <TextBlock Text="?" FontSize="28" FontWeight="Bold" 
+                               Foreground="White" HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Title -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="MRU Calibration Module" 
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Complete User Guide - The Fathom 7 Process"
+                               FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Tab Control -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0"
+                    Padding="0" Margin="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem" BasedOn="{StaticResource HelpTabItem}"/>
+            </TabControl.Resources>
+
+            <!-- Overview Tab -->
+            <TabItem Header="📋 Overview">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="What is MRU Calibration?"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            The MRU (Motion Reference Unit) Calibration Module performs calibration and verification 
+                            of Pitch and Roll sensors by inter-system comparison. This module implements the Subsea7 
+                            standard procedure (GLSIFR0031) for verifying motion sensors using statistical 3-sigma 
+                            outlier rejection.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Key Features"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Dual Sensor Support: Process both Pitch and Roll data simultaneously"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Inter-System Comparison: Compare reference MRU against system under test"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• 3-Sigma Outlier Rejection: Automatic detection and rejection of statistical outliers"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Smart Auto-Detection: Automatically finds Pitch/Roll columns in NPD files"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Interactive Charts: Multiple visualization options with customizable colors"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Professional Reports: Subsea7-branded PDF and Excel exports"/>
+
+                        <Border Style="{StaticResource TipBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" 
+                                           Text="💡 The Fathom 7 Process" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    This module follows a structured 7-step workflow: Select → Load → Configure → 
+                                    Process → Analyze → Verify → Export. Each step must be completed before proceeding 
+                                    to the next, ensuring data quality and traceability.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Calibration vs Verification"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            <Bold>Calibration Mode:</Bold> The reference system has its C-O (Correction-Observed) 
+                            value applied in NaviPac. This mode determines the C-O value to apply to the system 
+                            under test.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            <Bold>Verification Mode:</Bold> Both systems have their C-O values applied. This mode 
+                            verifies that the calibration is still valid and within acceptable tolerances.
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 1 Tab -->
+            <TabItem Header="1️⃣ Select">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 1: Select Calibration Type"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Choose the type of calibration exercise you are performing. This determines how the 
+                            results will be interpreted and what tolerances apply.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Calibration Mode"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Use this mode when you need to determine the C-O correction value for a system. The 
+                            reference system should already have its calibration applied in NaviPac.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Reference system: Calibration applied"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• System under test: No calibration (raw values)"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Output: C-O value to apply to the test system"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Verification Mode"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Use this mode to verify that an existing calibration is still valid. Both systems 
+                            should have their calibrations applied.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Both systems: Calibrations applied"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Expected result: C-O should be near zero"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Tolerance: Typically ±0.05° for verification"/>
+
+                        <Border Style="{StaticResource WarningBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" 
+                                           Text="⚠️ Important" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    Selecting the wrong mode will affect the interpretation of results. Ensure you 
+                                    know whether calibrations are applied in NaviPac before proceeding.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 2 Tab -->
+            <TabItem Header="2️⃣ Load">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 2: Load NPD Data"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Import your NPD (NaviPac Data) file containing the motion sensor readings. The module 
+                            will parse the file and detect available columns.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Supported File Formats"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• NPD files (.npd) - NaviPac export format"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• CSV files (.csv) - Comma-separated values"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Text files (.txt) - Tab or comma delimited"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Column Mapping"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            After loading, you need to map columns to their purpose:
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Time Column: Timestamp for each reading"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Reference Pitch: Pitch from reference system"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Verified Pitch: Pitch from system under test"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Reference Roll: Roll from reference system"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Verified Roll: Roll from system under test"/>
+
+                        <Border Style="{StaticResource TipBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" 
+                                           Text="💡 Auto-Detection" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    Click "Auto-Detect Columns" to automatically identify Pitch and Roll columns 
+                                    based on common naming patterns (MRU, Motion, P, R, Pitch, Roll, etc.).
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="NaviPac Date/Time Format"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            NaviPac files have a special format where the header shows "Time" as one column, but the 
+                            data contains separate Date and Time values. The parser handles this automatically.
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 3 Tab -->
+            <TabItem Header="3️⃣ Configure">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 3: Configure Project"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Enter project information and review the loaded data. This information will appear 
+                            on generated reports.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Project Information"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Project Name: Identifier for this calibration"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Client Name: Client or project owner"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Vessel Name: Survey vessel"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Survey Date: Date of data collection"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Surveyor Name: Person performing calibration"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="MRU System Details"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Reference System: Make/model of reference MRU"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Verified System: Make/model of system under test"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Serial Numbers: For traceability"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Data Preview"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Review the loaded data in the preview grid. Check that values look reasonable and 
+                            timestamps are correct. You can also filter the time range if needed.
+                        </TextBlock>
+
+                        <Border Style="{StaticResource TipBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" 
+                                           Text="💡 Time Range Filter" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    If your data contains periods you want to exclude (e.g., vessel maneuvering), 
+                                    use the time range filter to select only the stable data period.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 4 Tab -->
+            <TabItem Header="4️⃣ Process">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 4: Process Data"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            The processing step calculates C-O (Computed minus Observed) values and applies 
+                            statistical analysis with 3-sigma outlier rejection.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Processing Steps"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="1. Calculate C-O for each data point (Verified - Reference)"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="2. Calculate mean and standard deviation"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="3. Identify points outside ±3σ from mean"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="4. Reject outliers and recalculate statistics"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="5. Repeat until no new outliers found"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Statistical Outputs"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Mean C-O: Average correction value"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Standard Deviation: Spread of values"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• 95% Confidence Interval: Uncertainty in mean"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Acceptance Rate: Percentage of valid points"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• RMSE: Root Mean Square Error"/>
+
+                        <Border Style="{StaticResource WarningBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" 
+                                           Text="⚠️ 3-Sigma Rule" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    The 3-sigma rule assumes normally distributed errors. If the rejection rate 
+                                    is very high (>10%), the data may have systematic issues that need investigation.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 5 Tab -->
+            <TabItem Header="5️⃣ Analyze">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 5: Analyze Results"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Review the calibration results through various charts and statistical visualizations.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Available Charts"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Time Series: Reference, Verified, and C-O over time"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• C-O Analysis: C-O values with ±3σ boundaries"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Histogram: Distribution of C-O values"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Correlation: Reference vs Verified scatter plot"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Trend Analysis: Detect drift over time"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Box Plot: Statistical summary comparison"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Q-Q Plot: Check for normal distribution"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Chart Features"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Zoom and pan with mouse"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Export individual charts as PNG or PDF"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Customize colors with preset schemes"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Color-blind friendly options available"/>
+
+                        <Border Style="{StaticResource TipBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" 
+                                           Text="💡 What to Look For" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    • C-O values should cluster around the mean with minimal spread
+                                    • No obvious drift or trends over time
+                                    • Histogram should show roughly normal distribution
+                                    • Rejected points should be random, not clustered
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 6 Tab -->
+            <TabItem Header="6️⃣ Verify">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 6: Verify &amp; Sign-off"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Complete the QC checklist and make accept/reject decisions for Pitch and Roll.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="QC Checklist"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Statistics within acceptable range"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Rejection rate is reasonable (&lt;10%)"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• No visible drift in data"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Normal distribution confirmed"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Data reviewed by surveyor"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Acceptance Criteria"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            For verification mode, the mean C-O should typically be within ±0.05°. For calibration 
+                            mode, any consistent C-O value is valid as long as the standard deviation is acceptable.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Sign-off"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Once all QC checks pass, you can accept or reject each sensor calibration. Add any 
+                            relevant comments before proceeding to export.
+                        </TextBlock>
+
+                        <Border Style="{StaticResource WarningBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" 
+                                           Text="⚠️ Rejection" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    If rejecting a calibration, document the reason clearly. Common reasons include: 
+                                    excessive drift, high rejection rate, abnormal distribution, or equipment issues.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Step 7 Tab -->
+            <TabItem Header="7️⃣ Export">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                    <StackPanel MaxWidth="800">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Step 7: Export Results"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Generate professional reports and export data for documentation.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="PDF Report"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            The PDF report includes:
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Project and vessel information"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• MRU system details"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Statistical summary for Pitch and Roll"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• All analysis charts"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• QC checklist results"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Accept/Reject decisions with comments"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Sign-off timestamp"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Excel Export"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            The Excel workbook contains:
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Summary sheet with statistics"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Raw data with all columns"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Processed data with C-O values"/>
+                        <TextBlock Style="{StaticResource BulletPoint}" Text="• Rejected points list"/>
+
+                        <TextBlock Style="{StaticResource SubSectionHeader}" Text="Chart Export"/>
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Individual charts can be exported as PNG images or PDF files for use in other documents.
+                        </TextBlock>
+
+                        <Border Style="{StaticResource TipBox}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" 
+                                           Text="💡 Session Saving" Margin="0,0,0,8"/>
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0">
+                                    Your calibration session is automatically saved. You can close the module and 
+                                    resume later using File → Load Session. All data, settings, and decisions are preserved.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="16">
+            <Grid>
+                <TextBlock Text="MRU Calibration Module v2.3.0 | Subsea7 Fathom Suite"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="12" VerticalAlignment="Center"/>
+                <Button Content="Close" HorizontalAlignment="Right"
+                        Padding="24,10" Click="CloseButton_Click"
+                        Style="{DynamicResource PrimaryButton}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

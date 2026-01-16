@@ -1,0 +1,42 @@
+# Fathom OS License Server - Render.com Configuration
+# Deploy: Connect this repo to Render.com
+
+services:
+  - type: web
+    name: fathomos-license-server
+    env: docker
+    dockerfilePath: ./LicensingSystem.Server/Dockerfile
+    dockerContext: .
+    plan: free # or starter, standard, pro
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DB_PATH
+        value: /app/data/licenses.db
+      # IMPORTANT: Set these in Render dashboard (not in this file)
+      # - key: LICENSING_PRIVATE_KEY
+      #   sync: false
+      # - key: CERTIFICATE_PRIVATE_KEY
+      #   sync: false
+      # - key: CERTIFICATE_PUBLIC_KEY
+      #   sync: false
+    disk:
+      name: license-data
+      mountPath: /app/data
+      sizeGB: 1 # Adjust as needed
+
+# Alternative: Native .NET deployment (no Docker)
+# services:
+#   - type: web
+#     name: fathomos-license-server
+#     env: dotnet
+#     plan: free
+#     buildCommand: dotnet publish LicensingSystem.Server -c Release -o out
+#     startCommand: cd out && dotnet LicensingSystem.Server.dll
+#     healthCheckPath: /health
+#     envVars:
+#       - key: ASPNETCORE_URLS
+#         value: http://0.0.0.0:$PORT
+#       - key: DB_PATH
+#         value: /app/data/licenses.db

@@ -1,0 +1,108 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.MaintenanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel>
+                <TextBlock Text="Maintenance" Style="{DynamicResource HeadingLarge}" Margin="0,0,0,5"/>
+                <TextBlock Text="Track equipment maintenance and service history" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"/>
+            </StackPanel>
+            
+            <Button Grid.Column="1" Style="{DynamicResource PrimaryButton}" Command="{Binding NewMaintenanceRecordCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="Plus" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Log Maintenance"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+        
+        <!-- Summary Cards -->
+        <Grid Grid.Row="1" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Style="{DynamicResource CardBorder}" Margin="0,0,15,0">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="ClockAlertOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource WarningBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding MaintenanceDueCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="Due for Service" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="1" Style="{DynamicResource CardBorder}" Margin="0,0,15,0">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="Wrench" Width="24" Height="24" 
+                                                Foreground="{DynamicResource InfoBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding UnderRepairCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource InfoBrush}"/>
+                    <TextBlock Text="Under Repair" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="2" Style="{DynamicResource CardBorder}">
+                <StackPanel>
+                    <iconPacks:PackIconMaterial Kind="CheckCircleOutline" Width="24" Height="24" 
+                                                Foreground="{DynamicResource SuccessBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding CompletedThisMonthCount}" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource SuccessBrush}"/>
+                    <TextBlock Text="Completed This Month" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- Maintenance Records -->
+        <Border Grid.Row="2" Style="{DynamicResource CardBorder}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20,15" CornerRadius="12,12,0,0">
+                    <Grid>
+                        <TextBlock Text="Maintenance Records" Style="{DynamicResource HeadingMedium}"/>
+                        <ComboBox HorizontalAlignment="Right" Width="200" SelectedIndex="0">
+                            <ComboBoxItem Content="All Records"/>
+                            <ComboBoxItem Content="Scheduled"/>
+                            <ComboBoxItem Content="Preventive"/>
+                            <ComboBoxItem Content="Corrective"/>
+                            <ComboBoxItem Content="Emergency"/>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+                
+                <DataGrid Grid.Row="1" ItemsSource="{Binding MaintenanceRecords}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Asset #" Binding="{Binding Equipment.AssetNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Equipment" Binding="{Binding Equipment.Description}" Width="*"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="120"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="200"/>
+                        <DataGridTextColumn Header="Performed By" Binding="{Binding PerformedBy}" Width="140"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding PerformedDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="120"/>
+                        <DataGridTextColumn Header="Next Due" Binding="{Binding NextDueDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

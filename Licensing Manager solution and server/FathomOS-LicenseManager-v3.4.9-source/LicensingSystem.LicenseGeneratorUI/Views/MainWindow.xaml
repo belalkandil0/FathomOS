@@ -1,0 +1,1010 @@
+<Window x:Class="LicenseGeneratorUI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Fathom OS — License Manager v3.4.9" 
+        Height="850" Width="1280"
+        MinHeight="700" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D1117">
+    
+    <Window.Resources>
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#0D1117"/>
+        <SolidColorBrush x:Key="SidebarBrush" Color="#010409"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#161B22"/>
+        <SolidColorBrush x:Key="ElevatedBrush" Color="#21262D"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#30363D"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#3FB950"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#D29922"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#F85149"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#6E7681"/>
+        
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+        
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource ElevatedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- ComboBox Item Style for dropdown popup -->
+        <Style x:Key="ModernComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#E6EDF3"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#30363D"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1F6FEB"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style x:Key="ModernComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource ElevatedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ModernComboBoxItem}"/>
+            <Style.Resources>
+                <!-- Style the dropdown popup background -->
+                <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#21262D"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#1F6FEB"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFF"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#E6EDF3"/>
+            </Style.Resources>
+        </Style>
+        
+        <Style x:Key="NavButton" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="8" Padding="14,12" Margin="6,2" Cursor="Hand">
+                            <ContentPresenter HorizontalAlignment="Left"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#21262D"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1F6FEB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#1F6FEB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SuccessButton" TargetType="Button">
+            <Setter Property="Background" Value="#238636"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ElevatedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#DA3633"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Margin="20,24,20,32">
+                    <TextBlock Text="⚓ FATHOM OS" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                    <TextBlock Text="License Manager v3.2" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Row="1" Margin="8,0">
+                    <RadioButton x:Name="NavDashboard" Style="{StaticResource NavButton}" Content="📊  Dashboard" IsChecked="True" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavCreate" Style="{StaticResource NavButton}" Content="✨  Create License" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavManage" Style="{StaticResource NavButton}" Content="📁  Manage Licenses" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavKeys" Style="{StaticResource NavButton}" Content="🔐  Generate Keys" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavModules" Style="{StaticResource NavButton}" Content="📦  Modules &amp; Tiers" Checked="NavButton_Checked"/>
+                    
+                    <!-- Server Admin Section -->
+                    <TextBlock Text="SERVER ADMIN" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="14,20,0,8"/>
+                    <RadioButton x:Name="NavServerAdmin" Style="{StaticResource NavButton}" Content="🖥️  Server Admin" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavAuditLogs" Style="{StaticResource NavButton}" Content="📋  Audit Logs" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavCustomers" Style="{StaticResource NavButton}" Content="👥  Customers" Checked="NavButton_Checked"/>
+                    
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" Content="⚙️  Settings" Checked="NavButton_Checked" Margin="0,12,0,0"/>
+                </StackPanel>
+                
+                <Border Grid.Row="2" Background="{StaticResource CardBrush}" CornerRadius="8" Margin="12,12" Padding="14">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource ErrorBrush}" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="ConnectionStatus" Text="Disconnected" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="ServerUrlDisplay" Text="No server configured" FontSize="10" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Background="{StaticResource BackgroundBrush}">
+            
+            <!-- PAGE: Dashboard -->
+            <Grid x:Name="PageDashboard" Visibility="Visible">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="1000">
+                        <TextBlock Text="Dashboard" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,28"/>
+                        
+                        <Grid Margin="0,0,0,28">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Border Grid.Column="0" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Total Licenses" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="TotalLicenses" Text="0" FontSize="32" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Active" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ActiveLicenses" Text="0" FontSize="32" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="4" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Expiring Soon" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ExpiringSoon" Text="0" FontSize="32" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="6" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Revoked" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="RevokedLicenses" Text="0" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="RECENT LICENSES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" HorizontalAlignment="Right" Click="RefreshLicenses_Click"/>
+                                </Grid>
+                                <StackPanel x:Name="LicenseListPanel">
+                                    <TextBlock Text="No licenses found. Create your first license!" FontSize="13" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Create License -->
+            <Grid x:Name="PageCreate" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="900">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Create License" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Generate a new online or offline license" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- License Type -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="LICENSE TYPE" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Border x:Name="OnlineLicenseOption" Grid.Column="0" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Cursor="Hand" MouseDown="OnlineLicense_Click" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="OnlineLicenseRadio" IsChecked="True" GroupName="LicenseType" Checked="LicenseType_Changed" VerticalAlignment="Center"/>
+                                                <TextBlock Text="🌐 Online License" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Requires internet for activation. Recommended for most users." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="24,8,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <Border x:Name="OfflineLicenseOption" Grid.Column="2" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Cursor="Hand" MouseDown="OfflineLicense_Click" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="OfflineLicenseRadio" GroupName="LicenseType" Checked="LicenseType_Changed" VerticalAlignment="Center"/>
+                                                <TextBlock Text="💾 Offline License" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Works without internet. Requires Hardware ID from customer." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="24,8,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Hardware ID (Offline Only) -->
+                        <Border x:Name="HardwareIdSection" Style="{StaticResource Card}" Margin="0,0,0,16" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Text="⚠️ HARDWARE BINDING (Required for Offline)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource WarningBrush}" Margin="0,0,0,16"/>
+                                <TextBlock Text="Customer can find Hardware ID in: Fathom OS → Help → License Info → Copy Hardware ID" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                                <TextBlock Text="Hardware ID *" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <TextBox x:Name="HardwareIdInput" Style="{StaticResource ModernTextBox}" ToolTip="Paste the Hardware ID from customer"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Customer Information -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="CUSTOMER INFORMATION" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="16"/>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="16"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0" Grid.Row="0">
+                                        <TextBlock Text="Customer Name *" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="CustomerNameInput" Style="{StaticResource ModernTextBox}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Grid.Row="0">
+                                        <TextBlock Text="Customer Email *" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="CustomerEmailInput" Style="{StaticResource ModernTextBox}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="0" Grid.Row="2">
+                                        <TextBlock Text="Brand Name (optional)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="BrandNameInput" Style="{StaticResource ModernTextBox}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Grid.Row="2">
+                                        <TextBlock Text="Licensee Code (2 chars, A-Z/0-9)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="LicenseeCodeInput" Style="{StaticResource ModernTextBox}" MaxLength="2" CharacterCasing="Upper" TextChanged="LicenseeCodeInput_TextChanged"/>
+                                        <TextBlock x:Name="LicenseeCodeStatus" Text="" FontSize="11" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3">
+                                        <TextBlock Text="Support Code (for customer support)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="SupportCodeInput" Style="{StaticResource ModernTextBox}" IsReadOnly="True"/>
+                                            <Button Grid.Column="1" Content="🎲 Generate" Style="{StaticResource SecondaryButton}" Padding="16,12" Margin="8,0,0,0" Click="GenerateSupportCode_Click"/>
+                                        </Grid>
+                                        <TextBlock Text="Format: SUP-XX-XXXXX — Customer provides this when contacting support" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- License Configuration -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="LICENSE CONFIGURATION" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="License Tier" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="TierCombo" Style="{StaticResource ModernComboBox}" SelectionChanged="TierCombo_SelectionChanged">
+                                            <ComboBoxItem Content="Basic" Tag="Basic"/>
+                                            <ComboBoxItem Content="Professional" Tag="Professional" IsSelected="True"/>
+                                            <ComboBoxItem Content="Enterprise" Tag="Enterprise"/>
+                                            <ComboBoxItem Content="Custom" Tag="Custom"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Subscription" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="SubscriptionCombo" Style="{StaticResource ModernComboBox}">
+                                            <ComboBoxItem Content="Monthly"/>
+                                            <ComboBoxItem Content="Yearly" IsSelected="True"/>
+                                            <ComboBoxItem Content="Lifetime"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Duration (months)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="DurationInput" Text="12" Style="{StaticResource ModernTextBox}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Module Selection -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="LICENSED MODULES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="ModuleSelectionHint" Text="Modules auto-selected based on tier" FontSize="10" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Select All" Style="{StaticResource SecondaryButton}" Padding="12,6" FontSize="11" Click="SelectAllModules_Click" Margin="0,0,8,0"/>
+                                        <Button Content="Clear" Style="{StaticResource SecondaryButton}" Padding="12,6" FontSize="11" Click="ClearModules_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" MaxHeight="200">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <StackPanel x:Name="ModuleCheckboxPanel">
+                                            <TextBlock Text="Loading modules..." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Border>
+                                <StackPanel Margin="0,12,0,0">
+                                    <TextBlock Text="Generated Features:" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="FeaturesOutput" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11" Background="{StaticResource CardBrush}" Foreground="{StaticResource TextSecondaryBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="10" Height="50" Text="Tier:Professional"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Action Buttons -->
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="12"/><ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="1" Content="📄 Create &amp; Export PDF" Style="{StaticResource SuccessButton}" Padding="24,14" Click="CreateLicenseWithPdf_Click"/>
+                            <Button Grid.Column="3" Content="Create License" Style="{StaticResource PrimaryButton}" Padding="24,14" Click="CreateLicense_Click"/>
+                        </Grid>
+                        
+                        <!-- Result Preview -->
+                        <Border x:Name="ResultPreview" Style="{StaticResource Card}" Margin="0,24,0,0" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Text="LICENSE CREATED SUCCESSFULLY" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" Margin="0,0,0,12"/>
+                                <TextBox x:Name="ResultTextBox" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12" Background="{StaticResource ElevatedBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderThickness="0" Padding="16" MinHeight="200"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Right">
+                                    <Button x:Name="SaveLicenseFileButton" Content="💾 Save .lic File" Style="{StaticResource PrimaryButton}" Padding="16,10" Margin="0,0,8,0" Click="SaveLicenseFile_Click" Visibility="Collapsed"/>
+                                    <Button Content="📋 Copy to Clipboard" Style="{StaticResource SecondaryButton}" Padding="16,10" Click="CopyResult_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Manage Licenses -->
+            <Grid x:Name="PageManage" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="900">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Manage Licenses" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Load and manage offline license files" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="LOAD LICENSE FILE" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Button Content="📁  Open License File (.lic)" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Click="OpenLicenseFile_Click"/>
+                                <Border x:Name="LoadedLicenseInfo" Visibility="Collapsed" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                                    <TextBox x:Name="LoadedLicenseText" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11" Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" BorderThickness="0"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Generate Keys -->
+            <Grid x:Name="PageKeys" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="900">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Generate Keys" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Generate ECDSA cryptographic keys for license signing" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="ECDSA KEY PAIR" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <TextBlock Text="⚠️ Private Key must be kept secure. Public Key goes in Fathom OS." FontSize="12" Foreground="{StaticResource WarningBrush}" Margin="0,0,0,16"/>
+                                
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="🔐 Generate New Keys" Style="{StaticResource PrimaryButton}" Click="GenerateKeys_Click"/>
+                                    <Button Content="📂 Load Existing" Style="{StaticResource SecondaryButton}" Margin="12,0,0,0" Click="LoadKeys_Click"/>
+                                </StackPanel>
+                                
+                                <StackPanel x:Name="KeysPanel" Visibility="Collapsed" Margin="0,24,0,0">
+                                    <TextBlock Text="🔴 Private Key (KEEP SECRET!)" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource ErrorBrush}" Margin="0,0,0,8"/>
+                                    <Border Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="4">
+                                        <Grid>
+                                            <TextBox x:Name="PrivateKeyBox" IsReadOnly="True" FontFamily="Consolas" FontSize="10" Height="100" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" BorderThickness="0" Padding="12"/>
+                                            <Button Content="📋" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Click="CopyPrivateKey_Click"/>
+                                        </Grid>
+                                    </Border>
+                                    
+                                    <TextBlock Text="🟢 Public Key (embed in Fathom OS)" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" Margin="0,20,0,8"/>
+                                    <Border Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="4">
+                                        <Grid>
+                                            <TextBox x:Name="PublicKeyBox" IsReadOnly="True" FontFamily="Consolas" FontSize="10" Height="100" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" BorderThickness="0" Padding="12"/>
+                                            <Button Content="📋" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Click="CopyPublicKey_Click"/>
+                                        </Grid>
+                                    </Border>
+                                    
+                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                        <Button Content="💾 Save Private Key" Style="{StaticResource SecondaryButton}" Padding="16,10" Click="SavePrivateKey_Click"/>
+                                        <Button Content="💾 Save Public Key" Style="{StaticResource SecondaryButton}" Padding="16,10" Margin="12,0,0,0" Click="SavePublicKey_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Modules & Tiers -->
+            <Grid x:Name="PageModules" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="1000">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Modules &amp; Tiers" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Manage available modules and license tiers" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="MODULES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="RefreshModules_Click" Margin="0,0,8,0"/>
+                                        <Button Content="➕ Add Module" Style="{StaticResource PrimaryButton}" Padding="16,8" Click="AddModule_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel x:Name="ModulesListPanel">
+                                    <TextBlock Text="Loading modules..." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="LICENSE TIERS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" HorizontalAlignment="Right" Click="RefreshTiers_Click"/>
+                                </Grid>
+                                <StackPanel x:Name="TiersListPanel">
+                                    <TextBlock Text="Loading tiers..." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Server Admin -->
+            <Grid x:Name="PageServerAdmin" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="1000">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Server Administration" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Health monitoring, backups, and session management" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Health Status -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="🏥 SERVER HEALTH" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button x:Name="RefreshHealthBtn" Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" HorizontalAlignment="Right" Click="RefreshHealth_Click"/>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Status" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock x:Name="HealthStatus" Text="Unknown" FontSize="18" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Margin="4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Uptime" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock x:Name="ServerUptime" Text="--" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Margin="4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Memory" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock x:Name="ServerMemory" Text="-- MB" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="3" Background="{StaticResource ElevatedBrush}" CornerRadius="8" Padding="16" Margin="8,0,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="DB Size" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock x:Name="DatabaseSize" Text="-- MB" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Backup/Restore -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="💾 BACKUP &amp; RESTORE" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <TextBlock x:Name="LastBackupInfo" Text="Last backup: Never" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="CreateBackupBtn" Content="📥 Create Backup" Style="{StaticResource SuccessButton}" Padding="16,10" Click="CreateBackup_Click"/>
+                                    <Button x:Name="RestoreBackupBtn" Content="📤 Restore Backup" Style="{StaticResource SecondaryButton}" Padding="16,10" Margin="12,0,0,0" Click="RestoreBackup_Click"/>
+                                    <Button x:Name="DownloadBackupBtn" Content="⬇️ Download Latest" Style="{StaticResource SecondaryButton}" Padding="16,10" Margin="12,0,0,0" Click="DownloadBackup_Click"/>
+                                </StackPanel>
+                                <TextBlock x:Name="BackupStatus" Text="" FontSize="11" Foreground="{StaticResource SuccessBrush}" Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Active Sessions -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="👥 ACTIVE SESSIONS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="RefreshSessions_Click"/>
+                                        <Button x:Name="TerminateAllBtn" Content="⛔ Terminate All" Style="{StaticResource DangerButton}" Padding="12,8" Margin="8,0,0,0" Click="TerminateAllSessions_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock x:Name="ActiveSessionCount" Text="0 active sessions" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                                <StackPanel x:Name="SessionsListPanel">
+                                    <TextBlock Text="No active sessions" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Blocked IPs -->
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="🚫 BLOCKED IPs" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" HorizontalAlignment="Right" Click="RefreshBlockedIps_Click"/>
+                                </Grid>
+                                <StackPanel x:Name="BlockedIpsPanel">
+                                    <TextBlock Text="No blocked IPs" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <TextBox x:Name="BlockIpInput" Style="{StaticResource ModernTextBox}" Width="200" ToolTip="Enter IP address to block"/>
+                                    <Button Content="➕ Block IP" Style="{StaticResource SecondaryButton}" Padding="12,10" Margin="8,0,0,0" Click="BlockIp_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Audit Logs -->
+            <Grid x:Name="PageAuditLogs" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="1000">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Audit Logs" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Track all license operations and security events" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Filters -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🔍 FILTERS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="Event Type" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <ComboBox x:Name="AuditEventTypeFilter" Style="{StaticResource ModernComboBox}">
+                                            <ComboBoxItem Content="All Events" IsSelected="True"/>
+                                            <ComboBoxItem Content="Activation"/>
+                                            <ComboBoxItem Content="Validation"/>
+                                            <ComboBoxItem Content="Revocation"/>
+                                            <ComboBoxItem Content="Transfer"/>
+                                            <ComboBoxItem Content="Session"/>
+                                            <ComboBoxItem Content="Security"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="4,0">
+                                        <TextBlock Text="License ID" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBox x:Name="AuditLicenseFilter" Style="{StaticResource ModernTextBox}" ToolTip="Filter by license ID"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="4,0">
+                                        <TextBlock Text="IP Address" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBox x:Name="AuditIpFilter" Style="{StaticResource ModernTextBox}" ToolTip="Filter by IP address"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="3" Content="🔍 Search" Style="{StaticResource PrimaryButton}" Padding="16,10" Margin="8,18,0,0" VerticalAlignment="Bottom" Click="SearchAuditLogs_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Audit Log List -->
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="📋 RECENT EVENTS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="RefreshAuditLogs_Click"/>
+                                        <Button Content="📥 Export CSV" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="ExportAuditLogs_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel x:Name="AuditLogsPanel">
+                                    <TextBlock Text="Loading audit logs..." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Customers -->
+            <Grid x:Name="PageCustomers" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="1000">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Customer Management" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="View and manage customer licenses" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Search -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🔍 SEARCH CUSTOMERS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="Email" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBox x:Name="CustomerEmailFilter" Style="{StaticResource ModernTextBox}" ToolTip="Search by email"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="4,0">
+                                        <TextBlock Text="Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBox x:Name="CustomerNameFilter" Style="{StaticResource ModernTextBox}" ToolTip="Search by name"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="🔍 Search" Style="{StaticResource PrimaryButton}" Padding="16,10" Margin="8,18,0,0" VerticalAlignment="Bottom" Click="SearchCustomers_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Customer Stats -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Total Customers" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="TotalCustomers" Text="0" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource Card}" Margin="4,0">
+                                <StackPanel>
+                                    <TextBlock Text="Active Subscriptions" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ActiveSubscriptions" Text="0" FontSize="28" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Card}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Expiring Soon" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ExpiringSubscriptions" Text="0" FontSize="28" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        
+                        <!-- Customer List -->
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <TextBlock Text="👥 CUSTOMERS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button Content="🔄 Refresh" Style="{StaticResource SecondaryButton}" Padding="12,8" HorizontalAlignment="Right" Click="RefreshCustomers_Click"/>
+                                </Grid>
+                                <StackPanel x:Name="CustomersListPanel">
+                                    <TextBlock Text="Loading customers..." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- PAGE: Settings -->
+            <Grid x:Name="PageSettings" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                    <StackPanel MaxWidth="800">
+                        <StackPanel Margin="0,0,0,28">
+                            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Configure server connection and application preferences" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Server Connection -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <TextBlock Text="🔌" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="SERVER CONNECTION" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <TextBlock Text="Server URL" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <TextBox x:Name="ServerUrlInput" Text="https://your-server.com" Style="{StaticResource ModernTextBox}"/>
+                                <TextBlock Text="Enter the full URL of your FathomOS License Server" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                
+                                <Grid Margin="0,16,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Orientation="Horizontal" Grid.Column="0">
+                                        <Button Content="💾 Save Settings" Style="{StaticResource PrimaryButton}" Click="SaveSettings_Click"/>
+                                        <Button Content="🔌 Test Connection" Style="{StaticResource SecondaryButton}" Margin="12,0,0,0" Click="TestConnection_Click"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                                        <Ellipse x:Name="SettingsConnectionDot" Width="8" Height="8" Fill="#F85149" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="SettingsConnectionStatus" Text="Not Connected" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Server Info (when connected) -->
+                        <Border x:Name="ServerInfoCard" Style="{StaticResource Card}" Margin="0,0,0,16" Visibility="Collapsed">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="SERVER INFORMATION" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
+                                        <TextBlock Text="Server Version" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="ServerVersionText" Text="-" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,12">
+                                        <TextBlock Text="Server Status" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="ServerStatusText" Text="-" FontSize="14" FontWeight="Medium" Foreground="{StaticResource SuccessBrush}"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,12">
+                                        <TextBlock Text="Total Licenses" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="ServerLicenseCountText" Text="-" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
+                                        <TextBlock Text="Active Activations" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="ServerActivationCountText" Text="-" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="🌐 Open Portal" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="OpenPortal_Click"/>
+                                    <Button Content="📊 Open Swagger" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="OpenSwagger_Click"/>
+                                    <Button Content="🔄 Refresh Info" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="RefreshServerInfo_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Key Storage -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <TextBlock Text="🔐" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="CRYPTOGRAPHIC KEYS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <TextBlock x:Name="KeyStorageLocation" Text="Keys stored in: (not configured)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                <TextBlock Text="These keys are used to sign and verify offline licenses" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                    <Button Content="📤 Export Private Key" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="ExportPrivateKey_Click"/>
+                                    <Button Content="📤 Export Public Key" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="ExportPublicKey_Click"/>
+                                    <Button Content="🔄 Regenerate Keys" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="RegenerateKeys_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Default License Settings -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <TextBlock Text="📋" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="DEFAULT LICENSE SETTINGS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Default Edition" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="DefaultEditionCombo" Style="{StaticResource ModernComboBox}">
+                                            <ComboBoxItem Content="Starter" IsSelected="False"/>
+                                            <ComboBoxItem Content="Professional" IsSelected="True"/>
+                                            <ComboBoxItem Content="Enterprise" IsSelected="False"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Default Duration" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="DefaultDurationCombo" Style="{StaticResource ModernComboBox}">
+                                            <ComboBoxItem Content="30 Days (Trial)" IsSelected="False"/>
+                                            <ComboBoxItem Content="1 Year" IsSelected="True"/>
+                                            <ComboBoxItem Content="2 Years" IsSelected="False"/>
+                                            <ComboBoxItem Content="Perpetual" IsSelected="False"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <StackPanel Margin="0,16,0,0">
+                                    <TextBlock Text="Default Brand Name (optional)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="DefaultBrandInput" Style="{StaticResource ModernTextBox}" Text=""/>
+                                    <TextBlock Text="Leave empty to use 'FathomOS' as default" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                
+                                <Button Content="💾 Save Defaults" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="0,16,0,0" HorizontalAlignment="Left" Click="SaveDefaults_Click"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- About -->
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="ABOUT" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <TextBlock Text="FathomOS License Manager" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Version 3.4.9" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                                <TextBlock Text="© 2025 S7 Solutions. All rights reserved." FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,8,0,0"/>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                    <Button Content="📖 Documentation" Style="{StaticResource SecondaryButton}" Padding="12,8" Click="OpenDocs_Click"/>
+                                    <Button Content="🐛 Report Issue" Style="{StaticResource SecondaryButton}" Padding="12,8" Margin="8,0,0,0" Click="ReportIssue_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

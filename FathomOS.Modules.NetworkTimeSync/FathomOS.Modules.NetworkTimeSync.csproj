@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.NetworkTimeSync</RootNamespace>
+    <AssemblyName>FathomOS.Modules.NetworkTimeSync</AssemblyName>
+    <Version>2.0.0</Version>
+    <Authors>S7 Solutions</Authors>
+    <Description>Network Time Synchronization module for Fathom OS - discover, monitor, and sync time across network computers</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <!-- For JSON configuration -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <!-- For GPS serial communication -->
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Module metadata and assets -->
+  <ItemGroup>
+    <Content Include="ModuleInfo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\icon.png" Condition="Exists('Assets\icon.png')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <!-- Theme resources -->
+  <ItemGroup>
+    <Resource Include="Themes\ModuleResources.xaml" />
+    <Resource Include="Themes\DarkTheme.xaml" />
+    <Resource Include="Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+  <!-- Auto-deploy to Shell's Modules folder after build -->
+  <Target Name="DeployToModulesFolder" AfterTargets="Build">
+    <PropertyGroup>
+      <ModulesDir>$(SolutionDir)FathomOS.Shell\bin\$(Configuration)\$(TargetFramework)\Modules\NetworkTimeSync\</ModulesDir>
+    </PropertyGroup>
+    
+    <MakeDir Directories="$(ModulesDir)" />
+    
+    <ItemGroup>
+      <FilesToCopy Include="$(TargetDir)*.dll" Exclude="$(TargetDir)FathomOS.Core.dll" />
+      <FilesToCopy Include="$(TargetDir)*.pdb" />
+      <FilesToCopy Include="$(TargetDir)ModuleInfo.json" />
+      <FilesToCopy Include="$(TargetDir)*.png" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ModulesDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

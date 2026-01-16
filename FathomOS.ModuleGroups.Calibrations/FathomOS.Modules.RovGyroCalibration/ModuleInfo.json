@@ -1,0 +1,41 @@
+{
+    "moduleId": "RovGyroCalibration",
+    "displayName": "ROV Gyro Calibration",
+    "description": "ROV Gyro Calibration and Verification by Inter-System Comparison. Implements the Fathom OS Process with automated C-O calculation, outlier detection, and comprehensive reporting for ROV operations.",
+    "version": "1.0.0",
+    "author": "Fathom OS",
+    "category": "Calibrations",
+    "displayOrder": 20,
+    "icon": "icon.png",
+    "supportedFileTypes": [".npd", ".csv", ".txt"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "documentReference": "GLSIFR0034",
+    
+    "certificateCode": "RG",
+    "certificateTitle": "ROV Gyro Compass Calibration Certificate",
+    "certificateStatement": "This is to certify that the ROV gyro compass calibration has been successfully completed in accordance with Subsea7 procedure GLSIFR0034 and industry standards.",
+    
+    "features": [
+        "7-Step Wizard Process",
+        "NPD File Parsing",
+        "ROV Fwd/Aft Measurement Support",
+        "Automatic C-O Calculation",
+        "3-Sigma Outlier Detection",
+        "Interactive Charts",
+        "QC Dashboard",
+        "PDF Report Generation",
+        "Excel Data Export",
+        "Professional Certificate Generation"
+    ],
+    "keywords": [
+        "gyro",
+        "compass",
+        "calibration",
+        "verification",
+        "heading",
+        "C-O",
+        "ROV",
+        "certificate"
+    ]
+}

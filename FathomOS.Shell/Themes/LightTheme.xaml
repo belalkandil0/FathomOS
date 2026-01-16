@@ -1,0 +1,56 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Light Theme Colors - Modern Catppuccin Latte Inspired -->
+    
+    <!-- Window Chrome -->
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#DCE0E8"/>
+    <SolidColorBrush x:Key="TitleTextBrush" Color="#4C4F69"/>
+    <SolidColorBrush x:Key="WindowBorderBrush" Color="#BCC0CC"/>
+    
+    <!-- Background Colors -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#EFF1F5"/>
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#E6E9EF"/>
+    <SolidColorBrush x:Key="FooterBackgroundBrush" Color="#DCE0E8"/>
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#E6E9EF"/>
+    
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TextBrush" Color="#4C4F69"/>
+    <SolidColorBrush x:Key="HeaderTextBrush" Color="#1E1E2E"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#6C6F85"/>
+    <SolidColorBrush x:Key="SectionHeaderBrush" Color="#1E66F5"/>
+    
+    <!-- Accent Colors -->
+    <Color x:Key="AccentColor">#1E66F5</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#1E66F5"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#2A75FF"/>
+    
+    <!-- Button Colors -->
+    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#DCE0E8"/>
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="#BCC0CC"/>
+    
+    <!-- Tile Colors -->
+    <SolidColorBrush x:Key="TileBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TileBorderBrush" Color="#CCD0DA"/>
+    <SolidColorBrush x:Key="TileHoverBrush" Color="#F2F4F8"/>
+    <SolidColorBrush x:Key="TilePressedBrush" Color="#E6E9EF"/>
+    
+    <!-- List/Item Colors -->
+    <SolidColorBrush x:Key="ListItemBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ListItemHoverBrush" Color="#F2F4F8"/>
+    
+    <!-- Border/Separator -->
+    <SolidColorBrush x:Key="BorderBrush" Color="#CCD0DA"/>
+    <SolidColorBrush x:Key="SeparatorBrush" Color="#DCE0E8"/>
+    
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#40A02B"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#DF8E1D"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="#D20F39"/>
+    
+    <!-- ScrollBar Styling -->
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#BCC0CC"/>
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="#EFF1F5"/>
+    
+</ResourceDictionary>

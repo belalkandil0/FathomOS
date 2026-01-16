@@ -1,0 +1,97 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.BatchActionsToolbar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    
+    <Border Background="{DynamicResource AccentBrush}" CornerRadius="8" Padding="15,10">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Selection Info -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <CheckBox x:Name="SelectAllCheck" Foreground="White" Margin="0,0,15,0"
+                          IsChecked="{Binding SelectAll, Mode=TwoWay}"
+                          ToolTip="Select All"/>
+                <TextBlock x:Name="SelectionText" Text="{Binding SelectionSummary}" 
+                           Foreground="White" FontWeight="SemiBold" FontSize="14"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+            
+            <!-- Actions -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="20,0,0,0">
+                <!-- Status Dropdown -->
+                <mah:DropDownButton Content="Status" Foreground="White" 
+                                    Background="Transparent" BorderThickness="0"
+                                    Margin="0,0,5,0" ToolTip="Change Status">
+                    <mah:DropDownButton.Icon>
+                        <iconPacks:PackIconMaterial Kind="TagOutline" Width="16" Height="16" Foreground="White"/>
+                    </mah:DropDownButton.Icon>
+                    <mah:DropDownButton.Items>
+                        <MenuItem Header="Available" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="Available"/>
+                        <MenuItem Header="In Use" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="InUse"/>
+                        <MenuItem Header="In Transit" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="InTransit"/>
+                        <MenuItem Header="In Storage" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="InStorage"/>
+                        <MenuItem Header="Under Repair" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="UnderRepair"/>
+                        <Separator/>
+                        <MenuItem Header="Retired" Command="{Binding BatchUpdateStatusCommand}" CommandParameter="Retired"/>
+                    </mah:DropDownButton.Items>
+                </mah:DropDownButton>
+                
+                <!-- Move Button -->
+                <Button Style="{DynamicResource SecondaryButton}" Background="Transparent" 
+                        BorderThickness="0" Foreground="White" Margin="5,0"
+                        Command="{Binding BatchUpdateLocationCommand}" ToolTip="Move to Location">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="MapMarkerOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                        <TextBlock Text="Move"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Labels Button -->
+                <mah:DropDownButton Content="Labels" Foreground="White" 
+                                    Background="Transparent" BorderThickness="0"
+                                    Margin="5,0" ToolTip="Print/Export Labels">
+                    <mah:DropDownButton.Icon>
+                        <iconPacks:PackIconMaterial Kind="QrcodeScan" Width="16" Height="16" Foreground="White"/>
+                    </mah:DropDownButton.Icon>
+                    <mah:DropDownButton.Items>
+                        <MenuItem Header="Print Labels" Command="{Binding BatchPrintLabelsCommand}">
+                            <MenuItem.Icon>
+                                <iconPacks:PackIconMaterial Kind="Printer"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Export to PDF" Command="{Binding BatchExportLabelsCommand}">
+                            <MenuItem.Icon>
+                                <iconPacks:PackIconMaterial Kind="FilePdfBox"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </mah:DropDownButton.Items>
+                </mah:DropDownButton>
+                
+                <!-- Delete Button -->
+                <Button Style="{DynamicResource SecondaryButton}" Background="Transparent" 
+                        BorderThickness="0" Foreground="White" Margin="5,0"
+                        Command="{Binding BatchDeleteCommand}" ToolTip="Delete Selected">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="DeleteOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                        <TextBlock Text="Delete"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            
+            <!-- Close Selection Mode -->
+            <Button Grid.Column="3" Style="{DynamicResource SecondaryButton}" 
+                    Background="Transparent" BorderThickness="0"
+                    Command="{Binding ToggleSelectionModeCommand}" ToolTip="Exit Selection Mode"
+                    Padding="10,5">
+                <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16" Foreground="White"/>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

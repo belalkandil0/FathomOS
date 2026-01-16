@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.SoundVelocity</RootNamespace>
+    <AssemblyName>FathomOS.Modules.SoundVelocity</AssemblyName>
+    <Version>1.2.0</Version>
+    <Authors>S7 Solutions</Authors>
+    <Description>CTD/Sound Velocity Profile Processing Module - Process CTD cast data, calculate sound velocity using Chen-Millero or Del Grosso formulas, and export to industry formats (USR, VEL, PRO)</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      REQUIRED: Reference Core - this gives you access to:
+      - MahApps.Metro (UI framework)
+      - OxyPlot (charting)
+      - ClosedXML (Excel export)
+      - QuestPDF (PDF export)
+      - netDxf (DXF export)
+      - All Core parsers, models, services
+    -->
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- No additional packages needed - everything comes from Core! -->
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ModuleInfo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

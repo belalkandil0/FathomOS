@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "Company": {
+    "Name": "S7 Survey Solutions",
+    "LogoFileName": "company_logo.png",
+    "Address": "",
+    "Phone": "",
+    "Email": "",
+    "Website": ""
+  },
+  "Header": {
+    "ShowLogo": true,
+    "LogoPosition": "Left",
+    "LogoWidth": 80,
+    "LogoHeight": 40,
+    "Title": "SURVEY LISTING REPORT",
+    "ShowCompanyName": true,
+    "ShowProjectInfo": true,
+    "ShowBorder": true
+  },
+  "Footer": {
+    "LeftText": "{ProjectName} | {ClientName}",
+    "CenterText": "Page {PageNumber} of {TotalPages}",
+    "RightText": "Generated: {GeneratedDate}",
+    "ShowBorder": true
+  },
+  "Colors": {
+    "PrimaryColor": "#1E3A5F",
+    "SecondaryColor": "#4A90D9",
+    "AccentColor": "#FF6B35",
+    "HeaderBackground": "#1E3A5F",
+    "HeaderText": "#FFFFFF",
+    "TableHeaderBackground": "#4A90D9",
+    "TableHeaderText": "#FFFFFF",
+    "TableAlternateRow": "#F0F7FF"
+  }
+}

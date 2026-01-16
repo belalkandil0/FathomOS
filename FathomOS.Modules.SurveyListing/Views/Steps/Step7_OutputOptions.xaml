@@ -1,0 +1,240 @@
+<UserControl x:Class="FathomOS.Modules.SurveyListing.Views.Steps.Step7_OutputOptions"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:FathomOS.Modules.SurveyListing.Converters"
+             >
+    
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Output Options" FontSize="24" FontWeight="Light"/>
+                <TextBlock Text="Select output formats and destination folder." 
+                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Output Folder -->
+            <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" 
+                    CornerRadius="4" Padding="20" Margin="0,0,0,15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Output Folder" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding OutputFolder, TargetNullValue='No folder selected'}" 
+                                   Margin="0,5,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Browse..." Click="BrowseFolder_Click" Width="80" Margin="0,0,5,0"/>
+                        <Button Content="Open" Click="OpenFolder_Click" Width="60"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Output Format Options -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <!-- Text File -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="Text File" IsChecked="{Binding ExportTextFile}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding ExportTextFile}" Margin="20,0,0,0">
+                                <TextBlock Text="Format" FontSize="12" Margin="0,0,0,3"/>
+                                <ComboBox ItemsSource="{Binding TextFormats}" 
+                                          SelectedItem="{Binding SelectedTextFormat}" Margin="0,0,0,8"/>
+                                <CheckBox Content="Include header row" IsChecked="{Binding TextIncludeHeader}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Excel -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="Excel Workbook (.xlsx)" IsChecked="{Binding ExportExcel}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding ExportExcel}" Margin="20,0,0,0">
+                                <CheckBox Content="Include Raw Data sheet" IsChecked="{Binding ExcelIncludeRawData}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Include Calculations sheet" IsChecked="{Binding ExcelIncludeCalculations}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Apply formatting &amp; formulas" IsChecked="{Binding ExcelApplyFormatting}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- PDF -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="PDF Report" IsChecked="{Binding ExportPdfReport}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding ExportPdfReport}" Margin="20,0,0,0">
+                                <CheckBox Content="Include Depth Profile Chart" IsChecked="{Binding PdfIncludeDepthChart}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Include Full Data Table (all points)" IsChecked="{Binding PdfIncludeFullData}" 
+                                          ToolTip="Warning: Can generate many pages for large datasets"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Additional Exports -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="Additional Exports" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <CheckBox Content="Smoothed Comparison CSV" IsChecked="{Binding ExportSmoothedComparison}" 
+                                      ToolTip="Export Original vs Smoothed position comparison" Margin="0,0,0,5"/>
+                            <CheckBox Content="Interval Points CSV" IsChecked="{Binding ExportIntervalPointsCsv}" 
+                                      ToolTip="Export interval measure points to separate CSV"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                    <!-- DXF -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="DXF Drawing" IsChecked="{Binding ExportDxf}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding ExportDxf}" Margin="20,0,0,0">
+                                <TextBlock Text="KP Label Interval (km)" FontSize="12" Margin="0,0,0,3"/>
+                                <TextBox Text="{Binding KpLabelInterval}"   
+                                                    />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- CAD Script -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="CAD Script (.scr)" IsChecked="{Binding ExportCadScript}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding ExportCadScript}" Margin="20,0,0,0">
+                                <TextBlock Text="DWG Template (optional)" FontSize="12" Margin="0,0,0,3"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding DwgTemplateFileName}" VerticalAlignment="Center" 
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Button Grid.Column="1" Content="..." Width="30" Click="BrowseTemplate_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 3D Polyline DXF -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox Content="3D Polyline DXF" IsChecked="{Binding Export3DPolyline}" 
+                                      FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <StackPanel IsEnabled="{Binding Export3DPolyline}" Margin="20,0,0,0">
+                                <TextBlock Text="Depth Exaggeration Factor" FontSize="12" Margin="0,0,0,3"/>
+                                <TextBox Text="{Binding DepthExaggeration}"   
+                                                    />
+                                <TextBlock Text="Z = Depth × -1 × Exaggeration" FontSize="10" FontStyle="Italic"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Raw Data Export -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15">
+                        <CheckBox Content="Raw Data CSV" IsChecked="{Binding ExportRawData}" 
+                                  FontWeight="SemiBold" ToolTip="Export original parsed data before processing"/>
+                    </Border>
+                    
+                    <!-- Processing Certificate -->
+                    <Border BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                            BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,10,0,0"
+                            Background="#1A0078D4">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding GenerateCertificate}" FontWeight="SemiBold">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏆" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Generate Processing Certificate"/>
+                                </StackPanel>
+                            </CheckBox>
+                            <TextBlock Text="Requires supervisor approval. Creates a digitally signed certificate verifying the processing was completed correctly."
+                                       TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" 
+                                       Margin="25,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Generated Files / Export Button -->
+            <Border Grid.Row="3" BorderBrush="{DynamicResource PanelBackgroundBrush}" 
+                    BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,15,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Generated Files" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding GeneratedFiles}" MinHeight="100">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📊" Foreground="Green" 
+                                                                 Visibility="{Binding IsSuccess, Converter={StaticResource BoolToVisibility}}"
+                                                                 Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FileName}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}" 
+                                               Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Grid Grid.Row="2" Margin="0,15,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+
+                        <Button Grid.Column="1" Content="Export Files" Width="120" Height="35"
+                                Style="{DynamicResource AccentButtonStyle}"
+                                Click="Export_Click" IsEnabled="{Binding CanExport}"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

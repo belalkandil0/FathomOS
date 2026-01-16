@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.MruCalibration</RootNamespace>
+    <AssemblyName>FathomOS.Modules.MruCalibration</AssemblyName>
+    <Version>3.0.0</Version>
+    <Authors>Fathom OS Team</Authors>
+    <Company>Fathom OS</Company>
+    <Description>MRU Calibration and Verification Module - Inter-System Comparison for Pitch and Roll sensors with Certificate Generation</Description>
+    <Copyright>Copyright © 2024 Fathom OS</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      REQUIRED: Reference Core
+      Path is ..\..\FathomOS.Core when inside a ModuleGroups folder
+      Path is ..\FathomOS.Core when at solution root
+      
+      This gives you access to:
+      - MahApps.Metro (UI framework)
+      - OxyPlot (charting)
+      - ClosedXML (Excel export)
+      - QuestPDF (PDF export)
+      - MathNet.Numerics (statistics)
+      - All Core parsers, models, services
+    -->
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <!-- 
+    NOTE: Do NOT add explicit Page includes for .xaml files.
+    The SDK automatically includes them when UseWPF=true.
+    Adding them causes NETSDK1022 duplicate items error.
+  -->
+
+</Project>

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FathomOS.Modules.TreeInclination</RootNamespace>
+    <AssemblyName>FathomOS.Modules.TreeInclination</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Structure Inclination Calculator - Calculate inclination of subsea structures using DigiQuartz sensor data</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference Core - provides MahApps, OxyPlot, ClosedXML, QuestPDF, netDxf, MathNet -->
+    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <!-- HelixToolkit.Wpf for 3D visualization (standalone WPF version, not SharpDX) -->
+  <ItemGroup>
+    <PackageReference Include="HelixToolkit.Wpf" Version="2.24.0" />
+  </ItemGroup>
+
+  <!-- Module assets -->
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" Condition="Exists('Assets\icon.png')" />
+  </ItemGroup>
+
+  <!-- Content files -->
+  <ItemGroup>
+    <None Update="ModuleInfo.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

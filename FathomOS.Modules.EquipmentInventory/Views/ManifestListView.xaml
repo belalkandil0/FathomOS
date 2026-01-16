@@ -1,0 +1,73 @@
+<UserControl x:Class="FathomOS.Modules.EquipmentInventory.Views.ManifestListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters">
+    
+    <UserControl.Resources>
+        <converters:ManifestStatusToColorConverter x:Key="ManifestStatusToColor"/>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel>
+                <TextBlock Text="Manifests" Style="{DynamicResource HeadingLarge}" Margin="0,0,0,5"/>
+                <TextBlock Text="Track equipment transfers between locations" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="14"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Style="{DynamicResource SecondaryButton}" Margin="0,0,10,0"
+                        Command="{Binding NewInwardManifestCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="TruckCheck" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Inward"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{DynamicResource PrimaryButton}" Command="{Binding NewOutwardManifestCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="TruckDelivery" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Outward"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Manifest List -->
+        <Border Grid.Row="1" Style="{DynamicResource CardBorder}" Padding="0">
+            <DataGrid ItemsSource="{Binding Manifests}" SelectedItem="{Binding SelectedManifest}"
+                      AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Manifest #" Binding="{Binding ManifestNumber}" Width="140"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100"/>
+                    <DataGridTemplateColumn Header="Status" Width="130">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Status, Converter={StaticResource ManifestStatusToColor}}" 
+                                        CornerRadius="4" Padding="10,5" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding StatusDisplay}" Foreground="White" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="From" Binding="{Binding FromLocation.Name}" Width="*"/>
+                    <DataGridTextColumn Header="To" Binding="{Binding ToLocation.Name}" Width="*"/>
+                    <DataGridTextColumn Header="Items" Binding="{Binding TotalItems}" Width="80"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,129 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.SurveyListing.Views.Viewer3DWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="3D Survey Viewer" Height="750" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        TitleCharacterCasing="Normal"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+        BorderThickness="1"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        KeyDown="Window_KeyDown">
+    
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </mah:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="{DynamicResource MahApps.Brushes.Gray10}" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- View Controls -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="Top" Click="ViewTop_Click" Width="50" Margin="0,0,5,0" ToolTip="Top View (Plan)"/>
+                    <Button Content="Front" Click="ViewFront_Click" Width="50" Margin="0,0,5,0" ToolTip="Front View"/>
+                    <Button Content="Side" Click="ViewSide_Click" Width="50" Margin="0,0,5,0" ToolTip="Side View"/>
+                    <Button Content="3D" Click="View3D_Click" Width="50" Margin="0,0,5,0" ToolTip="3D Perspective View"/>
+                    <Button Content="Fit" Click="ViewFit_Click" Width="50" Margin="0,0,20,0" ToolTip="Zoom to Fit All"/>
+                </StackPanel>
+                
+                <!-- Depth Exaggeration -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="Depth Exaggeration:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="White"/>
+                    <Slider x:Name="ExaggerationSlider" Width="150" Minimum="1" Maximum="50" Value="10"
+                            ValueChanged="ExaggerationSlider_ValueChanged" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ElementName=ExaggerationSlider, Path=Value, StringFormat='{}{0:F0}x'}" 
+                               VerticalAlignment="Center" Margin="10,0,0,0" Width="40" Foreground="White"/>
+                </StackPanel>
+                
+                <!-- Layer Controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <CheckBox Content="Route" x:Name="ShowRoute" IsChecked="True" 
+                              Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
+                              VerticalAlignment="Center" Margin="0,0,15,0" Foreground="White"/>
+                    <CheckBox Content="Survey 2D" x:Name="ShowSurvey" IsChecked="True"
+                              Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
+                              VerticalAlignment="Center" Margin="0,0,15,0" Foreground="White"/>
+                    <CheckBox Content="Seabed 3D" x:Name="ShowSeabed" IsChecked="True"
+                              Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
+                              VerticalAlignment="Center" Margin="0,0,15,0" Foreground="White"/>
+                    <CheckBox Content="Grid" x:Name="ShowGrid" IsChecked="True"
+                              Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
+                              VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- 3D Viewport using HelixToolkit.SharpDX -->
+        <hx:Viewport3DX x:Name="Viewport" Grid.Row="1"
+                        BackgroundColor="#FF1E1E1E"
+                        ShowCoordinateSystem="True"
+                        CoordinateSystemLabelForeground="White"
+                        ShowViewCube="True"
+                        ZoomExtentsWhenLoaded="True"
+                        IsPanEnabled="True"
+                        IsRotationEnabled="True"
+                        IsZoomEnabled="True"
+                        IsMoveEnabled="True"
+                        IsInertiaEnabled="True"
+                        RotationSensitivity="1.5"
+                        ZoomSensitivity="1.2">
+            
+            <!-- Camera -->
+            <hx:Viewport3DX.Camera>
+                <hx:PerspectiveCamera Position="5000,-5000,3000"
+                                       LookDirection="-5000,5000,-3000"
+                                       UpDirection="0,0,1"
+                                       FieldOfView="45"
+                                       FarPlaneDistance="1000000"
+                                       NearPlaneDistance="0.1"/>
+            </hx:Viewport3DX.Camera>
+            
+            <!-- Lighting -->
+            <hx:DirectionalLight3D Direction="-1,-1,-1" Color="White"/>
+            <hx:DirectionalLight3D Direction="1,1,1" Color="#808080"/>
+            <hx:AmbientLight3D Color="#404040"/>
+            
+        </hx:Viewport3DX>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource MahApps.Brushes.Gray10}" Padding="10,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock x:Name="StatusText" Text="Controls: Left-drag=Rotate | Right-drag=Pan | Scroll=Zoom | Keys: T=Top F=Front S=Side 3=3D H=Fit" 
+                           VerticalAlignment="Center" Foreground="White"/>
+                
+                <TextBlock Grid.Column="1" x:Name="DepthInfo" Text="Depth Range: -" 
+                           VerticalAlignment="Center" Margin="0,0,20,0" Foreground="White"/>
+                
+                <TextBlock Grid.Column="2" x:Name="DataInfo" Text="Points: 0" VerticalAlignment="Center" Foreground="White"/>
+            </Grid>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

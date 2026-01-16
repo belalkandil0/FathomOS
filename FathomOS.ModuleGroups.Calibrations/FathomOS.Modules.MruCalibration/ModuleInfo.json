@@ -1,0 +1,33 @@
+{
+    "moduleId": "MruCalibration",
+    "displayName": "MRU Calibration",
+    "description": "MRU Calibration and Verification by Inter-System Comparison. Supports Pitch and Roll sensor calibration with 3-sigma outlier rejection, statistical analysis, and professional PDF reporting.",
+    "version": "3.0.0",
+    "author": "Fathom OS Team",
+    "category": "Calibrations",
+    "displayOrder": 10,
+    "icon": "icon.png",
+    "supportedFileTypes": [".npd", ".csv", ".mru"],
+    "dependencies": [],
+    "minimumShellVersion": "1.0.0",
+    "features": [
+        "Pitch & Roll Calibration",
+        "Inter-System Comparison",
+        "3-Sigma Outlier Rejection",
+        "Statistical Analysis",
+        "Interactive OxyPlot Charts",
+        "QuestPDF Report Generation",
+        "ClosedXML Excel Export",
+        "Session Save/Load",
+        "NaviPac NPD File Support",
+        "QC Checklist & Sign-off",
+        "Certificate Generation"
+    ],
+    "workflow": {
+        "steps": 7,
+        "description": "The Fathom 7 Process - 7 Steps to Survey Excellence"
+    },
+    "certificateCode": "MC",
+    "certificateTitle": "MRU Calibration Verification Certificate",
+    "certificateStatement": "This is to certify that Motion Reference Unit (MRU) Pitch and Roll sensor calibration has been successfully completed using 3-sigma statistical analysis in accordance with industry standard procedures."
+}

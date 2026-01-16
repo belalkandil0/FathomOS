@@ -1,0 +1,161 @@
+<Window x:Class="LicenseGeneratorUI.Views.ModuleDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Module" 
+        Height="550" Width="550"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0D1117">
+    
+    <Window.Resources>
+        <Style x:Key="DialogTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#E6EDF3"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="#E6EDF3"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#58A6FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style x:Key="DialogComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#E6EDF3"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#238636"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock x:Name="DialogTitle" Text="Add Module" FontSize="20" FontWeight="Bold" Foreground="#E6EDF3"/>
+            <TextBlock Text="Configure module settings" FontSize="13" Foreground="#8B949E" Margin="0,4,0,0"/>
+        </StackPanel>
+        
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Module ID -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Module ID *" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <TextBox x:Name="ModuleIdInput" Style="{StaticResource DialogTextBox}" ToolTip="PascalCase identifier (e.g., SurveyListing)"/>
+                    <TextBlock Text="Use PascalCase (e.g., SurveyListing, TideAnalysis)" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <!-- Display Name -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Display Name *" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <TextBox x:Name="DisplayNameInput" Style="{StaticResource DialogTextBox}" ToolTip="Human-readable name shown in UI"/>
+                </StackPanel>
+                
+                <!-- Certificate Code -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Certificate Code *" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <TextBox x:Name="CertificateCodeInput" Style="{StaticResource DialogTextBox}" MaxLength="2" CharacterCasing="Upper" ToolTip="2-character code (A-Z, 0-9)"/>
+                    <TextBlock Text="Exactly 2 characters (A-Z or 0-9), e.g., SL, TA, BC" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <!-- Default Tier -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Default Tier" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <ComboBox x:Name="DefaultTierCombo" Style="{StaticResource DialogComboBox}">
+                        <ComboBoxItem Content="Basic" Tag="Basic"/>
+                        <ComboBoxItem Content="Professional" Tag="Professional" IsSelected="True"/>
+                        <ComboBoxItem Content="Enterprise" Tag="Enterprise"/>
+                    </ComboBox>
+                    <TextBlock Text="The tier this module is included in by default" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <!-- Icon Selection -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Module Icon" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Icon Preview -->
+                        <Border Grid.Column="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" 
+                                CornerRadius="6" Width="50" Height="50" Margin="0,0,12,0">
+                            <TextBlock x:Name="IconPreview" Text="📦" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <!-- Icon Input -->
+                        <TextBox x:Name="IconInput" Grid.Column="1" Style="{StaticResource DialogTextBox}" 
+                                 Text="📦" TextChanged="IconInput_TextChanged" ToolTip="Enter emoji or icon name"/>
+                        
+                        <!-- Icon Picker Button -->
+                        <Button Grid.Column="2" Content="🎨" Style="{StaticResource SecondaryBtn}" Padding="12,10" Margin="8,0,0,0" Click="PickIcon_Click" ToolTip="Pick from common icons"/>
+                    </Grid>
+                    <TextBlock Text="Enter an emoji (📊 🌊 ⚓) or click 🎨 to pick" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <!-- Description -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Description" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
+                    <TextBox x:Name="DescriptionInput" Style="{StaticResource DialogTextBox}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" ToolTip="Brief description of the module"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Cancel" Style="{StaticResource SecondaryBtn}" Click="Cancel_Click" Margin="0,0,12,0"/>
+            <Button x:Name="SaveButton" Content="Save Module" Style="{StaticResource PrimaryBtn}" Click="Save_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

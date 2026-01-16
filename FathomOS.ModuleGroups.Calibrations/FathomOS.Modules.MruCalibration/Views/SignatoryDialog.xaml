@@ -1,0 +1,183 @@
+<mah:MetroWindow x:Class="FathomOS.Modules.MruCalibration.Views.SignatoryDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Certificate Sign-off — Fathom OS"
+        Height="500" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource BackgroundBrush}"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        GlowBrush="{DynamicResource AccentBrush}"
+        TitleCharacterCasing="Normal">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <iconPacks:PackIconMaterial Kind="Certificate" 
+                                            Width="32" Height="32" 
+                                            Foreground="{DynamicResource AccentBrush}"
+                                            VerticalAlignment="Center"/>
+                <TextBlock Text="Generate Certificate" 
+                           FontSize="24" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="Enter signatory information for the calibration certificate"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Project Name -->
+                <TextBlock Text="Project Name *" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="ProjectNameTextBox"
+                         Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="Enter project name"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <!-- Project Location -->
+                <TextBlock Text="Project Location" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="ProjectLocationTextBox"
+                         Text="{Binding ProjectLocation, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="Optional - e.g., North Sea Block 15"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <!-- Vessel -->
+                <TextBlock Text="Vessel" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="VesselTextBox"
+                         Text="{Binding Vessel, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="Optional - vessel or platform name"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <!-- Equipment -->
+                <TextBlock Text="MRU Equipment" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="EquipmentTextBox"
+                         Text="{Binding Equipment, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="e.g., iXBlue Octans"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <!-- Equipment Serial -->
+                <TextBlock Text="Equipment Serial Number" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="EquipmentSerialTextBox"
+                         Text="{Binding EquipmentSerial, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="e.g., SN-12345"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <Separator Margin="0,5,0,15" Background="{DynamicResource BorderBrush}"/>
+
+                <!-- Signatory Name -->
+                <TextBlock Text="Signatory Name *" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="SignatoryNameTextBox"
+                         Text="{Binding SignatoryName, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="Full name of person signing"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,15"/>
+
+                <!-- Signatory Title -->
+                <TextBlock Text="Professional Title *" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <ComboBox x:Name="SignatoryTitleComboBox"
+                          SelectedItem="{Binding SignatoryTitle}"
+                          mah:TextBoxHelper.Watermark="Select professional title"
+                          Style="{DynamicResource MahApps.Styles.ComboBox}"
+                          Margin="0,0,0,15">
+                    <ComboBoxItem Content="Survey Supervisor"/>
+                    <ComboBoxItem Content="Senior Survey Engineer"/>
+                    <ComboBoxItem Content="Survey Engineer"/>
+                    <ComboBoxItem Content="Calibration Engineer"/>
+                    <ComboBoxItem Content="Quality Control Engineer"/>
+                    <ComboBoxItem Content="Verification Engineer"/>
+                    <ComboBoxItem Content="Processing Engineer"/>
+                    <ComboBoxItem Content="Operations Manager"/>
+                    <ComboBoxItem Content="Project Manager"/>
+                    <ComboBoxItem Content="Survey Manager"/>
+                    <ComboBoxItem Content="Technical Supervisor"/>
+                    <ComboBoxItem Content="Field Engineer"/>
+                    <ComboBoxItem Content="Senior Technician"/>
+                    <ComboBoxItem Content="Navigation Engineer"/>
+                    <ComboBoxItem Content="Positioning Engineer"/>
+                </ComboBox>
+
+                <!-- Signatory Credentials -->
+                <TextBlock Text="Credentials (Optional)" 
+                           Style="{DynamicResource FieldLabelStyle}"
+                           Margin="0,0,0,5"/>
+                <TextBox x:Name="SignatoryCredentialsTextBox"
+                         Text="{Binding SignatoryCredentials, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="e.g., BSc, MSc, PMP"
+                         Style="{DynamicResource MahApps.Styles.TextBox}"
+                         Margin="0,0,0,10"/>
+
+                <TextBlock Text="* Required fields" 
+                           FontSize="10"
+                           FontStyle="Italic"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Width="100"
+                    Margin="0,0,10,0"
+                    Style="{DynamicResource MahApps.Styles.Button}"
+                    Click="CancelButton_Click"/>
+            <Button x:Name="GenerateButton"
+                    Content="Generate"
+                    Width="120"
+                    Style="{DynamicResource MahApps.Styles.Button.Accent}"
+                    Click="GenerateButton_Click"
+                    IsEnabled="{Binding CanGenerate}">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Certificate" 
+                                                        Width="16" Height="16" 
+                                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>
