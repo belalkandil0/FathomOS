@@ -46,3 +46,15 @@ public record CertificateCreatedEvent(string CertificateId, string ModuleId, Dat
 /// Published when certificates are synced to server
 /// </summary>
 public record CertificatesSyncedEvent(int SyncedCount, int FailedCount);
+
+/// <summary>
+/// Published when user authentication state changes (login/logout).
+/// Modules should subscribe to this to update their UI based on auth state.
+/// </summary>
+public record UserAuthenticationChangedEvent(IUser? User, bool IsLoggedIn);
+
+/// <summary>
+/// Published when a logout is requested (e.g., from session timeout or user action).
+/// The authentication service listens for this to perform the actual logout.
+/// </summary>
+public record UserLogoutRequestedEvent();

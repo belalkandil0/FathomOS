@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- Reference Core - provides MahApps, OxyPlot, ClosedXML, QuestPDF, netDxf, MathNet -->
-    <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+    <ProjectReference Include="..\..\FathomOS.Core\FathomOS.Core.csproj" />
   </ItemGroup>
 
   <!-- HelixToolkit.Wpf for 3D visualization (standalone WPF version, not SharpDX) -->

@@ -233,7 +233,7 @@ public class AdminViewModel : INotifyPropertyChanged
                 SerialNumber = item.SerialNumber,
                 Manufacturer = item.Manufacturer,
                 Model = item.Model,
-                LocationId = item.DestinationLocationId,
+                CurrentLocationId = item.DestinationLocationId,
                 Status = EquipmentStatus.Available,
                 Condition = EquipmentCondition.Good,
                 IsConsumable = false

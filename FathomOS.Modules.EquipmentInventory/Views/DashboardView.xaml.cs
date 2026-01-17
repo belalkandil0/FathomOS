@@ -1,17 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using FathomOS.Modules.EquipmentInventory.Data;
 using FathomOS.Modules.EquipmentInventory.Models;
 using FathomOS.Modules.EquipmentInventory.Services;
 using FathomOS.Modules.EquipmentInventory.ViewModels;
 using FathomOS.Modules.EquipmentInventory.Views.Dialogs;
-
-using Brush = System.Windows.Media.Brush;
-using Brushes = System.Windows.Media.Brushes;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
 
 namespace FathomOS.Modules.EquipmentInventory.Views;
 
@@ -299,7 +294,7 @@ public class DashboardViewModel : ViewModelBase
                 Icon = "CertificateOutline",
                 Title = "Certifications Expiring",
                 Message = $"{expiringSoon.Count} certifications expire within 30 days",
-                Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!)
+                Color = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#D29922")!)
             });
         }
         
@@ -312,7 +307,7 @@ public class DashboardViewModel : ViewModelBase
                 Icon = "AlertCircle",
                 Title = "Expired Certifications",
                 Message = $"{expired.Count} certifications have expired",
-                Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E53935")!)
+                Color = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#E53935")!)
             });
         }
         
@@ -326,7 +321,7 @@ public class DashboardViewModel : ViewModelBase
                 Icon = "WrenchOutline",
                 Title = "Maintenance Due",
                 Message = $"{needsMaint.Count} items need servicing soon",
-                Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1976D2")!)
+                Color = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#1976D2")!)
             });
         }
     }

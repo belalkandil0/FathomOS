@@ -114,6 +114,15 @@ public class SpinTestData
     public TestStatistics Statistics { get; set; } = new();
     public bool HasData => Observations.Any(o => !o.IsExcluded);
     public string SourceFile { get; set; } = "";
+
+    /// <summary>
+    /// Alias for SourceFile for consistent API
+    /// </summary>
+    public string FilePath
+    {
+        get => SourceFile;
+        set => SourceFile = value;
+    }
     
     /// <summary>
     /// Calculate actual heading from average gyro readings in observations
@@ -157,7 +166,16 @@ public class TransitTestData
     public TestStatistics Statistics { get; set; } = new();
     public bool HasData => Observations.Any(o => !o.IsExcluded);
     public string SourceFile { get; set; } = "";
-    
+
+    /// <summary>
+    /// Alias for SourceFile for consistent API
+    /// </summary>
+    public string FilePath
+    {
+        get => SourceFile;
+        set => SourceFile = value;
+    }
+
     // Alignment calculations
     public double ResidualAlignment { get; set; }
     public double ScaleFactor { get; set; } = 1.0;
@@ -200,6 +218,18 @@ public class UsblVerificationProject
     // Transit Tests (2 lines)
     public TransitTestData Transit1 { get; set; } = new() { Name = "Transit Line 1", LineNumber = 1 };
     public TransitTestData Transit2 { get; set; } = new() { Name = "Transit Line 2", LineNumber = 2 };
+
+    // Aliases for Transit1/Transit2 for consistent API
+    public TransitTestData TransitLine1
+    {
+        get => Transit1;
+        set => Transit1 = value;
+    }
+    public TransitTestData TransitLine2
+    {
+        get => Transit2;
+        set => Transit2 = value;
+    }
     
     // Settings
     public LengthUnit InputUnit { get; set; } = LengthUnit.Meters;
@@ -341,6 +371,10 @@ public class VerificationResults
     
     // Spin statistics dictionary (heading -> statistics)
     public Dictionary<string, TestStatistics> SpinStatistics { get; set; } = new();
+
+    // Total point counts for certificate generation
+    public int SpinTotalPoints { get; set; }
+    public int TransitTotalPoints { get; set; }
 }
 
 /// <summary>

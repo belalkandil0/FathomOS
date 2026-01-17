@@ -5,6 +5,13 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 
+// Use unique alias names to override global usings for System.Drawing types
+using DrawingColor = System.Drawing.Color;
+using DrawingBrush = System.Drawing.Brush;
+using DrawingBrushes = System.Drawing.Brushes;
+using DrawingFont = System.Drawing.Font;
+using DrawingPen = System.Drawing.Pen;
+
 namespace FathomOS.Modules.EquipmentInventory.Services;
 
 /// <summary>
@@ -94,7 +101,7 @@ public class QRCodeService
         graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
         
         // Fill white background
-        graphics.Clear(Color.White);
+        graphics.Clear(DrawingColor.White);
         
         // Define layout
         int padding = 20;
@@ -110,8 +117,8 @@ public class QRCodeService
         // Draw organization name at top
         if (_settings.ShowOrganizationOnLabel && !string.IsNullOrEmpty(organizationName))
         {
-            using var orgFont = new Font("Arial", 24, FontStyle.Bold);
-            using var orgBrush = new SolidBrush(Color.Black);
+            using var orgFont = new DrawingFont("Arial", 24, FontStyle.Bold);
+            using var orgBrush = new SolidBrush(DrawingColor.Black);
             var orgSize = graphics.MeasureString(organizationName, orgFont);
             float orgX = (labelWidth - orgSize.Width) / 2;
             graphics.DrawString(organizationName, orgFont, orgBrush, orgX, padding);
@@ -119,21 +126,21 @@ public class QRCodeService
         
         // Draw QR code
         using var qrCode = new QRCode(qrCodeData);
-        using var qrBitmap = qrCode.GetGraphic(20, Color.Black, Color.White, true);
+        using var qrBitmap = qrCode.GetGraphic(20, DrawingColor.Black, DrawingColor.White, true);
         graphics.DrawImage(qrBitmap, qrX, qrY, qrSize, qrSize);
         
         // Draw unique ID at bottom
         if (_settings.ShowUniqueIdOnLabel && !string.IsNullOrEmpty(uniqueId))
         {
-            using var idFont = new Font("Arial", 20, FontStyle.Regular);
-            using var idBrush = new SolidBrush(Color.Black);
+            using var idFont = new DrawingFont("Arial", 20, FontStyle.Regular);
+            using var idBrush = new SolidBrush(DrawingColor.Black);
             var idSize = graphics.MeasureString(uniqueId, idFont);
             float idX = (labelWidth - idSize.Width) / 2;
             graphics.DrawString(uniqueId, idFont, idBrush, idX, uniqueIdY);
         }
         
         // Draw border
-        using var borderPen = new Pen(Color.LightGray, 1);
+        using var borderPen = new DrawingPen(DrawingColor.LightGray, 1);
         graphics.DrawRectangle(borderPen, 0, 0, labelWidth - 1, labelHeight - 1);
         
         // Convert to PNG bytes
@@ -231,6 +238,12 @@ public class QRCodeService
     /// Generate QR code content for equipment
     /// </summary>
     public static string GenerateEquipmentQrCode(string assetNumber) => $"foseq:{assetNumber}";
+
+    /// <summary>
+    /// Generate QR code content for equipment with ID - alias for backwards compatibility
+    /// </summary>
+    public static string GenerateEquipmentQrCodeValue(string assetNumber, Guid equipmentId)
+        => $"foseq:{assetNumber}|{equipmentId}";
     
     /// <summary>
     /// Generate QR code content for manifest

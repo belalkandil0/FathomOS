@@ -786,7 +786,7 @@ public class SaveTemplateDialog : Window
         var buttonPanel = new System.Windows.Controls.StackPanel
         {
             Orientation = System.Windows.Controls.Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Right
         };
         System.Windows.Controls.Grid.SetRow(buttonPanel, 5);
         

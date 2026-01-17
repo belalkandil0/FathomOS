@@ -2,6 +2,13 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 
+// Use unique alias names to override global usings for System.Drawing types
+using DrawingColor = System.Drawing.Color;
+using DrawingBrush = System.Drawing.Brush;
+using DrawingBrushes = System.Drawing.Brushes;
+using DrawingFont = System.Drawing.Font;
+using DrawingPen = System.Drawing.Pen;
+
 namespace FathomOS.Modules.EquipmentInventory.Services;
 
 /// <summary>
@@ -131,7 +138,7 @@ public class BarcodeService
         using var bitmap = new Bitmap(width, height);
         using var graphics = Graphics.FromImage(bitmap);
         
-        graphics.Clear(Color.White);
+        graphics.Clear(DrawingColor.White);
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
         
         float x = 10;
@@ -139,7 +146,7 @@ public class BarcodeService
         {
             if (pattern[i] == 1)
             {
-                graphics.FillRectangle(Brushes.Black, x, 5, barWidth, barcodeHeight);
+                graphics.FillRectangle(DrawingBrushes.Black, x, 5, barWidth, barcodeHeight);
             }
             x += barWidth;
         }
@@ -147,10 +154,10 @@ public class BarcodeService
         // Draw text below barcode
         if (includeText && !string.IsNullOrEmpty(text))
         {
-            using var font = new Font("Consolas", 10, FontStyle.Regular);
+            using var font = new DrawingFont("Consolas", 10, FontStyle.Regular);
             var textSize = graphics.MeasureString(text, font);
             float textX = (width - textSize.Width) / 2;
-            graphics.DrawString(text, font, Brushes.Black, textX, height - textHeight);
+            graphics.DrawString(text, font, DrawingBrushes.Black, textX, height - textHeight);
         }
         
         using var ms = new MemoryStream();
@@ -172,12 +179,12 @@ public class BarcodeService
         using var bitmap = new Bitmap(width, height);
         using var graphics = Graphics.FromImage(bitmap);
         
-        graphics.Clear(Color.White);
+        graphics.Clear(DrawingColor.White);
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
         
         // Organization name at top
-        using var titleFont = new Font("Arial", 10, FontStyle.Bold);
-        graphics.DrawString(_settings.OrganizationName, titleFont, Brushes.Black, 10, 5);
+        using var titleFont = new DrawingFont("Arial", 10, FontStyle.Bold);
+        graphics.DrawString(_settings.OrganizationName, titleFont, DrawingBrushes.Black, 10, 5);
         
         // Generate QR code on left side
         var qrContent = QRCodeService.GenerateEquipmentQrCodeWithUniqueId(assetNumber, uniqueId);
@@ -208,15 +215,15 @@ public class BarcodeService
         graphics.DrawImage(barcodeImage, 120, 40, width - 130, 60);
         
         // Asset number and UniqueId text
-        using var labelFont = new Font("Arial", 9, FontStyle.Regular);
-        graphics.DrawString($"Asset: {assetNumber}", labelFont, Brushes.Black, 120, 110);
+        using var labelFont = new DrawingFont("Arial", 9, FontStyle.Regular);
+        graphics.DrawString($"Asset: {assetNumber}", labelFont, DrawingBrushes.Black, 120, 110);
         if (!string.IsNullOrEmpty(uniqueId))
         {
-            graphics.DrawString($"ID: {uniqueId}", labelFont, Brushes.Black, 120, 130);
+            graphics.DrawString($"ID: {uniqueId}", labelFont, DrawingBrushes.Black, 120, 130);
         }
         
         // Border
-        using var borderPen = new Pen(Color.Black, 1);
+        using var borderPen = new DrawingPen(DrawingColor.Black, 1);
         graphics.DrawRectangle(borderPen, 0, 0, width - 1, height - 1);
         
         using var ms = new MemoryStream();
@@ -232,11 +239,11 @@ public class BarcodeService
         using var bitmap = new Bitmap(width, height);
         using var graphics = Graphics.FromImage(bitmap);
         
-        graphics.Clear(Color.White);
+        graphics.Clear(DrawingColor.White);
         
         // Organization name
-        using var titleFont = new Font("Arial", 8, FontStyle.Bold);
-        graphics.DrawString(_settings.OrganizationName, titleFont, Brushes.Black, 5, 3);
+        using var titleFont = new DrawingFont("Arial", 8, FontStyle.Bold);
+        graphics.DrawString(_settings.OrganizationName, titleFont, DrawingBrushes.Black, 5, 3);
         
         // Barcode
         byte[] barcodeBytes;

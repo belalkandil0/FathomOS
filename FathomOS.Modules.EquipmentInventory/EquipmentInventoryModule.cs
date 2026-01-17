@@ -5,6 +5,7 @@ using FathomOS.Modules.EquipmentInventory.Views;
 using FathomOS.Modules.EquipmentInventory.Data;
 using FathomOS.Modules.EquipmentInventory.Services;
 
+#pragma warning disable CS0618 // Type or member is obsolete - local AuthenticationService kept for transition
 
 namespace FathomOS.Modules.EquipmentInventory;
 
@@ -23,18 +24,71 @@ public class EquipmentInventoryModule : IModule
     private MainWindow? _mainWindow;
     private readonly LocalDatabaseService _databaseService;
     private readonly SyncService _syncService;
-    private readonly AuthenticationService _authService;
-    
+    private readonly AuthenticationService _localAuthService;
+    private readonly IAuthenticationService? _authenticationService;
+
     // Certificate configuration (matches ModuleInfo.json)
     public const string CertificateCode = "EI";
     public const string CertificateTitle = "Equipment & Inventory Management Verification Certificate";
     public const string CertificateStatement = "This is to certify that the equipment inventory and manifest operations documented herein have been successfully processed and verified in accordance with industry standards for asset tracking and management.";
-    
+
+    /// <summary>
+    /// Default constructor for module discovery (backward compatible)
+    /// </summary>
     public EquipmentInventoryModule()
     {
         _databaseService = new LocalDatabaseService();
-        _authService = new AuthenticationService();
-        _syncService = new SyncService(_databaseService, _authService);
+        _localAuthService = new AuthenticationService();
+        _syncService = new SyncService(_databaseService, _localAuthService);
+    }
+
+    /// <summary>
+    /// DI constructor for full functionality with centralized authentication
+    /// </summary>
+    public EquipmentInventoryModule(
+        IAuthenticationService authenticationService,
+        ICertificationService? certificationService = null,
+        IEventAggregator? eventAggregator = null,
+        IThemeService? themeService = null,
+        IErrorReporter? errorReporter = null)
+    {
+        _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _databaseService = new LocalDatabaseService();
+        _localAuthService = new AuthenticationService();
+        _syncService = new SyncService(_databaseService, _localAuthService);
+
+        // Subscribe to authentication changes from Shell
+        _authenticationService.AuthenticationChanged += OnAuthenticationChanged;
+    }
+
+    /// <summary>
+    /// Handles authentication changes from the centralized service
+    /// </summary>
+    private void OnAuthenticationChanged(object? sender, IUser? user)
+    {
+        if (user != null)
+        {
+            // Sync the shell user to local auth service for backward compatibility
+            // Convert IUser to local User model
+            var localUser = new Models.User
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                JobTitle = user.JobTitle,
+                Department = user.Department,
+                IsActive = user.IsActive,
+                IsSuperAdmin = user.IsSuperAdmin,
+                DefaultLocationId = user.DefaultLocationId
+            };
+            _localAuthService.SetOfflineUser(localUser);
+        }
+        else
+        {
+            _localAuthService.Logout();
+        }
     }
     
     #region IModule Properties
@@ -112,8 +166,11 @@ public class EquipmentInventoryModule : IModule
     {
         try
         {
+            // Check authentication status (prefer centralized auth if available)
+            bool isAuthenticated = _authenticationService?.IsAuthenticated ?? _localAuthService.IsAuthenticated;
+
             // Check if already authenticated and window is open
-            if (_mainWindow != null && _mainWindow.IsLoaded && _authService.IsAuthenticated)
+            if (_mainWindow != null && _mainWindow.IsLoaded && isAuthenticated)
             {
                 _mainWindow.Show();
                 _mainWindow.Activate();
@@ -121,24 +178,47 @@ public class EquipmentInventoryModule : IModule
                     _mainWindow.WindowState = WindowState.Normal;
                 return;
             }
-            
-            // Show login window first
-            var loginWindow = new LoginWindow(_authService, _databaseService);
-            loginWindow.Owner = owner;
-            
-            var loginResult = loginWindow.ShowDialog();
-            
-            if (loginResult != true || !loginWindow.IsAuthenticated)
+
+            // Use centralized authentication if available (Shell handles login)
+            if (_authenticationService != null)
             {
-                // User cancelled or failed to authenticate
-                System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Authentication cancelled or failed");
-                return;
+                if (!_authenticationService.IsAuthenticated)
+                {
+                    // Request login through centralized service (Shell's login dialog)
+                    var loginTask = _authenticationService.ShowLoginDialogAsync(owner);
+                    loginTask.Wait();
+
+                    if (!loginTask.Result)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Authentication cancelled or failed via Shell");
+                        return;
+                    }
+                }
+
+                // Authentication successful via Shell - launch main window
+                _mainWindow = new MainWindow(_databaseService, _syncService, _localAuthService);
+                _mainWindow.Show();
+                _mainWindow.Activate();
             }
-            
-            // Authentication successful - launch main window
-            _mainWindow = new MainWindow(_databaseService, _syncService, _authService);
-            _mainWindow.Show();
-            _mainWindow.Activate();
+            else
+            {
+                // Fallback: Use local login window (backward compatibility)
+                var loginWindow = new LoginWindow(_localAuthService, _databaseService);
+                loginWindow.Owner = owner;
+
+                var loginResult = loginWindow.ShowDialog();
+
+                if (loginResult != true || !loginWindow.IsAuthenticated)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Authentication cancelled or failed");
+                    return;
+                }
+
+                // Authentication successful - launch main window
+                _mainWindow = new MainWindow(_databaseService, _syncService, _localAuthService);
+                _mainWindow.Show();
+                _mainWindow.Activate();
+            }
         }
         catch (Exception ex)
         {
@@ -160,10 +240,16 @@ public class EquipmentInventoryModule : IModule
         try
         {
             System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Shutting down...");
-            
+
+            // Unsubscribe from centralized auth events
+            if (_authenticationService != null)
+            {
+                _authenticationService.AuthenticationChanged -= OnAuthenticationChanged;
+            }
+
             // Save any pending changes
             _syncService?.SyncAsync().Wait(TimeSpan.FromSeconds(5));
-            
+
             // Close main window
             _mainWindow?.Close();
             _mainWindow = null;

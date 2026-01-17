@@ -12,8 +12,9 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using FathomOS.Modules.SurveyLogbook.Models;
 
-// Alias for QuestPDF Color to avoid conflicts with System.Drawing.Color
+// Alias for QuestPDF types to avoid conflicts with System.Windows.Media
 using QuestColor = QuestPDF.Infrastructure.Color;
+using QuestColors = QuestPDF.Helpers.Colors;
 
 namespace FathomOS.Modules.SurveyLogbook.Export;
 
@@ -132,7 +133,7 @@ public class PdfReportGenerator
                     .PaddingTop(5)
                     .Text($"Generated: {DateTime.Now:dd/MM/yyyy HH:mm}")
                     .FontSize(8)
-                    .FontColor(Colors.Grey.Medium);
+                    .FontColor(QuestColors.Grey.Medium);
             });
 
             row.ConstantItem(100).Column(col =>
@@ -162,7 +163,7 @@ public class PdfReportGenerator
 
     private void ComposeSummarySection(IContainer container, SurveyLogFile logFile)
     {
-        container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
+        container.Border(1).BorderColor(QuestColors.Grey.Lighten2).Padding(10).Column(col =>
         {
             col.Item().Text("Summary").FontSize(12).Bold().FontColor(QuestColor.FromHex(_primaryColor));
             col.Item().PaddingTop(5);
@@ -221,7 +222,7 @@ public class PdfReportGenerator
                 header.Cell().Element(CellStyle).Text("Source").Bold();
 
                 static IContainer CellStyle(IContainer container) =>
-                    container.DefaultTextStyle(x => x.FontColor(Colors.White))
+                    container.DefaultTextStyle(x => x.FontColor(QuestColors.White))
                              .Background(QuestColor.FromHex("#1E3A5F"))
                              .Padding(5);
             });
@@ -241,7 +242,7 @@ public class PdfReportGenerator
 
             static IContainer DataCellStyle(IContainer container) =>
                 container.BorderBottom(1)
-                         .BorderColor(Colors.Grey.Lighten2)
+                         .BorderColor(QuestColors.Grey.Lighten2)
                          .Padding(4);
         });
     }
@@ -252,7 +253,7 @@ public class PdfReportGenerator
         {
             row.RelativeItem().Text(text =>
             {
-                text.Span("Fathom OS Survey Electronic Logbook").FontSize(8).FontColor(Colors.Grey.Medium);
+                text.Span("Fathom OS Survey Electronic Logbook").FontSize(8).FontColor(QuestColors.Grey.Medium);
             });
 
             row.RelativeItem().AlignRight().Text(text =>
@@ -320,10 +321,10 @@ public class PdfReportGenerator
 
     private void ComposeDprProjectInfo(IContainer container, DprReport report)
     {
-        container.Border(1).BorderColor(Colors.Grey.Lighten2).Column(col =>
+        container.Border(1).BorderColor(QuestColors.Grey.Lighten2).Column(col =>
         {
             col.Item().Background(QuestColor.FromHex(_primaryColor)).Padding(5)
-                .Text("PROJECT INFORMATION").FontSize(10).Bold().FontColor(Colors.White);
+                .Text("PROJECT INFORMATION").FontSize(10).Bold().FontColor(QuestColors.White);
 
             col.Item().Padding(8).Row(row =>
             {
@@ -343,10 +344,10 @@ public class PdfReportGenerator
 
     private void ComposeDprPersonnel(IContainer container, DprReport report)
     {
-        container.Border(1).BorderColor(Colors.Grey.Lighten2).Column(col =>
+        container.Border(1).BorderColor(QuestColors.Grey.Lighten2).Column(col =>
         {
             col.Item().Background(QuestColor.FromHex(_primaryColor)).Padding(5)
-                .Text("KEY PERSONNEL").FontSize(10).Bold().FontColor(Colors.White);
+                .Text("KEY PERSONNEL").FontSize(10).Bold().FontColor(QuestColors.White);
 
             col.Item().Padding(8).Row(row =>
             {
@@ -359,10 +360,10 @@ public class PdfReportGenerator
 
     private void ComposeDprCrew(IContainer container, DprReport report)
     {
-        container.Border(1).BorderColor(Colors.Grey.Lighten2).Column(col =>
+        container.Border(1).BorderColor(QuestColors.Grey.Lighten2).Column(col =>
         {
             col.Item().Background(QuestColor.FromHex(_primaryColor)).Padding(5)
-                .Text($"CREW ON DUTY ({report.SurveyCrew?.Count ?? 0})").FontSize(10).Bold().FontColor(Colors.White);
+                .Text($"CREW ON DUTY ({report.SurveyCrew?.Count ?? 0})").FontSize(10).Bold().FontColor(QuestColors.White);
 
             col.Item().Padding(8).Table(table =>
             {
@@ -383,10 +384,10 @@ public class PdfReportGenerator
 
     private void ComposeDprOperations(IContainer container, DprReport report)
     {
-        container.Border(1).BorderColor(Colors.Grey.Lighten2).Column(col =>
+        container.Border(1).BorderColor(QuestColors.Grey.Lighten2).Column(col =>
         {
             col.Item().Background(QuestColor.FromHex(_primaryColor)).Padding(5)
-                .Text("OPERATIONS SUMMARY").FontSize(10).Bold().FontColor(Colors.White);
+                .Text("OPERATIONS SUMMARY").FontSize(10).Bold().FontColor(QuestColors.White);
 
             col.Item().Padding(8).Column(c =>
             {

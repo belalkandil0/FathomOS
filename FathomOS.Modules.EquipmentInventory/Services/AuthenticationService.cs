@@ -5,6 +5,12 @@ using FathomOS.Modules.EquipmentInventory.Models;
 
 namespace FathomOS.Modules.EquipmentInventory.Services;
 
+/// <summary>
+/// DEPRECATED: This local AuthenticationService is being migrated to use the centralized
+/// IAuthenticationService from FathomOS.Shell. Use the injected IAuthenticationService instead.
+/// This class is kept for backward compatibility during the transition period.
+/// </summary>
+[Obsolete("Use IAuthenticationService from FathomOS.Core.Interfaces instead. This local implementation will be removed in a future version.")]
 public class AuthenticationService
 {
     private readonly HttpClient _httpClient;

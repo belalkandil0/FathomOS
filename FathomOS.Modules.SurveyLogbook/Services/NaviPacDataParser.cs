@@ -18,21 +18,34 @@ public class NaviPacDataParser
 {
     private readonly List<UserFieldDefinition> _fieldDefinitions;
     private readonly string _separator;
-    
+    private readonly string _source;
+
     /// <summary>
     /// Event raised when a parsing warning occurs.
     /// </summary>
     public event EventHandler<string>? ParsingWarning;
-    
+
     /// <summary>
     /// Creates a new NaviPacDataParser with the specified field configuration.
     /// </summary>
     /// <param name="fieldDefinitions">List of field definitions in order</param>
     /// <param name="separator">Field separator character (default: comma)</param>
     public NaviPacDataParser(List<UserFieldDefinition>? fieldDefinitions, string separator = ",")
+        : this(fieldDefinitions, separator, "NaviPac UDO")
+    {
+    }
+
+    /// <summary>
+    /// Creates a new NaviPacDataParser with the specified field configuration and source name.
+    /// </summary>
+    /// <param name="fieldDefinitions">List of field definitions in order</param>
+    /// <param name="separator">Field separator character</param>
+    /// <param name="source">Source name for log entries</param>
+    public NaviPacDataParser(List<UserFieldDefinition>? fieldDefinitions, string separator, string source)
     {
         _fieldDefinitions = fieldDefinitions ?? new List<UserFieldDefinition>();
         _separator = separator ?? ",";
+        _source = source ?? "NaviPac UDO";
     }
     
     #region Parsing Methods
@@ -62,7 +75,7 @@ public class NaviPacDataParser
             var entry = new SurveyLogEntry
             {
                 EntryType = LogEntryType.NaviPacData,
-                Source = "NaviPac UDO",
+                Source = _source,
                 RawData = dataString
             };
             
@@ -428,9 +441,20 @@ public class NaviPacDataParser
     }
     
     /// <summary>
+    /// Generates a description string from a raw data line.
+    /// </summary>
+    /// <param name="rawLine">Raw data line to parse and generate description from</param>
+    /// <returns>Generated description string</returns>
+    public string GenerateDescription(string rawLine)
+    {
+        var entry = Parse(rawLine);
+        return entry != null ? GenerateDescription(entry) : "NaviPac Data";
+    }
+
+    /// <summary>
     /// Generates a description string based on parsed entry data.
     /// </summary>
-    private string GenerateDescription(SurveyLogEntry entry)
+    public string GenerateDescription(SurveyLogEntry entry)
     {
         var parts = new List<string>();
         

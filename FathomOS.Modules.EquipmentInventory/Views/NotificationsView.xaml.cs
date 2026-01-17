@@ -279,10 +279,10 @@ public partial class NotificationsView : UserControl, INotifyPropertyChanged
         {
             Style = (Style)FindResource(isSecondary ? "SecondaryButton" : "PrimaryButton"),
             Margin = new Thickness(0, 0, 0, 8),
-            HorizontalAlignment = HorizontalAlignment.Stretch
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
         };
         
-        var stack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+        var stack = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Center };
         var icon = new MahApps.Metro.IconPacks.PackIconMaterial 
         { 
             Kind = (MahApps.Metro.IconPacks.PackIconMaterialKind)Enum.Parse(typeof(MahApps.Metro.IconPacks.PackIconMaterialKind), iconKind),

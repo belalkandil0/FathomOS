@@ -485,6 +485,9 @@ public class BatchPrintResult
     public int SuccessfulPrints { get; set; }
     public int FailedPrints { get; set; }
     public List<string> Errors { get; set; } = new();
+
+    /// <summary>Alias for SuccessfulPrints property for backwards compatibility</summary>
+    public int PrintedCount => SuccessfulPrints;
 }
 
 public class BulkUpdateResult
@@ -494,6 +497,12 @@ public class BulkUpdateResult
     public int Updated { get; set; }
     public int Skipped { get; set; }
     public string? Error { get; set; }
+
+    /// <summary>Alias for Updated property for backwards compatibility</summary>
+    public int UpdatedCount => Updated;
+
+    /// <summary>List of errors for backwards compatibility</summary>
+    public List<string> Errors => Error != null ? new List<string> { Error } : new List<string>();
 }
 
 public class DuplicateOptions

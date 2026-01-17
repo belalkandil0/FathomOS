@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:FathomOS.UI.Converters">
 
     <!-- ============================================== -->
     <!-- FathomOS Design System - Generic Resources    -->
@@ -7,16 +8,39 @@
     <!-- This file merges all design system resources  -->
     <!-- ============================================== -->
 
+    <!-- Converters (available globally) -->
+    <converters:StringNonEmptyConverter x:Key="StringNonEmptyConverter"/>
+    <converters:ObjectNotNullConverter x:Key="ObjectNotNullConverter"/>
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:SubtractConverter x:Key="SubtractConverter"/>
+    <converters:MultiplyConverter x:Key="MultiplyConverter"/>
+
     <ResourceDictionary.MergedDictionaries>
         <!-- Design Tokens -->
         <ResourceDictionary Source="Colors.xaml"/>
         <ResourceDictionary Source="Typography.xaml"/>
         <ResourceDictionary Source="Spacing.xaml"/>
 
-        <!-- Control Templates (to be added) -->
-        <!-- <ResourceDictionary Source="Controls/FathomButton.xaml"/> -->
-        <!-- <ResourceDictionary Source="Controls/FathomCard.xaml"/> -->
-        <!-- <ResourceDictionary Source="Controls/FathomTextBox.xaml"/> -->
+        <!-- Phase 2: Form Controls -->
+        <ResourceDictionary Source="Controls/FathomButton.xaml"/>
+        <ResourceDictionary Source="Controls/FathomTextBox.xaml"/>
+        <ResourceDictionary Source="Controls/FathomCard.xaml"/>
+        <ResourceDictionary Source="Controls/FathomCheckBox.xaml"/>
+        <ResourceDictionary Source="Controls/FathomRadioButton.xaml"/>
+        <ResourceDictionary Source="Controls/FathomToggleSwitch.xaml"/>
+
+        <!-- Phase 3: Navigation & Layout -->
+        <ResourceDictionary Source="Controls/FathomTabControl.xaml"/>
+        <ResourceDictionary Source="Controls/FathomModal.xaml"/>
+        <ResourceDictionary Source="Controls/FathomToolbar.xaml"/>
+        <ResourceDictionary Source="Controls/FathomExpander.xaml"/>
+
+        <!-- Phase 4: Data Display -->
+        <ResourceDictionary Source="Controls/FathomBadge.xaml"/>
+        <ResourceDictionary Source="Controls/FathomProgressBar.xaml"/>
+        <ResourceDictionary Source="Controls/FathomSpinner.xaml"/>
+        <ResourceDictionary Source="Controls/FathomTooltip.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

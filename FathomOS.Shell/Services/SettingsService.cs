@@ -1,3 +1,4 @@
+using System.IO;
 using FathomOS.Core.Interfaces;
 using System.Text.Json;
 

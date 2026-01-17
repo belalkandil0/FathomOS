@@ -1,0 +1,166 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - Dark Theme Colors    -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- Inspired by VS Code Dark+ theme               -->
+    <!-- ============================================== -->
+
+    <!-- ========== PRIMARY BRAND COLORS ========== -->
+    <Color x:Key="Primary">#0066CC</Color>
+    <Color x:Key="PrimaryHover">#0052A3</Color>
+    <Color x:Key="PrimaryActive">#003D7A</Color>
+    <Color x:Key="PrimaryLight">#3399FF</Color>
+    <Color x:Key="PrimaryMuted">#0066CC33</Color>
+
+    <!-- ========== BACKGROUND COLORS ========== -->
+    <Color x:Key="BackgroundPrimary">#1E1E1E</Color>
+    <Color x:Key="BackgroundSecondary">#252526</Color>
+    <Color x:Key="BackgroundTertiary">#2D2D30</Color>
+    <Color x:Key="Surface">#333337</Color>
+    <Color x:Key="SurfaceHover">#3C3C40</Color>
+    <Color x:Key="SurfaceSelected">#094771</Color>
+
+    <!-- ========== TEXT COLORS ========== -->
+    <Color x:Key="TextPrimary">#CCCCCC</Color>
+    <Color x:Key="TextSecondary">#969696</Color>
+    <Color x:Key="TextTertiary">#6E6E6E</Color>
+    <Color x:Key="TextDisabled">#4D4D4D</Color>
+    <Color x:Key="TextOnPrimary">#FFFFFF</Color>
+    <Color x:Key="TextHeading">#E8E8E8</Color>
+
+    <!-- ========== BORDER & DIVIDER COLORS ========== -->
+    <Color x:Key="Border">#3F3F46</Color>
+    <Color x:Key="BorderSubtle">#2D2D30</Color>
+    <Color x:Key="BorderFocus">#0066CC</Color>
+    <Color x:Key="BorderHover">#4D4D52</Color>
+
+    <!-- ========== INTERACTIVE STATE COLORS ========== -->
+    <Color x:Key="ButtonHover">#3C3C40</Color>
+    <Color x:Key="ButtonPressed">#4A4A4F</Color>
+    <Color x:Key="InputFocus">#0066CC20</Color>
+    <Color x:Key="RowHover">#2A2D2E</Color>
+    <Color x:Key="RowSelected">#094771</Color>
+    <Color x:Key="RowAlternate">#252526</Color>
+
+    <!-- ========== SEMANTIC COLORS ========== -->
+    <Color x:Key="Success">#4EC469</Color>
+    <Color x:Key="SuccessBackground">#2D4A34</Color>
+    <Color x:Key="SuccessHover">#3DB357</Color>
+    <Color x:Key="SuccessActive">#2F9B48</Color>
+
+    <Color x:Key="Warning">#DDB44D</Color>
+    <Color x:Key="WarningBackground">#4A4328</Color>
+
+    <Color x:Key="Error">#F14C4C</Color>
+    <Color x:Key="ErrorBackground">#4A2828</Color>
+    <Color x:Key="ErrorHover">#D93939</Color>
+    <Color x:Key="ErrorActive">#B52F2F</Color>
+
+    <Color x:Key="Info">#3794FF</Color>
+    <Color x:Key="InfoBackground">#28374A</Color>
+
+    <!-- ========== SCROLLBAR COLORS ========== -->
+    <Color x:Key="ScrollbarTrack">#1E1E1E</Color>
+    <Color x:Key="ScrollbarThumb">#4D4D52</Color>
+    <Color x:Key="ScrollbarThumbHover">#6E6E6E</Color>
+    <Color x:Key="ScrollbarThumbPressed">#969696</Color>
+
+    <!-- ========== MENU COLORS ========== -->
+    <Color x:Key="MenuBackground">#2D2D30</Color>
+    <Color x:Key="MenuBorder">#3F3F46</Color>
+    <Color x:Key="MenuItemHover">#094771</Color>
+    <Color x:Key="MenuSeparator">#3F3F46</Color>
+
+    <!-- ========== TOAST COLORS ========== -->
+    <Color x:Key="ToastInfo">#28374A</Color>
+    <Color x:Key="ToastSuccess">#2D4A34</Color>
+    <Color x:Key="ToastWarning">#4A4328</Color>
+    <Color x:Key="ToastError">#4A2828</Color>
+
+    <!-- ========== STATUS BAR COLORS ========== -->
+    <Color x:Key="StatusBarAccent">#007ACC</Color>
+    <Color x:Key="StatusBarNeutral">#252526</Color>
+
+    <!-- ========== SIDEBAR COLORS ========== -->
+    <Color x:Key="SidebarBackground">#252526</Color>
+    <Color x:Key="SidebarBorder">#3F3F46</Color>
+    <Color x:Key="SidebarItemHover">#2A2D2E</Color>
+    <Color x:Key="SidebarItemActive">#094771</Color>
+
+    <!-- ========== WINDOW CHROME COLORS ========== -->
+    <Color x:Key="TitleBarBackground">#1E1E1E</Color>
+    <Color x:Key="TitleBarText">#CCCCCC</Color>
+    <Color x:Key="WindowBorder">#3F3F46</Color>
+    <Color x:Key="ControlButtonHover">#3C3C40</Color>
+    <Color x:Key="CloseButtonHover">#E81123</Color>
+
+    <!-- ========== SKELETON LOADER COLORS ========== -->
+    <Color x:Key="SkeletonBase">#333337</Color>
+    <Color x:Key="SkeletonShimmer">#404045</Color>
+
+    <!-- ========== SOLID COLOR BRUSHES ========== -->
+
+    <!-- Primary Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHover}"/>
+    <SolidColorBrush x:Key="PrimaryActiveBrush" Color="{StaticResource PrimaryActive}"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLight}"/>
+    <SolidColorBrush x:Key="PrimaryMutedBrush" Color="{StaticResource PrimaryMuted}"/>
+
+    <!-- Background Brushes -->
+    <SolidColorBrush x:Key="BackgroundPrimaryBrush" Color="{StaticResource BackgroundPrimary}"/>
+    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundSecondary}"/>
+    <SolidColorBrush x:Key="BackgroundTertiaryBrush" Color="{StaticResource BackgroundTertiary}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Surface}"/>
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHover}"/>
+    <SolidColorBrush x:Key="SurfaceSelectedBrush" Color="{StaticResource SurfaceSelected}"/>
+
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiary}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabled}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimary}"/>
+    <SolidColorBrush x:Key="TextHeadingBrush" Color="{StaticResource TextHeading}"/>
+
+    <!-- Border Brushes -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Border}"/>
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtle}"/>
+    <SolidColorBrush x:Key="BorderFocusBrush" Color="{StaticResource BorderFocus}"/>
+    <SolidColorBrush x:Key="BorderHoverBrush" Color="{StaticResource BorderHover}"/>
+
+    <!-- Interactive Brushes -->
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{StaticResource ButtonHover}"/>
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="{StaticResource ButtonPressed}"/>
+    <SolidColorBrush x:Key="InputFocusBrush" Color="{StaticResource InputFocus}"/>
+    <SolidColorBrush x:Key="RowHoverBrush" Color="{StaticResource RowHover}"/>
+    <SolidColorBrush x:Key="RowSelectedBrush" Color="{StaticResource RowSelected}"/>
+    <SolidColorBrush x:Key="RowAlternateBrush" Color="{StaticResource RowAlternate}"/>
+
+    <!-- Semantic Brushes -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="{StaticResource SuccessBackground}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="{StaticResource WarningBackground}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}"/>
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="{StaticResource ErrorBackground}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}"/>
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="{StaticResource InfoBackground}"/>
+
+    <!-- Scrollbar Brushes -->
+    <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="{StaticResource ScrollbarTrack}"/>
+    <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="{StaticResource ScrollbarThumb}"/>
+    <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="{StaticResource ScrollbarThumbHover}"/>
+    <SolidColorBrush x:Key="ScrollbarThumbPressedBrush" Color="{StaticResource ScrollbarThumbPressed}"/>
+
+    <!-- Window Chrome Brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{StaticResource TitleBarBackground}"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{StaticResource TitleBarText}"/>
+    <SolidColorBrush x:Key="WindowBorderBrush" Color="{StaticResource WindowBorder}"/>
+    <SolidColorBrush x:Key="ControlButtonHoverBrush" Color="{StaticResource ControlButtonHover}"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="{StaticResource CloseButtonHover}"/>
+
+</ResourceDictionary>

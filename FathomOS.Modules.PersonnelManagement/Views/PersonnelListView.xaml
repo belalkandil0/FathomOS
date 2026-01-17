@@ -1,0 +1,112 @@
+<UserControl x:Class="FathomOS.Modules.PersonnelManagement.Views.PersonnelListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Personnel List" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="View and manage all personnel records"
+                       FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Search and Filter Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="SearchBox" Grid.Column="0"
+                     Padding="8" Margin="0,0,10,0"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="Search by name, employee number, or email..."/>
+
+            <ComboBox x:Name="DepartmentFilter" Grid.Column="1"
+                      Width="150" Margin="0,0,10,0"
+                      SelectedItem="{Binding SelectedDepartment}"
+                      ItemsSource="{Binding Departments}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <ComboBox x:Name="StatusFilter" Grid.Column="2"
+                      Width="120" Margin="0,0,10,0"
+                      SelectedItem="{Binding SelectedStatus}"
+                      ItemsSource="{Binding Statuses}"/>
+
+            <Button x:Name="AddButton" Grid.Column="3"
+                    Content="+ Add Personnel" Padding="15,8"
+                    Click="AddButton_Click"/>
+        </Grid>
+
+        <!-- Personnel List -->
+        <DataGrid x:Name="PersonnelGrid" Grid.Row="2"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  ItemsSource="{Binding PersonnelList}"
+                  SelectedItem="{Binding SelectedPersonnel}"
+                  MouseDoubleClick="PersonnelGrid_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Employee #" Binding="{Binding EmployeeNumber}" Width="100"/>
+                <DataGridTextColumn Header="Full Name" Binding="{Binding FullName}" Width="180"/>
+                <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="150"/>
+                <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="100"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding EmploymentStatus}" Width="90"/>
+                <DataGridTemplateColumn Header="Offshore" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding IsOffshore, Converter={StaticResource BoolToYesNoConverter}}"
+                                       HorizontalAlignment="Center"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Current Vessel" Binding="{Binding CurrentVesselName}" Width="130"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180"/>
+                <DataGridTextColumn Header="Phone" Binding="{Binding MobilePhone}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Footer -->
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <TextBlock x:Name="StatusText" Text="0 personnel" VerticalAlignment="Center"/>
+                <TextBlock Text=" | " Foreground="Gray" VerticalAlignment="Center"/>
+                <TextBlock x:Name="OffshoreText" Text="0 offshore" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="ViewButton" Content="View" Padding="15,5" Margin="0,0,5,0"
+                        Click="ViewButton_Click"/>
+                <Button x:Name="EditButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"
+                        Click="EditButton_Click"/>
+                <Button x:Name="ExportButton" Content="Export" Padding="15,5"
+                        Click="ExportButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

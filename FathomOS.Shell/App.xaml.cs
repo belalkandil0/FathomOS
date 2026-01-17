@@ -3,8 +3,10 @@ using FathomOS.Shell.Services;
 using FathomOS.Shell.Views;
 using FathomOS.Shell.Security;
 using FathomOS.Core.Certificates;
+using FathomOS.Core.Interfaces;
 using LicensingSystem.Client;
 using LicensingSystem.Shared;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FathomOS.Shell;
 
@@ -14,7 +16,13 @@ namespace FathomOS.Shell;
 public partial class App : Application
 {
     private ModuleManager? _moduleManager;
-    
+
+    /// <summary>
+    /// Dependency Injection Service Provider
+    /// Provides access to all registered services throughout the application.
+    /// </summary>
+    public static IServiceProvider Services { get; private set; } = null!;
+
     /// <summary>
     /// Fathom OS License Integration - provides session management, heartbeat, and events
     /// </summary>
@@ -121,9 +129,16 @@ public partial class App : Application
             });
             #endif
             
-            // Initialize module manager
-            _moduleManager = new ModuleManager();
-            _moduleManager.DiscoverModules();
+            // ============================================================================
+            // DEPENDENCY INJECTION SETUP
+            // ============================================================================
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            Services = serviceCollection.BuildServiceProvider();
+
+            // Initialize module manager from DI container
+            _moduleManager = Services.GetRequiredService<IModuleManager>() as ModuleManager;
+            _moduleManager?.DiscoverModules();
             
             // ============================================================================
             // INITIALIZE LICENSE INTEGRATION (v3.4.7 simplified wrapper)
@@ -405,8 +420,32 @@ public partial class App : Application
                 return;
             }
             
-            System.Diagnostics.Debug.WriteLine("DEBUG: Final check PASSED - proceeding to dashboard");
-            
+            System.Diagnostics.Debug.WriteLine("DEBUG: Final check PASSED - proceeding to login");
+
+            // ============================================================================
+            // USER AUTHENTICATION - Show login dialog after license validation
+            // ============================================================================
+            System.Diagnostics.Debug.WriteLine("DEBUG: Showing login dialog...");
+            var authService = Services.GetRequiredService<IAuthenticationService>();
+
+            // Show login dialog and wait for result
+            var loginResult = await authService.ShowLoginDialogAsync();
+
+            if (!loginResult)
+            {
+                System.Diagnostics.Debug.WriteLine("DEBUG: Login cancelled or failed - shutting down");
+                MessageBox.Show(
+                    "Login is required to use Fathom OS.\n\n" +
+                    "The application will now close.",
+                    "Login Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Login successful for user: {authService.CurrentUser?.Username}");
+
             // Handle command-line arguments (file open)
             if (e.Args.Length > 0)
             {
@@ -416,7 +455,7 @@ public partial class App : Application
                     _moduleManager.OpenFileWithModule(filePath);
                 }
             }
-            
+
             // Show main dashboard window
             System.Diagnostics.Debug.WriteLine("DEBUG: Creating DashboardWindow...");
             var mainWindow = new DashboardWindow();
@@ -446,23 +485,82 @@ public partial class App : Application
         }
     }
     
+    /// <summary>
+    /// Configure all application services for dependency injection.
+    /// This is the central point for registering all services used by the Shell and modules.
+    /// </summary>
+    /// <param name="services">The service collection to configure</param>
+    private void ConfigureServices(IServiceCollection services)
+    {
+        // ============================================================================
+        // CORE SERVICES - Shell owns these implementations
+        // ============================================================================
+
+        // Event Aggregator - thread-safe pub/sub messaging
+        services.AddSingleton<IEventAggregator, EventAggregator>();
+
+        // Theme Service - unified theme management (depends on EventAggregator)
+        services.AddSingleton<IThemeService>(sp =>
+            new ThemeService(sp.GetRequiredService<IEventAggregator>()));
+
+        // Settings Service - persistent JSON-based settings
+        services.AddSingleton<ISettingsService, SettingsService>();
+
+        // Error Reporter - centralized error logging (depends on EventAggregator)
+        services.AddSingleton<IErrorReporter>(sp =>
+            new ErrorReporter(sp.GetRequiredService<IEventAggregator>()));
+
+        // ============================================================================
+        // CERTIFICATION SERVICE
+        // CertificationService requires Func<LicenseManager> to resolve App.LicenseManager
+        // This maintains backward compatibility with existing delegate patterns
+        // ============================================================================
+        services.AddSingleton<ICertificationService>(sp =>
+            new CertificationService(
+                () => App.LicenseManager,
+                sp.GetRequiredService<IEventAggregator>()));
+
+        // ============================================================================
+        // AUTHENTICATION SERVICE
+        // Centralized authentication for all FathomOS modules
+        // ============================================================================
+        services.AddSingleton<IAuthenticationService>(sp =>
+            new AuthenticationService(
+                sp.GetRequiredService<IEventAggregator>(),
+                sp.GetRequiredService<ISettingsService>()));
+
+        // ============================================================================
+        // MODULE MANAGEMENT
+        // ModuleManager receives IServiceProvider to support DI in module instantiation
+        // ============================================================================
+        services.AddSingleton<IModuleManager>(sp =>
+            new ModuleManager(sp));
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("DEBUG: OnExit called!");
         System.Diagnostics.Debug.WriteLine($"DEBUG: Stack trace:\n{Environment.StackTrace}");
-        
+
         // Properly shutdown licensing (ends session on server)
         try
         {
             Licensing?.ShutdownAsync().GetAwaiter().GetResult();
         }
         catch { /* Ignore shutdown errors */ }
-        
+
         // Dispose licensing wrapper
         Licensing?.Dispose();
-        
+
         // Shutdown all modules
         _moduleManager?.ShutdownAll();
+
+        // Dispose DI container if it implements IDisposable
+        if (Services is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
         base.OnExit(e);
     }
     

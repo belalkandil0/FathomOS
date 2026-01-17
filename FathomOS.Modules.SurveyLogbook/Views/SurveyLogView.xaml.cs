@@ -158,7 +158,7 @@ public partial class SurveyLogView : UserControl
             });
         factory.SetValue(PackIconMaterial.WidthProperty, 16.0);
         factory.SetValue(PackIconMaterial.HeightProperty, 16.0);
-        factory.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        factory.SetValue(HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Center);
         
         cellTemplate.VisualTree = factory;
         iconColumn.CellTemplate = cellTemplate;
@@ -206,8 +206,8 @@ public partial class SurveyLogView : UserControl
         
         var cellTemplate = new DataTemplate();
         var stackFactory = new FrameworkElementFactory(typeof(StackPanel));
-        stackFactory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
-        stackFactory.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        stackFactory.SetValue(StackPanel.OrientationProperty, System.Windows.Controls.Orientation.Horizontal);
+        stackFactory.SetValue(HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Center);
         
         // View button
         var viewButtonFactory = new FrameworkElementFactory(typeof(Button));

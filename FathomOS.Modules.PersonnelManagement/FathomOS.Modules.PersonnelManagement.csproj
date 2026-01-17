@@ -14,7 +14,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Core Reference - provides MahApps, OxyPlot, HelixToolkit, ClosedXML, QuestPDF, netDxf -->
     <ProjectReference Include="..\FathomOS.Core\FathomOS.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Entity Framework Core for SQLite -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
+
+    <!-- HTTP Client Extensions -->
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

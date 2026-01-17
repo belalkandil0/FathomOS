@@ -78,7 +78,7 @@ namespace FathomOS.UI.Controls
                 nameof(CornerRadius),
                 typeof(CornerRadius),
                 typeof(FathomCard),
-                new PropertyMetadata(new CornerRadius(8)));
+                new PropertyMetadata(new CornerRadius(6)));
 
         /// <summary>
         /// Gets or sets the corner radius of the card.

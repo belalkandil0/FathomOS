@@ -22,6 +22,16 @@ public class Location
     /// Quick reference location type (Base, Vessel, Warehouse, etc.)
     /// </summary>
     public LocationType Type { get; set; } = LocationType.Base;
+
+    /// <summary>
+    /// Alias for Type property for backwards compatibility
+    /// </summary>
+    [NotMapped]
+    public LocationType LocationType
+    {
+        get => Type;
+        set => Type = value;
+    }
     
     [Required][MaxLength(200)]
     public string Name { get; set; } = string.Empty;

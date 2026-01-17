@@ -42,20 +42,20 @@
   </ItemGroup>
 
   <!-- Auto-deploy to Shell's Modules folder after build -->
-  <Target Name="DeployToModulesFolder" AfterTargets="Build">
+  <Target Name="DeployToModulesFolder" AfterTargets="Build" Condition="'$(SolutionDir)' != '' AND '$(SolutionDir)' != '*Undefined*'">
     <PropertyGroup>
       <ModulesDir>$(SolutionDir)FathomOS.Shell\bin\$(Configuration)\$(TargetFramework)\Modules\NetworkTimeSync\</ModulesDir>
     </PropertyGroup>
-    
+
     <MakeDir Directories="$(ModulesDir)" />
-    
+
     <ItemGroup>
       <FilesToCopy Include="$(TargetDir)*.dll" Exclude="$(TargetDir)FathomOS.Core.dll" />
       <FilesToCopy Include="$(TargetDir)*.pdb" />
       <FilesToCopy Include="$(TargetDir)ModuleInfo.json" />
       <FilesToCopy Include="$(TargetDir)*.png" />
     </ItemGroup>
-    
+
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ModulesDir)" SkipUnchangedFiles="true" />
   </Target>
 

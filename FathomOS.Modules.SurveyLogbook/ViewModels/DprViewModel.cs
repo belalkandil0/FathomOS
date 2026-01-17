@@ -16,6 +16,9 @@ using QuestPDF.Infrastructure;
 using FathomOS.Modules.SurveyLogbook.Models;
 using FathomOS.Modules.SurveyLogbook.Services;
 
+// Alias for QuestPDF types to avoid conflicts with System.Windows.Media
+using QuestColors = QuestPDF.Helpers.Colors;
+
 namespace FathomOS.Modules.SurveyLogbook.ViewModels;
 
 /// <summary>
@@ -410,9 +413,9 @@ public class DprViewModel : ViewModelBase
                         
                         page.Header().Column(col =>
                         {
-                            col.Item().Text("Daily Progress Report").FontSize(20).Bold().FontColor(Colors.Blue.Darken2);
+                            col.Item().Text("Daily Progress Report").FontSize(20).Bold().FontColor(QuestColors.Blue.Darken2);
                             col.Item().Text($"Report Date: {report.ReportDate:yyyy-MM-dd}").FontSize(12);
-                            col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                            col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(QuestColors.Grey.Medium);
                         });
                         
                         page.Content().Column(col =>
@@ -482,18 +485,18 @@ public class DprViewModel : ViewModelBase
                                     // Header
                                     table.Header(header =>
                                     {
-                                        header.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text("Name").Bold();
-                                        header.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text("Rank").Bold();
-                                        header.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text("Shift").Bold();
-                                        header.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text("Date On Board").Bold();
+                                        header.Cell().Background(QuestColors.Grey.Lighten2).Padding(3).Text("Name").Bold();
+                                        header.Cell().Background(QuestColors.Grey.Lighten2).Padding(3).Text("Rank").Bold();
+                                        header.Cell().Background(QuestColors.Grey.Lighten2).Padding(3).Text("Shift").Bold();
+                                        header.Cell().Background(QuestColors.Grey.Lighten2).Padding(3).Text("Date On Board").Bold();
                                     });
                                     
                                     foreach (var crew in report.CrewMembers)
                                     {
-                                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(3).Text(crew.Name ?? "");
-                                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(3).Text(crew.Rank ?? "");
-                                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(3).Text(crew.Shift ?? "");
-                                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Padding(3).Text(crew.DateOnBoard.ToString("yyyy-MM-dd"));
+                                        table.Cell().BorderBottom(1).BorderColor(QuestColors.Grey.Lighten1).Padding(3).Text(crew.Name ?? "");
+                                        table.Cell().BorderBottom(1).BorderColor(QuestColors.Grey.Lighten1).Padding(3).Text(crew.Rank ?? "");
+                                        table.Cell().BorderBottom(1).BorderColor(QuestColors.Grey.Lighten1).Padding(3).Text(crew.Shift ?? "");
+                                        table.Cell().BorderBottom(1).BorderColor(QuestColors.Grey.Lighten1).Padding(3).Text(crew.DateOnBoard.ToString("yyyy-MM-dd"));
                                     }
                                 });
                             }

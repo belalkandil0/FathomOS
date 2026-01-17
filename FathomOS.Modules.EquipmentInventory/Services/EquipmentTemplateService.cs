@@ -264,12 +264,26 @@ public class EquipmentTemplate
     public Guid TemplateId { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
+    /// <summary>Alias for Name property for backwards compatibility</summary>
+    public string TemplateName
+    {
+        get => Name;
+        set => Name = value;
+    }
+
     // Category/Type
     public Guid? CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public Guid? TypeId { get; set; }
     public string? TypeName { get; set; }
+
+    /// <summary>Alias for CategoryName property for backwards compatibility</summary>
+    public string? Category
+    {
+        get => CategoryName;
+        set => CategoryName = value;
+    }
     
     // Equipment Details
     public string? EquipmentName { get; set; }

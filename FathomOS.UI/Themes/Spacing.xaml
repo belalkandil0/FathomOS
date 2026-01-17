@@ -6,81 +6,234 @@
     <!-- FathomOS Design System - Spacing              -->
     <!-- Owned by: UI-AGENT                            -->
     <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- Base Unit: 4px                                -->
     <!-- ============================================== -->
 
-    <!-- Base Unit: 4px -->
-    <!-- All spacing values should be multiples of 4 -->
+    <!-- ========== SPACING SCALE ========== -->
+    <!-- All values are multiples of 4px base unit -->
 
-    <!-- Spacing Scale -->
+    <sys:Double x:Key="SpacingNone">0</sys:Double>
     <sys:Double x:Key="SpacingXXS">2</sys:Double>
     <sys:Double x:Key="SpacingXS">4</sys:Double>
     <sys:Double x:Key="SpacingS">8</sys:Double>
-    <sys:Double x:Key="SpacingM">16</sys:Double>
-    <sys:Double x:Key="SpacingL">24</sys:Double>
-    <sys:Double x:Key="SpacingXL">32</sys:Double>
-    <sys:Double x:Key="SpacingXXL">48</sys:Double>
-    <sys:Double x:Key="SpacingXXXL">64</sys:Double>
+    <sys:Double x:Key="SpacingM">12</sys:Double>
+    <sys:Double x:Key="SpacingL">16</sys:Double>
+    <sys:Double x:Key="SpacingXL">24</sys:Double>
+    <sys:Double x:Key="SpacingXXL">32</sys:Double>
+    <sys:Double x:Key="Spacing3XL">48</sys:Double>
+    <sys:Double x:Key="Spacing4XL">64</sys:Double>
 
-    <!-- Common Padding -->
+    <!-- ========== COMMON PADDING ========== -->
+
+    <Thickness x:Key="PaddingNone">0</Thickness>
+    <Thickness x:Key="PaddingXXS">2</Thickness>
     <Thickness x:Key="PaddingXS">4</Thickness>
     <Thickness x:Key="PaddingS">8</Thickness>
-    <Thickness x:Key="PaddingM">16</Thickness>
-    <Thickness x:Key="PaddingL">24</Thickness>
-    <Thickness x:Key="PaddingXL">32</Thickness>
+    <Thickness x:Key="PaddingM">12</Thickness>
+    <Thickness x:Key="PaddingL">16</Thickness>
+    <Thickness x:Key="PaddingXL">24</Thickness>
+    <Thickness x:Key="PaddingXXL">32</Thickness>
 
-    <!-- Component-Specific Padding -->
-    <Thickness x:Key="CardPadding">16</Thickness>
-    <Thickness x:Key="CardPaddingLarge">24</Thickness>
-    <Thickness x:Key="ButtonPadding">16,10</Thickness>
+    <!-- ========== COMPONENT PADDING ========== -->
+
+    <!-- Button Padding (X, Y format) -->
     <Thickness x:Key="ButtonPaddingSmall">12,6</Thickness>
-    <Thickness x:Key="ButtonPaddingLarge">24,14</Thickness>
-    <Thickness x:Key="InputPadding">12,10</Thickness>
+    <Thickness x:Key="ButtonPaddingMedium">16,8</Thickness>
+    <Thickness x:Key="ButtonPaddingLarge">24,12</Thickness>
+
+    <!-- TextBox/Input Padding -->
+    <Thickness x:Key="InputPadding">12,8</Thickness>
+
+    <!-- Card Padding -->
+    <Thickness x:Key="CardPadding">20,16</Thickness>
+    <Thickness x:Key="CardPaddingCompact">16,12</Thickness>
+
+    <!-- Dialog Padding -->
     <Thickness x:Key="DialogPadding">24</Thickness>
+
+    <!-- Tooltip Padding -->
+    <Thickness x:Key="TooltipPadding">10,6</Thickness>
+
+    <!-- Menu Item Padding -->
+    <Thickness x:Key="MenuItemPadding">12,8</Thickness>
+
+    <!-- List Item Padding -->
     <Thickness x:Key="ListItemPadding">12,8</Thickness>
 
-    <!-- Common Margins -->
+    <!-- Tab Padding -->
+    <Thickness x:Key="TabPadding">16,0</Thickness>
+
+    <!-- Status Bar Item Padding -->
+    <Thickness x:Key="StatusBarItemPadding">8,0</Thickness>
+
+    <!-- Sidebar Item Padding -->
+    <Thickness x:Key="SidebarItemPadding">12,0</Thickness>
+
+    <!-- ========== COMMON MARGINS ========== -->
+
+    <Thickness x:Key="MarginNone">0</Thickness>
+    <Thickness x:Key="MarginXXS">2</Thickness>
     <Thickness x:Key="MarginXS">4</Thickness>
     <Thickness x:Key="MarginS">8</Thickness>
-    <Thickness x:Key="MarginM">16</Thickness>
-    <Thickness x:Key="MarginL">24</Thickness>
-    <Thickness x:Key="MarginXL">32</Thickness>
+    <Thickness x:Key="MarginM">12</Thickness>
+    <Thickness x:Key="MarginL">16</Thickness>
+    <Thickness x:Key="MarginXL">24</Thickness>
+    <Thickness x:Key="MarginXXL">32</Thickness>
 
-    <!-- Directional Margins -->
+    <!-- ========== DIRECTIONAL MARGINS ========== -->
+
+    <!-- Bottom Margins -->
+    <Thickness x:Key="MarginBottomXS">0,0,0,4</Thickness>
     <Thickness x:Key="MarginBottomS">0,0,0,8</Thickness>
-    <Thickness x:Key="MarginBottomM">0,0,0,16</Thickness>
-    <Thickness x:Key="MarginBottomL">0,0,0,24</Thickness>
-    <Thickness x:Key="MarginTopS">0,8,0,0</Thickness>
-    <Thickness x:Key="MarginTopM">0,16,0,0</Thickness>
-    <Thickness x:Key="MarginTopL">0,24,0,0</Thickness>
-    <Thickness x:Key="MarginRightS">0,0,8,0</Thickness>
-    <Thickness x:Key="MarginRightM">0,0,16,0</Thickness>
-    <Thickness x:Key="MarginLeftS">8,0,0,0</Thickness>
-    <Thickness x:Key="MarginLeftM">16,0,0,0</Thickness>
+    <Thickness x:Key="MarginBottomM">0,0,0,12</Thickness>
+    <Thickness x:Key="MarginBottomL">0,0,0,16</Thickness>
+    <Thickness x:Key="MarginBottomXL">0,0,0,24</Thickness>
 
-    <!-- Border Radius -->
+    <!-- Top Margins -->
+    <Thickness x:Key="MarginTopXS">0,4,0,0</Thickness>
+    <Thickness x:Key="MarginTopS">0,8,0,0</Thickness>
+    <Thickness x:Key="MarginTopM">0,12,0,0</Thickness>
+    <Thickness x:Key="MarginTopL">0,16,0,0</Thickness>
+    <Thickness x:Key="MarginTopXL">0,24,0,0</Thickness>
+
+    <!-- Right Margins -->
+    <Thickness x:Key="MarginRightXS">0,0,4,0</Thickness>
+    <Thickness x:Key="MarginRightS">0,0,8,0</Thickness>
+    <Thickness x:Key="MarginRightM">0,0,12,0</Thickness>
+    <Thickness x:Key="MarginRightL">0,0,16,0</Thickness>
+
+    <!-- Left Margins -->
+    <Thickness x:Key="MarginLeftXS">4,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftS">8,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftM">12,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftL">16,0,0,0</Thickness>
+
+    <!-- Horizontal Margins (Left + Right) -->
+    <Thickness x:Key="MarginHorizontalS">8,0</Thickness>
+    <Thickness x:Key="MarginHorizontalM">12,0</Thickness>
+    <Thickness x:Key="MarginHorizontalL">16,0</Thickness>
+
+    <!-- Vertical Margins (Top + Bottom) -->
+    <Thickness x:Key="MarginVerticalS">0,8</Thickness>
+    <Thickness x:Key="MarginVerticalM">0,12</Thickness>
+    <Thickness x:Key="MarginVerticalL">0,16</Thickness>
+
+    <!-- ========== BORDER RADIUS ========== -->
+
+    <CornerRadius x:Key="RadiusNone">0</CornerRadius>
     <CornerRadius x:Key="RadiusXS">2</CornerRadius>
     <CornerRadius x:Key="RadiusS">4</CornerRadius>
-    <CornerRadius x:Key="RadiusM">8</CornerRadius>
-    <CornerRadius x:Key="RadiusL">12</CornerRadius>
-    <CornerRadius x:Key="RadiusXL">16</CornerRadius>
-    <CornerRadius x:Key="RadiusRound">9999</CornerRadius>
+    <CornerRadius x:Key="RadiusM">6</CornerRadius>
+    <CornerRadius x:Key="RadiusL">8</CornerRadius>
+    <CornerRadius x:Key="RadiusXL">12</CornerRadius>
+    <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
-    <!-- Border Thickness -->
+    <!-- ========== BORDER THICKNESS ========== -->
+
+    <Thickness x:Key="BorderNone">0</Thickness>
     <Thickness x:Key="BorderThin">1</Thickness>
     <Thickness x:Key="BorderMedium">2</Thickness>
     <Thickness x:Key="BorderThick">3</Thickness>
 
-    <!-- Icon Sizes -->
-    <sys:Double x:Key="IconSizeXS">12</sys:Double>
-    <sys:Double x:Key="IconSizeS">16</sys:Double>
-    <sys:Double x:Key="IconSizeM">20</sys:Double>
-    <sys:Double x:Key="IconSizeL">24</sys:Double>
-    <sys:Double x:Key="IconSizeXL">32</sys:Double>
-    <sys:Double x:Key="IconSizeXXL">48</sys:Double>
+    <!-- Focus Ring Border -->
+    <Thickness x:Key="FocusRingBorder">2</Thickness>
 
-    <!-- Control Heights -->
-    <sys:Double x:Key="ControlHeightS">28</sys:Double>
-    <sys:Double x:Key="ControlHeightM">36</sys:Double>
-    <sys:Double x:Key="ControlHeightL">44</sys:Double>
+    <!-- ========== ICON SIZES ========== -->
+
+    <sys:Double x:Key="IconSizeTiny">12</sys:Double>
+    <sys:Double x:Key="IconSizeSmall">14</sys:Double>
+    <sys:Double x:Key="IconSizeDefault">16</sys:Double>
+    <sys:Double x:Key="IconSizeMedium">20</sys:Double>
+    <sys:Double x:Key="IconSizeLarge">24</sys:Double>
+    <sys:Double x:Key="IconSizeXLarge">32</sys:Double>
+
+    <!-- ========== CONTROL HEIGHTS ========== -->
+
+    <sys:Double x:Key="ControlHeightSmall">28</sys:Double>
+    <sys:Double x:Key="ControlHeightMedium">36</sys:Double>
+    <sys:Double x:Key="ControlHeightLarge">44</sys:Double>
+
+    <!-- ========== SPECIFIC COMPONENT SIZES ========== -->
+
+    <!-- CheckBox/RadioButton -->
+    <sys:Double x:Key="CheckboxSize">18</sys:Double>
+    <sys:Double x:Key="CheckmarkSize">12</sys:Double>
+    <sys:Double x:Key="RadioDotSize">8</sys:Double>
+
+    <!-- Toggle Switch -->
+    <sys:Double x:Key="ToggleSwitchWidth">44</sys:Double>
+    <sys:Double x:Key="ToggleSwitchHeight">24</sys:Double>
+    <sys:Double x:Key="ToggleSwitchThumbSize">18</sys:Double>
+
+    <!-- Slider -->
+    <sys:Double x:Key="SliderTrackHeight">4</sys:Double>
+    <sys:Double x:Key="SliderThumbSize">16</sys:Double>
+
+    <!-- ScrollBar -->
+    <sys:Double x:Key="ScrollbarWidth">12</sys:Double>
+    <sys:Double x:Key="ScrollbarWidthCompact">6</sys:Double>
+    <sys:Double x:Key="ScrollbarThumbMinHeight">32</sys:Double>
+    <sys:Double x:Key="ScrollbarThumbRadius">6</sys:Double>
+
+    <!-- Progress Bar -->
+    <sys:Double x:Key="ProgressBarHeight">4</sys:Double>
+    <sys:Double x:Key="ProgressBarHeightLarge">8</sys:Double>
+
+    <!-- Spinner -->
+    <sys:Double x:Key="SpinnerSizeSmall">24</sys:Double>
+    <sys:Double x:Key="SpinnerSizeMedium">40</sys:Double>
+    <sys:Double x:Key="SpinnerSizeLarge">64</sys:Double>
+    <sys:Double x:Key="SpinnerStrokeWidth">3</sys:Double>
+
+    <!-- Data Grid -->
+    <sys:Double x:Key="DataGridRowHeight">40</sys:Double>
+    <sys:Double x:Key="DataGridHeaderHeight">44</sys:Double>
+
+    <!-- Tab Control -->
+    <sys:Double x:Key="TabHeight">44</sys:Double>
+
+    <!-- Menu -->
+    <sys:Double x:Key="MenuItemHeight">32</sys:Double>
+
+    <!-- TreeView -->
+    <sys:Double x:Key="TreeViewItemHeight">28</sys:Double>
+    <sys:Double x:Key="TreeViewIndent">20</sys:Double>
+
+    <!-- Sidebar -->
+    <sys:Double x:Key="SidebarWidthExpanded">240</sys:Double>
+    <sys:Double x:Key="SidebarWidthCollapsed">48</sys:Double>
+    <sys:Double x:Key="SidebarItemHeight">40</sys:Double>
+
+    <!-- Status Bar -->
+    <sys:Double x:Key="StatusBarHeight">24</sys:Double>
+
+    <!-- Title Bar -->
+    <sys:Double x:Key="TitleBarHeight">32</sys:Double>
+
+    <!-- Toast -->
+    <sys:Double x:Key="ToastWidth">360</sys:Double>
+    <sys:Double x:Key="ToastStackSpacing">8</sys:Double>
+    <sys:Double x:Key="ToastMaxVisible">3</sys:Double>
+
+    <!-- Empty State -->
+    <sys:Double x:Key="EmptyStateMaxWidth">400</sys:Double>
+    <sys:Double x:Key="EmptyStateIconSize">120</sys:Double>
+
+    <!-- ========== GAP/SPACING VALUES ========== -->
+
+    <!-- Icon-to-text spacing -->
+    <sys:Double x:Key="IconTextGap">8</sys:Double>
+
+    <!-- Label-to-control spacing -->
+    <sys:Double x:Key="LabelControlGap">8</sys:Double>
+
+    <!-- Form field vertical spacing -->
+    <sys:Double x:Key="FormFieldGap">16</sys:Double>
+
+    <!-- Card stack spacing -->
+    <sys:Double x:Key="CardStackGap">16</sys:Double>
+
+    <!-- Section spacing -->
+    <sys:Double x:Key="SectionGap">24</sys:Double>
 
 </ResourceDictionary>

@@ -4,7 +4,7 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:converters="clr-namespace:FathomOS.Modules.EquipmentInventory.Converters"
-        Title="Favorites & Recent"
+        Title="Favorites &amp; Recent"
         Height="550" Width="600"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"

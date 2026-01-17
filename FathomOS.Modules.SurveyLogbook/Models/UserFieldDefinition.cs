@@ -237,6 +237,12 @@ public class UserFieldDefinition : INotifyPropertyChanged
     
     /// <summary>
     /// Creates a default set of field definitions based on standard NaviPac output.
+    /// Alias for CreateDefaultFields for backwards compatibility.
+    /// </summary>
+    public static List<UserFieldDefinition> CreateDefaultFieldSet() => CreateDefaultFields();
+
+    /// <summary>
+    /// Creates a default set of field definitions based on standard NaviPac output.
     /// </summary>
     public static List<UserFieldDefinition> CreateDefaultFields()
     {

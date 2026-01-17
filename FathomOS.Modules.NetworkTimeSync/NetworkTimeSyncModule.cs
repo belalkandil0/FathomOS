@@ -12,6 +12,39 @@ using FathomOS.Modules.NetworkTimeSync.Views;
 public class NetworkTimeSyncModule : IModule
 {
     private DashboardWindow? _mainWindow;
+    private readonly IAuthenticationService? _authService;
+    private readonly ICertificationService? _certService;
+    private readonly IEventAggregator? _eventAggregator;
+    private readonly IThemeService? _themeService;
+    private readonly IErrorReporter? _errorReporter;
+
+    #region Constructors
+
+    /// <summary>
+    /// Default constructor for module discovery
+    /// </summary>
+    public NetworkTimeSyncModule()
+    {
+    }
+
+    /// <summary>
+    /// DI constructor for full functionality
+    /// </summary>
+    public NetworkTimeSyncModule(
+        IAuthenticationService authService,
+        ICertificationService certService,
+        IEventAggregator eventAggregator,
+        IThemeService themeService,
+        IErrorReporter errorReporter)
+    {
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _certService = certService;
+        _eventAggregator = eventAggregator;
+        _themeService = themeService;
+        _errorReporter = errorReporter;
+    }
+
+    #endregion
     
     // ═══════════════════════════════════════════════════════════
     // MODULE METADATA
@@ -44,6 +77,18 @@ public class NetworkTimeSyncModule : IModule
         // Load any saved settings
         // Register any services with DI container if using one
         // Pre-load any resources needed
+
+        // Subscribe to theme changes if available
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged += OnThemeChanged;
+        }
+    }
+
+    private void OnThemeChanged(object? sender, AppTheme theme)
+    {
+        // Theme is applied automatically by Shell
+        System.Diagnostics.Debug.WriteLine($"{ModuleId}: Theme changed to {theme}");
     }
     
     /// <summary>
@@ -79,6 +124,12 @@ public class NetworkTimeSyncModule : IModule
     /// </summary>
     public void Shutdown()
     {
+        // Unsubscribe from theme changes
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged -= OnThemeChanged;
+        }
+
         // Save any unsaved data
         // Close window if open
         _mainWindow?.Close();

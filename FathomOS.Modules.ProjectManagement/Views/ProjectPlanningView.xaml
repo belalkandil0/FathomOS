@@ -1,0 +1,140 @@
+<UserControl x:Class="FathomOS.Modules.ProjectManagement.Views.ProjectPlanningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Project Planning" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="Manage resource assignments for projects"
+                       FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Project Selection -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Select Project:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ComboBox x:Name="ProjectCombo" Grid.Column="1" Padding="8"
+                      DisplayMemberPath="ProjectName"
+                      SelectionChanged="ProjectCombo_SelectionChanged"/>
+        </Grid>
+
+        <!-- Resource Assignment Tabs -->
+        <TabControl Grid.Row="2">
+            <!-- Vessel Assignments -->
+            <TabItem Header="Vessels">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button x:Name="AddVesselButton" Content="+ Assign Vessel" Padding="15,5"
+                                Click="AddVesselButton_Click"/>
+                    </StackPanel>
+
+                    <DataGrid x:Name="VesselAssignmentsGrid" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Vessel Name" Binding="{Binding VesselName}" Width="180"/>
+                            <DataGridTextColumn Header="IMO Number" Binding="{Binding VesselIMO}" Width="100"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="100"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                            <DataGridTextColumn Header="Daily Rate" Binding="{Binding DailyRate, StringFormat='{}{0:C}'}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button x:Name="EditVesselButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
+                        <Button x:Name="RemoveVesselButton" Content="Remove" Padding="15,5"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Equipment Assignments -->
+            <TabItem Header="Equipment">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button x:Name="AddEquipmentButton" Content="+ Assign Equipment" Padding="15,5"
+                                Click="AddEquipmentButton_Click"/>
+                    </StackPanel>
+
+                    <DataGrid x:Name="EquipmentAssignmentsGrid" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Equipment Name" Binding="{Binding EquipmentName}" Width="180"/>
+                            <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="100"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button x:Name="EditEquipmentButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
+                        <Button x:Name="RemoveEquipmentButton" Content="Remove" Padding="15,5"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Personnel Assignments -->
+            <TabItem Header="Personnel">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button x:Name="AddPersonnelButton" Content="+ Assign Personnel" Padding="15,5"
+                                Click="AddPersonnelButton_Click"/>
+                    </StackPanel>
+
+                    <DataGrid x:Name="PersonnelAssignmentsGrid" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding PersonnelName}" Width="180"/>
+                            <DataGridTextColumn Header="Position" Binding="{Binding PositionTitle}" Width="130"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="120"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button x:Name="EditPersonnelButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
+                        <Button x:Name="RemovePersonnelButton" Content="Remove" Padding="15,5"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

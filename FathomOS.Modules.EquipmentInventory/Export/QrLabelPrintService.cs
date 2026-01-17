@@ -4,6 +4,9 @@ using QuestPDF.Infrastructure;
 using FathomOS.Modules.EquipmentInventory.Models;
 using FathomOS.Modules.EquipmentInventory.Services;
 
+// Use unique alias name for QuestPDF Colors to avoid conflict with System.Windows.Media.Colors
+using QuestColors = QuestPDF.Helpers.Colors;
+
 namespace FathomOS.Modules.EquipmentInventory.Export;
 
 /// <summary>
@@ -73,7 +76,7 @@ public class QrLabelPrintService
             .Width(options.LabelWidth)
             .Height(options.LabelHeight)
             .Border(options.ShowBorder ? 0.5f : 0)
-            .BorderColor(Colors.Grey.Lighten1)
+            .BorderColor(QuestColors.Grey.Lighten1)
             .Padding(options.LabelPadding)
             .Column(col =>
             {
@@ -112,7 +115,7 @@ public class QrLabelPrintService
                         .AlignCenter()
                         .Text($"S/N: {equipment.SerialNumber}")
                         .FontSize(options.SerialNumberFontSize)
-                        .FontColor(Colors.Grey.Darken1);
+                        .FontColor(QuestColors.Grey.Darken1);
                 }
                 
                 if (options.ShowCategory && equipment.Category != null)
@@ -122,7 +125,7 @@ public class QrLabelPrintService
                         .AlignCenter()
                         .Text(equipment.Category.Name)
                         .FontSize(7)
-                        .FontColor(Colors.Grey.Darken2);
+                        .FontColor(QuestColors.Grey.Darken2);
                 }
                 
                 if (options.ShowCompanyName)
@@ -132,7 +135,7 @@ public class QrLabelPrintService
                         .AlignCenter()
                         .Text(options.CompanyName)
                         .FontSize(6)
-                        .FontColor(Colors.Grey.Medium);
+                        .FontColor(QuestColors.Grey.Medium);
                 }
             });
     }

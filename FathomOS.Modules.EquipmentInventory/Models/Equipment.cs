@@ -132,7 +132,7 @@ public class Equipment
     #region Location & Status
     
     public Guid? CurrentLocationId { get; set; }
-    
+
     [ForeignKey(nameof(CurrentLocationId))]
     [JsonIgnore]
     public virtual Location? CurrentLocation { get; set; }

@@ -708,7 +708,7 @@ public class DataMonitorViewModel : ViewModelBase, IDisposable
         if (RawMessages.Count > 0)
         {
             var lastMessage = RawMessages[RawMessages.Count - 1];
-            Clipboard.SetText(lastMessage.Data);
+            System.Windows.Clipboard.SetText(lastMessage.Data);
         }
     }
     
@@ -719,7 +719,7 @@ public class DataMonitorViewModel : ViewModelBase, IDisposable
     {
         if (SelectedMessage != null)
         {
-            Clipboard.SetText(SelectedMessage.Data);
+            System.Windows.Clipboard.SetText(SelectedMessage.Data);
         }
     }
     

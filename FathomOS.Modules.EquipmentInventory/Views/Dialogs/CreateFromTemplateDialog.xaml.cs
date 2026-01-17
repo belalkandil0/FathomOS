@@ -60,7 +60,7 @@ public partial class CreateFromTemplateDialog : MetroWindow
             : _allTemplates.Where(t => 
                 t.TemplateName.ToLower().Contains(search) ||
                 (t.Description?.ToLower().Contains(search) ?? false) ||
-                (t.Category?.Name?.ToLower().Contains(search) ?? false)).ToList();
+                (t.CategoryName?.ToLower().Contains(search) ?? false)).ToList();
         
         TemplatesList.ItemsSource = filtered.OrderByDescending(t => t.UsageCount).ToList();
         EmptyState.Visibility = filtered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

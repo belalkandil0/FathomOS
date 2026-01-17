@@ -23,3 +23,20 @@ global using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 // WPF core types
 global using ResourceDictionary = System.Windows.ResourceDictionary;
+
+// Media types - resolve conflicts between System.Drawing and System.Windows.Media
+global using Brush = System.Windows.Media.Brush;
+global using SolidColorBrush = System.Windows.Media.SolidColorBrush;
+global using Color = System.Windows.Media.Color;
+global using Pen = System.Windows.Media.Pen;
+global using Font = System.Windows.Media.FontFamily;
+global using Brushes = System.Windows.Media.Brushes;
+global using Colors = System.Windows.Media.Colors;
+
+// Data binding - prefer WPF version
+global using Binding = System.Windows.Data.Binding;
+
+// Drawing types - resolve conflicts
+global using Point = System.Windows.Point;
+global using Size = System.Windows.Size;
+global using Rect = System.Windows.Rect;

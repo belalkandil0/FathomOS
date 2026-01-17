@@ -31,6 +31,39 @@ public class SurveyLogbookModule : IModule
 
     private MainWindow? _mainWindow;
     private bool _isInitialized;
+    private readonly IAuthenticationService? _authService;
+    private readonly ICertificationService? _certService;
+    private readonly IEventAggregator? _eventAggregator;
+    private readonly IThemeService? _themeService;
+    private readonly IErrorReporter? _errorReporter;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Default constructor for module discovery
+    /// </summary>
+    public SurveyLogbookModule()
+    {
+    }
+
+    /// <summary>
+    /// DI constructor for full functionality
+    /// </summary>
+    public SurveyLogbookModule(
+        IAuthenticationService authService,
+        ICertificationService certService,
+        IEventAggregator eventAggregator,
+        IThemeService themeService,
+        IErrorReporter errorReporter)
+    {
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _certService = certService;
+        _eventAggregator = eventAggregator;
+        _themeService = themeService;
+        _errorReporter = errorReporter;
+    }
 
     #endregion
 
@@ -96,6 +129,12 @@ public class SurveyLogbookModule : IModule
             // Register any global resources or services here
             // Note: Most initialization happens in MainWindow.Loaded
 
+            // Subscribe to theme changes if available
+            if (_themeService != null)
+            {
+                _themeService.ThemeChanged += OnThemeChanged;
+            }
+
             _isInitialized = true;
             System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Initialization complete.");
         }
@@ -104,6 +143,12 @@ public class SurveyLogbookModule : IModule
             System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Initialization failed: {ex.Message}");
             throw;
         }
+    }
+
+    private void OnThemeChanged(object? sender, AppTheme theme)
+    {
+        // Theme is applied automatically by Shell
+        System.Diagnostics.Debug.WriteLine($"{ModuleId}: Theme changed to {theme}");
     }
 
     /// <summary>
@@ -161,6 +206,12 @@ public class SurveyLogbookModule : IModule
         try
         {
             System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Shutting down {DisplayName}...");
+
+            // Unsubscribe from theme changes
+            if (_themeService != null)
+            {
+                _themeService.ThemeChanged -= OnThemeChanged;
+            }
 
             // Close the main window if open
             if (_mainWindow != null)

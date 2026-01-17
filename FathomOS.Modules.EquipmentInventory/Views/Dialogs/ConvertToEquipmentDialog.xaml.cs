@@ -43,7 +43,7 @@ public partial class ConvertToEquipmentDialog : MetroWindow
         {
             // Load lookups
             var categories = await _dbService.GetCategoriesAsync();
-            var types = await _dbService.GetEquipmentTypesAsync();
+            var types = await _dbService.GetTypesAsync();
             var locations = await _dbService.GetLocationsAsync();
             
             CategoryCombo.ItemsSource = categories;
@@ -145,14 +145,14 @@ public partial class ConvertToEquipmentDialog : MetroWindow
                 Description = string.IsNullOrWhiteSpace(DescriptionBox.Text) ? null : DescriptionBox.Text.Trim(),
                 CategoryId = category.CategoryId,
                 TypeId = equipmentType?.TypeId,
-                LocationId = location.LocationId,
+                CurrentLocationId = location.LocationId,
                 SerialNumber = string.IsNullOrWhiteSpace(SerialNumberBox.Text) ? null : SerialNumberBox.Text.Trim(),
                 PartNumber = string.IsNullOrWhiteSpace(PartNumberBox.Text) ? null : PartNumberBox.Text.Trim(),
                 Manufacturer = string.IsNullOrWhiteSpace(ManufacturerBox.Text) ? null : ManufacturerBox.Text.Trim(),
                 Model = string.IsNullOrWhiteSpace(ModelBox.Text) ? null : ModelBox.Text.Trim(),
                 Status = status,
                 Condition = condition,
-                Ownership = OwnershipType.Owned,
+                OwnershipType = OwnershipType.Owned,
                 Notes = string.IsNullOrWhiteSpace(NotesBox.Text) 
                     ? $"Converted from unregistered item (Manifest: {_sourceItem.Manifest?.ManifestNumber ?? "Unknown"})"
                     : NotesBox.Text.Trim(),

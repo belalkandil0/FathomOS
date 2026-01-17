@@ -53,8 +53,8 @@ public partial class LocationSelectionDialog : MetroWindow
         else
         {
             LocationsList.ItemsSource = _allLocations
-                .Where(l => l.Name.ToLower().Contains(search) || 
-                           (l.LocationType?.ToString().ToLower().Contains(search) ?? false))
+                .Where(l => l.Name.ToLower().Contains(search) ||
+                           l.Type.ToString().ToLower().Contains(search))
                 .OrderBy(l => l.Name)
                 .ToList();
         }

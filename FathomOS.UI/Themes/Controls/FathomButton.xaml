@@ -1,0 +1,246 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:FathomOS.UI.Controls">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - FathomButton Styles  -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- ============================================== -->
+
+    <!-- Base FathomButton Style -->
+    <Style TargetType="{x:Type controls:FathomButton}">
+        <Setter Property="FontFamily" Value="{DynamicResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:FathomButton}">
+                    <Grid>
+                        <!-- Focus Ring (outside border) -->
+                        <Border x:Name="FocusRing"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                BorderThickness="2"
+                                BorderBrush="Transparent"
+                                Margin="-2"/>
+
+                        <!-- Main Button Border -->
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+
+                            <Grid>
+                                <!-- Content -->
+                                <ContentPresenter x:Name="ContentPresenter"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"
+                                                  Visibility="Visible"/>
+
+                                <!-- Loading Spinner (hidden by default) -->
+                                <Grid x:Name="LoadingContent" Visibility="Collapsed">
+                                    <Ellipse Width="16" Height="16"
+                                             Stroke="{TemplateBinding Foreground}"
+                                             StrokeThickness="2"
+                                             StrokeDashArray="3,2">
+                                        <Ellipse.RenderTransform>
+                                            <RotateTransform x:Name="SpinnerRotation" CenterX="8" CenterY="8"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Loading State -->
+                        <Trigger Property="IsLoading" Value="True">
+                            <Setter TargetName="ContentPresenter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="LoadingContent" Property="Visibility" Value="Visible"/>
+                            <Setter Property="IsEnabled" Value="False"/>
+                        </Trigger>
+
+                        <!-- Focus State -->
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="FocusRing" Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+                        </Trigger>
+
+                        <!-- Disabled State -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <!-- Size Triggers -->
+        <Style.Triggers>
+            <!-- Small Size -->
+            <Trigger Property="Size" Value="Small">
+                <Setter Property="MinHeight" Value="28"/>
+                <Setter Property="Padding" Value="12,6"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Trigger>
+
+            <!-- Medium Size (Default) -->
+            <Trigger Property="Size" Value="Medium">
+                <Setter Property="MinHeight" Value="36"/>
+                <Setter Property="Padding" Value="16,8"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Trigger>
+
+            <!-- Large Size -->
+            <Trigger Property="Size" Value="Large">
+                <Setter Property="MinHeight" Value="44"/>
+                <Setter Property="Padding" Value="24,12"/>
+                <Setter Property="FontSize" Value="16"/>
+            </Trigger>
+
+            <!-- PRIMARY VARIANT -->
+            <Trigger Property="Variant" Value="Primary">
+                <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Primary"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Primary"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource PrimaryActiveBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryActiveBrush}"/>
+            </MultiTrigger>
+
+            <!-- SECONDARY VARIANT -->
+            <Trigger Property="Variant" Value="Secondary">
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Secondary"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Secondary"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+            </MultiTrigger>
+
+            <!-- OUTLINE VARIANT -->
+            <Trigger Property="Variant" Value="Outline">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Outline"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource PrimaryMutedBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Outline"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource PrimaryMutedBrush}"/>
+            </MultiTrigger>
+
+            <!-- GHOST VARIANT -->
+            <Trigger Property="Variant" Value="Ghost">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Ghost"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Ghost"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+            </MultiTrigger>
+
+            <!-- DANGER VARIANT -->
+            <Trigger Property="Variant" Value="Danger">
+                <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Danger"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="#D93939"/>
+                <Setter Property="BorderBrush" Value="#D93939"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Danger"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="#B52F2F"/>
+                <Setter Property="BorderBrush" Value="#B52F2F"/>
+            </MultiTrigger>
+
+            <!-- SUCCESS VARIANT -->
+            <Trigger Property="Variant" Value="Success">
+                <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Success"/>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="#3DB357"/>
+                <Setter Property="BorderBrush" Value="#3DB357"/>
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Variant" Value="Success"/>
+                    <Condition Property="IsPressed" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="#2F9B48"/>
+                <Setter Property="BorderBrush" Value="#2F9B48"/>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,245 @@
+<UserControl x:Class="FathomOS.Modules.PersonnelManagement.Views.PersonnelDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="650" d:DesignWidth="780">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock x:Name="HeaderText" Text="Personnel Details" FontSize="24" FontWeight="Light"/>
+        </StackPanel>
+
+        <!-- Content Tabs -->
+        <TabControl Grid.Row="1">
+            <!-- Personal Information -->
+            <TabItem Header="Personal Info">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: Employee Number / Title -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Employee Number *" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="EmployeeNumberBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Title" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="TitleCombo" Padding="8">
+                                <ComboBoxItem Content="Mr."/>
+                                <ComboBoxItem Content="Ms."/>
+                                <ComboBoxItem Content="Mrs."/>
+                                <ComboBoxItem Content="Dr."/>
+                                <ComboBoxItem Content="Capt."/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Row 1: First Name / Last Name -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="First Name *" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="FirstNameBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Last Name *" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="LastNameBox" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 2: Middle Name / Preferred Name -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Middle Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="MiddleNameBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Preferred Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="PreferredNameBox" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 3: Date of Birth / Nationality -->
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Date of Birth" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <DatePicker x:Name="DateOfBirthPicker" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Nationality" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="NationalityBox" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 4: Email / Mobile Phone -->
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Email" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="EmailBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Mobile Phone" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="MobilePhoneBox" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 5: Emergency Contact -->
+                        <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Emergency Contact Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="EmergencyContactBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="5" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Emergency Contact Phone" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="EmergencyPhoneBox" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 6: Address -->
+                        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                            <TextBlock Text="Home Address" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="AddressBox" Padding="8" Height="60"
+                                     TextWrapping="Wrap" AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Employment Information -->
+            <TabItem Header="Employment">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: Position / Department -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Position" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="PositionCombo" Padding="8" DisplayMemberPath="Title"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Department" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="DepartmentCombo" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 1: Employment Status / Type -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Employment Status" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="StatusCombo" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Employment Type" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="TypeCombo" Padding="8"/>
+                        </StackPanel>
+
+                        <!-- Row 2: Hire Date / Rotation Pattern -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Hire Date" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <DatePicker x:Name="HireDatePicker" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Rotation Pattern" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="RotationCombo" Padding="8" DisplayMemberPath="Name"/>
+                        </StackPanel>
+
+                        <!-- Row 3: Company / Reporting Manager -->
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Company" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="CompanyBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Reporting Manager" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="ManagerCombo" Padding="8" DisplayMemberPath="FullName"/>
+                        </StackPanel>
+
+                        <!-- Row 4: Daily Rate / Cost Center -->
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Daily Rate" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="DailyRateBox" Padding="8"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Cost Center" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="CostCenterBox" Padding="8"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Certifications -->
+            <TabItem Header="Certifications">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="AddCertButton" Grid.Row="0" Content="+ Add Certification"
+                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"/>
+
+                    <DataGrid x:Name="CertificationsGrid" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Certification" Binding="{Binding CertificationType.Name}" Width="200"/>
+                            <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Issue Date" Binding="{Binding IssueDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                            <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                            <DataGridTextColumn Header="Issuing Authority" Binding="{Binding IssuingAuthority}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Vessel Assignments -->
+            <TabItem Header="Assignments">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="AddAssignmentButton" Grid.Row="0" Content="+ Add Assignment"
+                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"/>
+
+                    <DataGrid x:Name="AssignmentsGrid" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="150"/>
+                            <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="150"/>
+                            <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="120"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding ScheduledStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding ScheduledEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Footer Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="SaveButton" Content="Save" Padding="20,8" Margin="0,0,10,0" Click="SaveButton_Click"/>
+            <Button x:Name="CancelButton" Content="Cancel" Padding="20,8" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

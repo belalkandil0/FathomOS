@@ -1,13 +1,10 @@
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Shapes;
 using MahApps.Metro.Controls;
 using FathomOS.Modules.EquipmentInventory.Data;
 using FathomOS.Modules.EquipmentInventory.Models;
 using FathomOS.Modules.EquipmentInventory.Services;
-
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace FathomOS.Modules.EquipmentInventory.Views;
 
@@ -23,9 +20,9 @@ public partial class PinLoginDialog : MetroWindow
     private readonly Ellipse[] _dots;
     
     private static readonly SolidColorBrush FilledBrush = new(
-        (Color)ColorConverter.ConvertFromString("#00D4AA")!);
+        (Color)System.Windows.Media.ColorConverter.ConvertFromString("#00D4AA")!);
     private static readonly SolidColorBrush EmptyBrush = new(
-        (Color)ColorConverter.ConvertFromString("#30FFFFFF")!);
+        (Color)System.Windows.Media.ColorConverter.ConvertFromString("#30FFFFFF")!);
     
     public bool IsAuthenticated { get; private set; }
     public User? AuthenticatedUser { get; private set; }

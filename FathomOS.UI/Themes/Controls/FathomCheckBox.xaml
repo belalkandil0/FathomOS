@@ -1,0 +1,144 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:FathomOS.UI.Controls"
+                    xmlns:converters="clr-namespace:FathomOS.UI.Converters">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - FathomCheckBox Styles -->
+    <!-- Owned by: UI-AGENT                             -->
+    <!-- DO NOT modify without UI-AGENT approval        -->
+    <!-- ============================================== -->
+
+    <Style TargetType="{x:Type controls:FathomCheckBox}">
+        <Setter Property="FontFamily" Value="{DynamicResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource TextTertiaryBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:FathomCheckBox}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Checkbox Box -->
+                        <Grid Grid.Column="0" Width="18" Height="18" VerticalAlignment="Top" Margin="0,2,0,0">
+                            <!-- Focus Ring -->
+                            <Border x:Name="FocusRing"
+                                    CornerRadius="4"
+                                    BorderThickness="2"
+                                    BorderBrush="Transparent"
+                                    Margin="-4"/>
+
+                            <!-- Checkbox Border -->
+                            <Border x:Name="CheckboxBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4">
+
+                                <Grid>
+                                    <!-- Checkmark -->
+                                    <Path x:Name="CheckMark"
+                                          Data="M2,6 L6,10 L14,2"
+                                          Stroke="{DynamicResource TextOnPrimaryBrush}"
+                                          StrokeThickness="2"
+                                          StrokeLineJoin="Round"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          Stretch="Uniform"
+                                          Width="12"
+                                          Height="12"
+                                          Visibility="Collapsed"/>
+
+                                    <!-- Indeterminate Dash -->
+                                    <Rectangle x:Name="IndeterminateMark"
+                                               Fill="{DynamicResource TextOnPrimaryBrush}"
+                                               Width="8"
+                                               Height="2"
+                                               RadiusX="1"
+                                               RadiusY="1"
+                                               Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Label and Description -->
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              RecognizesAccessKey="True"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            <TextBlock x:Name="DescriptionText"
+                                       Text="{TemplateBinding Description}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="0,2,0,0"
+                                       Visibility="Collapsed"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Show Description if set -->
+                        <DataTrigger Binding="{Binding Description, RelativeSource={RelativeSource Self}, Converter={x:Static converters:StringNonEmptyConverter.Instance}}" Value="True">
+                            <Setter TargetName="DescriptionText" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+
+                        <!-- Hover State (Unchecked) -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="CheckboxBorder" Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+                        </MultiTrigger>
+
+                        <!-- Checked State -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckboxBorder" Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter TargetName="CheckboxBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+
+                        <!-- Checked + Hover -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="CheckboxBorder" Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
+                            <Setter TargetName="CheckboxBorder" Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}"/>
+                        </MultiTrigger>
+
+                        <!-- Indeterminate State -->
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="CheckboxBorder" Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter TargetName="CheckboxBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter TargetName="IndeterminateMark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+
+                        <!-- Focus State -->
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="FocusRing" Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+                        </Trigger>
+
+                        <!-- Disabled State -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

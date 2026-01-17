@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using FathomOS.Core.Interfaces;
 using FathomOS.Modules.PersonnelManagement.Views;
@@ -11,6 +12,7 @@ namespace FathomOS.Modules.PersonnelManagement;
 public class PersonnelManagementModule : IModule
 {
     private MainWindow? _mainWindow;
+    private readonly IAuthenticationService? _authService;
     private readonly ICertificationService? _certService;
     private readonly IEventAggregator? _eventAggregator;
     private readonly IThemeService? _themeService;
@@ -29,16 +31,35 @@ public class PersonnelManagementModule : IModule
     /// DI constructor for full functionality
     /// </summary>
     public PersonnelManagementModule(
+        IAuthenticationService authService,
         ICertificationService certService,
         IEventAggregator eventAggregator,
         IThemeService themeService,
         IErrorReporter errorReporter)
     {
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _certService = certService;
         _eventAggregator = eventAggregator;
         _themeService = themeService;
         _errorReporter = errorReporter;
+
+        // Subscribe to authentication changes
+        _authService.AuthenticationChanged += OnAuthenticationChanged;
     }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the currently logged-in user from the centralized authentication service.
+    /// </summary>
+    public IUser? CurrentUser => _authService?.CurrentUser;
+
+    /// <summary>
+    /// Gets whether a user is currently authenticated.
+    /// </summary>
+    public bool IsAuthenticated => _authService?.IsAuthenticated ?? false;
 
     #endregion
 
@@ -65,12 +86,46 @@ public class PersonnelManagementModule : IModule
         {
             _themeService.ThemeChanged += OnThemeChanged;
         }
+
+        // Log authentication state
+        if (_authService != null)
+        {
+            var user = _authService.CurrentUser;
+            if (user != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"{ModuleId}: Authenticated as {user.DisplayName}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"{ModuleId}: Not authenticated");
+            }
+        }
     }
 
     public void Launch(Window? owner = null)
     {
         try
         {
+            // Check authentication - require login for Personnel Management
+            if (_authService != null && !_authService.IsAuthenticated)
+            {
+                // Show login dialog via centralized authentication service
+                var loginTask = _authService.ShowLoginDialogAsync(owner);
+                loginTask.Wait();
+
+                if (!loginTask.Result)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Authentication cancelled or failed");
+                    return;
+                }
+            }
+
+            // Log current user for audit purposes
+            if (_authService?.CurrentUser != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Launched by user: {_authService.CurrentUser.DisplayName}");
+            }
+
             if (_mainWindow == null || !_mainWindow.IsLoaded)
             {
                 _mainWindow = new MainWindow();
@@ -92,6 +147,12 @@ public class PersonnelManagementModule : IModule
     {
         try
         {
+            // Unsubscribe from authentication changes
+            if (_authService != null)
+            {
+                _authService.AuthenticationChanged -= OnAuthenticationChanged;
+            }
+
             if (_themeService != null)
             {
                 _themeService.ThemeChanged -= OnThemeChanged;
@@ -126,6 +187,59 @@ public class PersonnelManagementModule : IModule
     {
         // Theme is applied automatically by Shell
         System.Diagnostics.Debug.WriteLine($"{ModuleId}: Theme changed to {theme}");
+    }
+
+    private void OnAuthenticationChanged(object? sender, IUser? user)
+    {
+        if (user != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"{ModuleId}: User authenticated: {user.DisplayName}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"{ModuleId}: User logged out");
+
+            // Close module window when user logs out
+            if (_mainWindow != null && _mainWindow.IsLoaded)
+            {
+                _mainWindow.Dispatcher.Invoke(() =>
+                {
+                    _mainWindow.Close();
+                    _mainWindow = null;
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if the current user has a specific permission.
+    /// Uses the centralized authentication service.
+    /// </summary>
+    /// <param name="permission">The permission to check (e.g., "personnel.edit")</param>
+    /// <returns>True if user has the permission</returns>
+    public bool HasPermission(string permission)
+    {
+        return _authService?.HasPermission(permission) ?? false;
+    }
+
+    /// <summary>
+    /// Check if the current user has a specific role.
+    /// Uses the centralized authentication service.
+    /// </summary>
+    /// <param name="roles">The roles to check</param>
+    /// <returns>True if user has any of the specified roles</returns>
+    public bool HasRole(params string[] roles)
+    {
+        return _authService?.HasRole(roles) ?? false;
+    }
+
+    /// <summary>
+    /// Gets the current user's ID for audit trail purposes.
+    /// </summary>
+    /// <returns>The current user's ID, or null if not authenticated</returns>
+    public Guid? GetCurrentUserId()
+    {
+        return _authService?.CurrentUser?.UserId;
     }
 
     #endregion

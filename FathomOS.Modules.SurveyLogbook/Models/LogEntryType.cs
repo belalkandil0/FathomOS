@@ -74,6 +74,9 @@ public enum LogEntryType
     
     /// <summary>Position update from NaviPac UDO (real-time stream)</summary>
     PositionUpdate = 321,
+
+    /// <summary>NaviPac data record from UDO parser</summary>
+    NaviPacData = 322,
     
     // ========================================================================
     // Waypoint Events (from .wp2 file monitoring)
@@ -230,6 +233,7 @@ public static class LogEntryTypeExtensions
         LogEntryType.RunlineChange => "Runline Changed",
         LogEntryType.NaviPacEvent => "NaviPac Event",
         LogEntryType.PositionUpdate => "Position Update",
+        LogEntryType.NaviPacData => "NaviPac Data",
         
         LogEntryType.WaypointAdded => "Waypoint Added",
         LogEntryType.WaypointModified => "Waypoint Modified",

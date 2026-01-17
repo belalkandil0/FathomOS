@@ -8,10 +8,6 @@ using FathomOS.Modules.EquipmentInventory.Data;
 using FathomOS.Modules.EquipmentInventory.Models;
 using FathomOS.Modules.EquipmentInventory.Services;
 
-using Brush = System.Windows.Media.Brush;
-using Color = System.Windows.Media.Color;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
-
 namespace FathomOS.Modules.EquipmentInventory.Views.Dialogs;
 
 public partial class ChangePasswordDialog : MetroWindow

@@ -12,6 +12,39 @@ namespace FathomOS.Modules.UsblVerification;
 public class UsblVerificationModule : IModule
 {
     private MainWindow? _mainWindow;
+    private readonly IAuthenticationService? _authService;
+    private readonly ICertificationService? _certService;
+    private readonly IEventAggregator? _eventAggregator;
+    private readonly IThemeService? _themeService;
+    private readonly IErrorReporter? _errorReporter;
+
+    #region Constructors
+
+    /// <summary>
+    /// Default constructor for module discovery
+    /// </summary>
+    public UsblVerificationModule()
+    {
+    }
+
+    /// <summary>
+    /// DI constructor for full functionality
+    /// </summary>
+    public UsblVerificationModule(
+        IAuthenticationService authService,
+        ICertificationService certService,
+        IEventAggregator eventAggregator,
+        IThemeService themeService,
+        IErrorReporter errorReporter)
+    {
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _certService = certService;
+        _eventAggregator = eventAggregator;
+        _themeService = themeService;
+        _errorReporter = errorReporter;
+    }
+
+    #endregion
 
     #region IModule Properties
 
@@ -36,6 +69,18 @@ public class UsblVerificationModule : IModule
     public void Initialize()
     {
         System.Diagnostics.Debug.WriteLine($"{DisplayName} v{Version} initialized");
+
+        // Subscribe to theme changes if available
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged += OnThemeChanged;
+        }
+    }
+
+    private void OnThemeChanged(object? sender, AppTheme theme)
+    {
+        // Theme is applied automatically by Shell
+        System.Diagnostics.Debug.WriteLine($"{ModuleId}: Theme changed to {theme}");
     }
 
     public void Launch(Window? owner = null)
@@ -74,6 +119,10 @@ public class UsblVerificationModule : IModule
     {
         try
         {
+            if (_themeService != null)
+            {
+                _themeService.ThemeChanged -= OnThemeChanged;
+            }
             _mainWindow?.Close();
             _mainWindow = null;
         }

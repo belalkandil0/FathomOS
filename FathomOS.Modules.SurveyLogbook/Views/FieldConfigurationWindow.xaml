@@ -245,28 +245,28 @@
                     </Border>
 
                     <!-- Field Details Form -->
-                    <ScrollViewer Grid.Row="1" 
+                    <ScrollViewer Grid.Row="1"
                                   VerticalScrollBarVisibility="Auto"
                                   Padding="15">
-                        
-                        <!-- No Selection Message -->
-                        <StackPanel Visibility="{Binding HasSelectedField, Converter={StaticResource InverseBoolToVisibility}}"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Center">
-                            <iconPacks:PackIconMaterial Kind="GestureTapButton"
-                                                        Width="48" Height="48"
-                                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                                        HorizontalAlignment="Center"/>
-                            <TextBlock Text="Select a field to edit its properties"
-                                       FontSize="14"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="0,15,0,0"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                        
-                        <!-- Field Properties Form -->
-                        <Grid Visibility="{Binding HasSelectedField, Converter={StaticResource BoolToVisibility}}"
-                              DataContext="{Binding SelectedField}">
+                        <Grid>
+                            <!-- No Selection Message -->
+                            <StackPanel Visibility="{Binding HasSelectedField, Converter={StaticResource InverseBoolToVisibility}}"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="GestureTapButton"
+                                                            Width="48" Height="48"
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"
+                                                            HorizontalAlignment="Center"/>
+                                <TextBlock Text="Select a field to edit its properties"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="0,15,0,0"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Field Properties Form -->
+                            <Grid Visibility="{Binding HasSelectedField, Converter={StaticResource BoolToVisibility}}"
+                                  DataContext="{Binding SelectedField}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -359,6 +359,7 @@
                             <TextBox Grid.Row="7" Grid.Column="1"
                                      Text="{Binding Offset, UpdateSourceTrigger=PropertyChanged}"
                                      mah:TextBoxHelper.Watermark="Optional (added after scale)"/>
+                            </Grid>
                         </Grid>
                     </ScrollViewer>
 

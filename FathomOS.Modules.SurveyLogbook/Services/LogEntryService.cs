@@ -108,7 +108,7 @@ public class LogEntryService : IDisposable
         {
             _dataParser = new NaviPacDataParser(
                 _fieldConfiguration,
-                _settings.NaviPacSeparator,
+                _settings.NaviPacSeparator.ToString(),
                 NaviPacSource);
         }
         else
@@ -359,27 +359,27 @@ public class LogEntryService : IDisposable
         {
             EntryType = data.EventNumber.HasValue ? LogEntryType.NaviPacEvent : LogEntryType.PositionUpdate,
             Source = NaviPacSource,
-            Timestamp = data.Timestamp ?? DateTime.Now
+            Timestamp = data.GetTimestamp()
         };
-        
+
         // Set standard properties
         if (data.Easting.HasValue) entry.Easting = data.Easting.Value;
         if (data.Northing.HasValue) entry.Northing = data.Northing.Value;
-        if (data.KP.HasValue) entry.KP = data.KP.Value;
-        if (data.DCC.HasValue) entry.DCC = data.DCC.Value;
+        if (data.KP.HasValue) entry.Kp = data.KP.Value;
+        if (data.DCC.HasValue) entry.Dcc = data.DCC.Value;
         if (data.Latitude.HasValue) entry.Latitude = data.Latitude.Value;
         if (data.Longitude.HasValue) entry.Longitude = data.Longitude.Value;
         if (data.Height.HasValue) entry.Height = data.Height.Value;
-        if (data.Gyro.HasValue) entry.Heading = data.Gyro.Value;
+        if (data.Heading.HasValue) entry.Heading = data.Heading.Value;
         if (data.Roll.HasValue) entry.Roll = data.Roll.Value;
         if (data.Pitch.HasValue) entry.Pitch = data.Pitch.Value;
         if (data.Heave.HasValue) entry.Heave = data.Heave.Value;
         if (data.EventNumber.HasValue) entry.EventNumber = data.EventNumber.Value;
-        
+
         // Generate description
-        entry.Description = _dataParser?.GenerateDescription(data.RawLine ?? "") 
+        entry.Description = _dataParser?.GenerateDescription(data.RawLine ?? "")
             ?? $"Position update at {entry.Timestamp:HH:mm:ss}";
-        
+
         return entry;
     }
     

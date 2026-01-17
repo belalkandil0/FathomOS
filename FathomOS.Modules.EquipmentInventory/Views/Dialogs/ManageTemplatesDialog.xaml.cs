@@ -52,7 +52,7 @@ public partial class ManageTemplatesDialog : MetroWindow
             : _allTemplates.Where(t => 
                 t.TemplateName.ToLower().Contains(search) ||
                 (t.Description?.ToLower().Contains(search) ?? false) ||
-                (t.Category?.Name?.ToLower().Contains(search) ?? false)).ToList();
+                (t.CategoryName?.ToLower().Contains(search) ?? false)).ToList();
         
         TemplatesGrid.ItemsSource = filtered.OrderBy(t => t.TemplateName).ToList();
         EmptyState.Visibility = filtered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

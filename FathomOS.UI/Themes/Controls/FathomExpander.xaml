@@ -1,0 +1,181 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:FathomOS.UI.Controls"
+                    xmlns:converters="clr-namespace:FathomOS.UI.Converters">
+
+    <!-- ============================================== -->
+    <!-- FathomOS Design System - FathomExpander       -->
+    <!-- Owned by: UI-AGENT                            -->
+    <!-- DO NOT modify without UI-AGENT approval       -->
+    <!-- ============================================== -->
+
+    <Style TargetType="{x:Type controls:FathomExpander}">
+        <Setter Property="FontFamily" Value="{DynamicResource FontPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:FathomExpander}">
+                    <Border x:Name="ExpanderBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Header Toggle Button -->
+                            <ToggleButton x:Name="HeaderToggle"
+                                          Grid.Row="0"
+                                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          Padding="16,12"
+                                          Cursor="Hand"
+                                          HorizontalContentAlignment="Stretch">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="HeaderBorder"
+                                                Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}">
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Icon -->
+                                                <ContentPresenter x:Name="IconPresenter"
+                                                                  Grid.Column="0"
+                                                                  Content="{Binding Icon, RelativeSource={RelativeSource AncestorType=controls:FathomExpander}}"
+                                                                  VerticalAlignment="Center"
+                                                                  Margin="0,0,12,0"
+                                                                  Visibility="Collapsed"/>
+
+                                                <!-- Header Content -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <ContentPresenter Content="{Binding Header, RelativeSource={RelativeSource AncestorType=controls:FathomExpander}}"
+                                                                      TextBlock.FontWeight="SemiBold"
+                                                                      TextBlock.FontSize="14"/>
+
+                                                    <TextBlock x:Name="SubtitleText"
+                                                               Text="{Binding Subtitle, RelativeSource={RelativeSource AncestorType=controls:FathomExpander}}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               FontSize="12"
+                                                               Margin="0,2,0,0"
+                                                               Visibility="Collapsed"/>
+                                                </StackPanel>
+
+                                                <!-- Expand/Collapse Arrow (collapsed state: pointing down) -->
+                                                <Path x:Name="ArrowCollapsed"
+                                                      Grid.Column="2"
+                                                      Data="M0,0 L6,6 L12,0"
+                                                      Stroke="{DynamicResource TextSecondaryBrush}"
+                                                      StrokeThickness="2"
+                                                      StrokeLineJoin="Round"
+                                                      Width="12"
+                                                      Height="6"
+                                                      VerticalAlignment="Center"/>
+
+                                                <!-- Expand/Collapse Arrow (expanded state: pointing up) -->
+                                                <Path x:Name="ArrowExpanded"
+                                                      Grid.Column="2"
+                                                      Data="M0,6 L6,0 L12,6"
+                                                      Stroke="{DynamicResource TextSecondaryBrush}"
+                                                      StrokeThickness="2"
+                                                      StrokeLineJoin="Round"
+                                                      Width="12"
+                                                      Height="6"
+                                                      VerticalAlignment="Center"
+                                                      Visibility="Collapsed"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Icon, RelativeSource={RelativeSource AncestorType=controls:FathomExpander}, Converter={x:Static converters:ObjectNotNullConverter.Instance}}" Value="True">
+                                                <Setter TargetName="IconPresenter" Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger Binding="{Binding Subtitle, RelativeSource={RelativeSource AncestorType=controls:FathomExpander}, Converter={x:Static converters:StringNonEmptyConverter.Instance}}" Value="True">
+                                                <Setter TargetName="SubtitleText" Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+                                            </Trigger>
+
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="ArrowCollapsed" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="ArrowExpanded" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <!-- Expandable Content -->
+                            <Border x:Name="ContentBorder"
+                                    Grid.Row="1"
+                                    Visibility="Collapsed">
+
+                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Expanded State -->
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ContentBorder" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+
+                        <!-- Disabled State -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <!-- Variant Triggers -->
+        <Style.Triggers>
+            <!-- CARD VARIANT -->
+            <Trigger Property="Variant" Value="Card">
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="2"
+                                          BlurRadius="6"
+                                          Opacity="0.4"
+                                          Direction="270"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+
+            <!-- BORDERED VARIANT -->
+            <Trigger Property="Variant" Value="Bordered">
+                <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Trigger>
+
+            <!-- SUBTLE VARIANT -->
+            <Trigger Property="Variant" Value="Subtle">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="8"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

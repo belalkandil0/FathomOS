@@ -103,7 +103,7 @@ public class CertificationService : ICertificationService
             WasFound = true,
             CertificateId = certificateId,
             ModuleId = entry.Certificate.ModuleId,
-            CreatedAt = entry.Certificate.CreatedAt,
+            CreatedAt = entry.Certificate.IssuedAt,
             VerificationMessage = entry.IsSyncedToServer
                 ? "Certificate verified and synced to server"
                 : "Certificate verified locally (pending sync)"
@@ -113,14 +113,14 @@ public class CertificationService : ICertificationService
     /// <inheritdoc />
     public Task<IEnumerable<CertificateSummary>> GetPendingSyncAsync()
     {
-        var entries = LicenseManager.GetAllCertificates()
+        var entries = LicenseManager.GetLocalCertificates()
             .Where(e => !e.IsSyncedToServer)
             .Select(e => new CertificateSummary
             {
                 CertificateId = e.Certificate.CertificateId,
                 ModuleId = e.Certificate.ModuleId,
                 ProjectName = e.Certificate.ProjectName,
-                CreatedAt = e.Certificate.CreatedAt,
+                CreatedAt = e.Certificate.IssuedAt,
                 SyncStatus = CertificateSyncStatus.Pending,
                 ClientCode = GetClientCode()
             });
@@ -131,13 +131,13 @@ public class CertificationService : ICertificationService
     /// <inheritdoc />
     public Task<IEnumerable<CertificateSummary>> GetAllCertificatesAsync()
     {
-        var entries = LicenseManager.GetAllCertificates()
+        var entries = LicenseManager.GetLocalCertificates()
             .Select(e => new CertificateSummary
             {
                 CertificateId = e.Certificate.CertificateId,
                 ModuleId = e.Certificate.ModuleId,
                 ProjectName = e.Certificate.ProjectName,
-                CreatedAt = e.Certificate.CreatedAt,
+                CreatedAt = e.Certificate.IssuedAt,
                 SyncStatus = e.IsSyncedToServer ? CertificateSyncStatus.Synced : CertificateSyncStatus.Pending,
                 ClientCode = GetClientCode()
             });
@@ -148,14 +148,14 @@ public class CertificationService : ICertificationService
     /// <inheritdoc />
     public async Task<int> SyncAsync()
     {
-        var pendingBefore = LicenseManager.GetAllCertificates()
+        var pendingBefore = LicenseManager.GetLocalCertificates()
             .Count(e => !e.IsSyncedToServer);
 
         if (pendingBefore == 0) return 0;
 
         await LicenseManager.SyncPendingCertificatesAsync();
 
-        var pendingAfter = LicenseManager.GetAllCertificates()
+        var pendingAfter = LicenseManager.GetLocalCertificates()
             .Count(e => !e.IsSyncedToServer);
 
         var syncedCount = pendingBefore - pendingAfter;
@@ -226,7 +226,7 @@ public class CertificationService : ICertificationService
     public string? GetClientCode()
     {
         var brandingInfo = LicenseManager.GetBrandingInfo();
-        return brandingInfo?.ClientCode;
+        return brandingInfo?.LicenseeCode;
     }
 
     private void OnCertificateCreated(string certificateId)

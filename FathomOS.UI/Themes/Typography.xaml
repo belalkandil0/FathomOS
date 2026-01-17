@@ -8,102 +8,253 @@
     <!-- DO NOT modify without UI-AGENT approval       -->
     <!-- ============================================== -->
 
-    <!-- Font Families -->
-    <FontFamily x:Key="PrimaryFont">Segoe UI</FontFamily>
-    <FontFamily x:Key="HeadingFont">Segoe UI Semibold</FontFamily>
-    <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas</FontFamily>
+    <!-- ========== FONT FAMILIES ========== -->
+    <FontFamily x:Key="FontPrimary">Segoe UI Variable, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="FontHeading">Segoe UI Variable, Segoe UI Semibold</FontFamily>
+    <FontFamily x:Key="FontMonospace">Cascadia Code, Cascadia Mono, Consolas</FontFamily>
 
-    <!-- Font Sizes - Type Scale -->
+    <!-- ========== FONT SIZES ========== -->
     <sys:Double x:Key="FontSizeH1">32</sys:Double>
     <sys:Double x:Key="FontSizeH2">24</sys:Double>
     <sys:Double x:Key="FontSizeH3">20</sys:Double>
-    <sys:Double x:Key="FontSizeH4">18</sys:Double>
-    <sys:Double x:Key="FontSizeH5">16</sys:Double>
+    <sys:Double x:Key="FontSizeH4">16</sys:Double>
+    <sys:Double x:Key="FontSizeH5">14</sys:Double>
     <sys:Double x:Key="FontSizeBody">14</sys:Double>
     <sys:Double x:Key="FontSizeBodyLarge">16</sys:Double>
     <sys:Double x:Key="FontSizeSmall">12</sys:Double>
-    <sys:Double x:Key="FontSizeCaption">10</sys:Double>
+    <sys:Double x:Key="FontSizeCaption">11</sys:Double>
+    <sys:Double x:Key="FontSizeOverline">10</sys:Double>
 
-    <!-- Font Weights -->
+    <!-- ========== FONT WEIGHTS ========== -->
     <FontWeight x:Key="WeightLight">Light</FontWeight>
     <FontWeight x:Key="WeightRegular">Regular</FontWeight>
     <FontWeight x:Key="WeightMedium">Medium</FontWeight>
     <FontWeight x:Key="WeightSemiBold">SemiBold</FontWeight>
     <FontWeight x:Key="WeightBold">Bold</FontWeight>
 
-    <!-- Line Heights (as multipliers) -->
-    <sys:Double x:Key="LineHeightTight">1.2</sys:Double>
-    <sys:Double x:Key="LineHeightNormal">1.5</sys:Double>
-    <sys:Double x:Key="LineHeightRelaxed">1.75</sys:Double>
+    <!-- ========== LINE HEIGHTS ========== -->
+    <sys:Double x:Key="LineHeightH1">40</sys:Double>
+    <sys:Double x:Key="LineHeightH2">32</sys:Double>
+    <sys:Double x:Key="LineHeightH3">28</sys:Double>
+    <sys:Double x:Key="LineHeightH4">24</sys:Double>
+    <sys:Double x:Key="LineHeightH5">20</sys:Double>
+    <sys:Double x:Key="LineHeightBody">22</sys:Double>
+    <sys:Double x:Key="LineHeightBodyLarge">24</sys:Double>
+    <sys:Double x:Key="LineHeightSmall">18</sys:Double>
+    <sys:Double x:Key="LineHeightCaption">16</sys:Double>
+    <sys:Double x:Key="LineHeightOverline">14</sys:Double>
 
-    <!-- Text Styles - Headings -->
+    <!-- ========== HEADING STYLES ========== -->
+
+    <!-- H1: 32px, SemiBold, -0.5px letter spacing -->
     <Style x:Key="HeadingH1" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontHeading}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeH1}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextHeadingBrush}"/>
         <Setter Property="Margin" Value="0,0,0,16"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
 
+    <!-- H2: 24px, SemiBold, -0.25px letter spacing -->
     <Style x:Key="HeadingH2" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontHeading}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeH2}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextHeadingBrush}"/>
         <Setter Property="Margin" Value="0,0,0,12"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
 
+    <!-- H3: 20px, Medium -->
     <Style x:Key="HeadingH3" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontHeading}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeH3}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextHeadingBrush}"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
 
+    <!-- H4: 16px, Medium -->
     <Style x:Key="HeadingH4" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontHeading}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeH4}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextHeadingBrush}"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
-    <!-- Text Styles - Body -->
+    <!-- H5: 14px, SemiBold, 0.1px letter spacing -->
+    <Style x:Key="HeadingH5" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontHeading}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH5}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextHeadingBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- ========== BODY TEXT STYLES ========== -->
+
+    <!-- Body: 14px, Regular -->
     <Style x:Key="BodyText" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
+    <!-- Body Large: 16px, Regular -->
     <Style x:Key="BodyTextLarge" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeBodyLarge}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
 
+    <!-- Small: 12px, Regular, 0.1px letter spacing -->
     <Style x:Key="SmallText" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
+    <!-- Caption: 11px, Medium, 0.2px letter spacing -->
     <Style x:Key="CaptionText" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}"/>
-        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
-        <Setter Property="Opacity" Value="0.7"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
-    <!-- Text Styles - Labels -->
+    <!-- Overline: 10px, SemiBold, UPPERCASE, 1px letter spacing -->
+    <Style x:Key="OverlineText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeOverline}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <!-- Note: UPPERCASE should be applied via TextBlock.Text converter or in code -->
+    </Style>
+
+    <!-- ========== LABEL STYLES ========== -->
+
+    <!-- Label: 12px, Medium -->
     <Style x:Key="LabelText" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
         <Setter Property="Margin" Value="0,0,0,4"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
-    <!-- Text Styles - Monospace (for code, data) -->
+    <!-- ========== MONOSPACE STYLES ========== -->
+
+    <!-- Monospace: For code, data, coordinates -->
     <Style x:Key="MonospaceText" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource MonospaceFont}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontMonospace}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Monospace Small: For compact data display -->
+    <Style x:Key="MonospaceTextSmall" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontMonospace}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- ========== SPECIAL PURPOSE STYLES ========== -->
+
+    <!-- Button Text -->
+    <Style x:Key="ButtonText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Button Text Small -->
+    <Style x:Key="ButtonTextSmall" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Button Text Large -->
+    <Style x:Key="ButtonTextLarge" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBodyLarge}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Link Text -->
+    <Style x:Key="LinkText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="TextDecorations" Value="Underline"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Data Grid Header -->
+    <Style x:Key="DataGridHeaderText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightSemiBold}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <!-- Note: UPPERCASE should be applied via converter or in code -->
+    </Style>
+
+    <!-- Tab Header -->
+    <Style x:Key="TabHeaderText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Title Bar -->
+    <Style x:Key="TitleBarText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightMedium}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TitleBarTextBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Status Bar -->
+    <Style x:Key="StatusBarText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- Tooltip -->
+    <Style x:Key="TooltipText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
+        <Setter Property="FontWeight" Value="{StaticResource WeightRegular}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
 </ResourceDictionary>
