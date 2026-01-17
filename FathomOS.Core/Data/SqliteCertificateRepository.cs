@@ -6,24 +6,44 @@ using Microsoft.Data.Sqlite;
 using System.Text.Json;
 using FathomOS.Core.Interfaces;
 using FathomOS.Core.Models;
+using FathomOS.Core.Logging;
 
 namespace FathomOS.Core.Data;
 
 /// <summary>
 /// SQLite implementation of ICertificateRepository.
 /// Provides full CRUD operations with offline-first sync support.
+/// Includes retry logic for transient database errors.
 /// </summary>
 public class SqliteCertificateRepository : ICertificateRepository
 {
     private readonly SqliteConnectionFactory _connectionFactory;
+    private readonly ILogger? _logger;
+    private readonly RetryPolicy _retryPolicy;
 
     /// <summary>
     /// Creates a new certificate repository
     /// </summary>
     /// <param name="connectionFactory">Connection factory for database access</param>
     public SqliteCertificateRepository(SqliteConnectionFactory connectionFactory)
+        : this(connectionFactory, null, null)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new certificate repository with logging and retry support
+    /// </summary>
+    /// <param name="connectionFactory">Connection factory for database access</param>
+    /// <param name="logger">Optional logger for retry and error logging</param>
+    /// <param name="retryPolicy">Optional retry policy. Uses default if null.</param>
+    public SqliteCertificateRepository(
+        SqliteConnectionFactory connectionFactory,
+        ILogger? logger,
+        RetryPolicy? retryPolicy = null)
     {
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+        _logger = logger;
+        _retryPolicy = retryPolicy ?? RetryPolicy.Default;
     }
 
     #region IRepository<Certificate> Implementation
@@ -76,20 +96,28 @@ public class SqliteCertificateRepository : ICertificateRepository
         entity.CreatedAt = DateTime.UtcNow;
         entity.SyncStatus = "pending";
 
-        await using var connection = await _connectionFactory.CreateConnectionAsync();
-        await using var transaction = connection.BeginTransaction();
+        await DatabaseRetryHelper.ExecuteWithRetryAsync(
+            async () =>
+            {
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var transaction = connection.BeginTransaction();
 
-        try
-        {
-            await InsertCertificateAsync(connection, transaction, entity);
-            await transaction.CommitAsync();
-            return entity;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                try
+                {
+                    await InsertCertificateAsync(connection, transaction, entity);
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            },
+            _retryPolicy,
+            _logger,
+            $"AddAsync certificate {entity.CertificateId}");
+
+        return entity;
     }
 
     /// <inheritdoc/>
@@ -100,19 +128,26 @@ public class SqliteCertificateRepository : ICertificateRepository
 
         entity.UpdatedAt = DateTime.UtcNow;
 
-        await using var connection = await _connectionFactory.CreateConnectionAsync();
-        await using var transaction = connection.BeginTransaction();
+        await DatabaseRetryHelper.ExecuteWithRetryAsync(
+            async () =>
+            {
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var transaction = connection.BeginTransaction();
 
-        try
-        {
-            await UpdateCertificateAsync(connection, transaction, entity);
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                try
+                {
+                    await UpdateCertificateAsync(connection, transaction, entity);
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            },
+            _retryPolicy,
+            _logger,
+            $"UpdateAsync certificate {entity.CertificateId}");
     }
 
     /// <inheritdoc/>

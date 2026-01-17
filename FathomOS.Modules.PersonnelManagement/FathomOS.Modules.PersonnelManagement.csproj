@@ -25,6 +25,9 @@
 
     <!-- HTTP Client Extensions -->
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+
+    <!-- System.Drawing for thumbnail generation (cross-platform support) -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

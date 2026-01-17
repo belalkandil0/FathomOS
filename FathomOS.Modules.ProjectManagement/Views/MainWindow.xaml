@@ -4,91 +4,178 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:local="clr-namespace:FathomOS.Modules.ProjectManagement.Views"
         mc:Ignorable="d"
         Title="Project Management"
-        Height="750"
-        Width="1100"
+        Height="800"
+        Width="1200"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Project Management" FontSize="28" FontWeight="Light"/>
-            <TextBlock Text="Manage survey projects, milestones, and deliverables"
-                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
-        </StackPanel>
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8E8E8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Style x:Key="ActiveNavButtonStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background" Value="#D0E8FF"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
 
-            <!-- Project List -->
-            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Margin="0,0,10,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Projects" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,10"/>
-                    <Button DockPanel.Dock="Bottom" Content="+ New Project" Margin="0,10,10,0" Padding="10,5"/>
-                    <ListBox Margin="0,0,10,0">
-                        <ListBoxItem Content="Survey Project Alpha"/>
-                        <ListBoxItem Content="Pipeline Inspection 2024"/>
-                        <ListBoxItem Content="Seabed Mapping Phase 2"/>
-                    </ListBox>
-                </DockPanel>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Navigation Sidebar -->
+        <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- Header -->
+                <StackPanel DockPanel.Dock="Top" Margin="15,20,15,20">
+                    <TextBlock Text="Project Management" FontSize="18" FontWeight="SemiBold" Foreground="#333"/>
+                    <TextBlock Text="FathomOS Module" FontSize="11" Foreground="#888" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <!-- Navigation Buttons -->
+                <StackPanel DockPanel.Dock="Top" Margin="10,0">
+                    <Button Content="Dashboard" Command="{Binding NavigateToDashboardCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDashboardView}" Value="True">
+                                        <Setter Property="Background" Value="#D0E8FF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Projects" Command="{Binding NavigateToProjectsCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsProjectsView}" Value="True">
+                                        <Setter Property="Background" Value="#D0E8FF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Clients" Command="{Binding NavigateToClientsCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsClientsView}" Value="True">
+                                        <Setter Property="Background" Value="#D0E8FF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Resource Planning" Command="{Binding NavigateToPlanningCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlanningView}" Value="True">
+                                        <Setter Property="Background" Value="#D0E8FF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Reports" Command="{Binding NavigateToReportsCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsReportsView}" Value="True">
+                                        <Setter Property="Background" Value="#D0E8FF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <!-- Bottom Section -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="15,0,15,15">
+                    <Separator Margin="0,10"/>
+                    <TextBlock Text="Quick Actions" FontWeight="SemiBold" Margin="0,5,0,10"/>
+                    <Button Content="Generate Report" Command="{Binding GenerateReportCommand}"
+                            Style="{StaticResource NavButtonStyle}"/>
+                    <Button Content="Export Data" Command="{Binding ExportCommand}"
+                            Style="{StaticResource NavButtonStyle}"/>
+                </StackPanel>
+
+                <!-- Spacer -->
+                <Grid/>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Column="1">
+            <!-- Projects View -->
+            <local:ProjectListView x:Name="ProjectListView"
+                                   Visibility="{Binding IsProjectsView, Converter={StaticResource BoolToVisConverter}}"
+                                   DataContext="{Binding ProjectListViewModel}"/>
+
+            <!-- Dashboard View -->
+            <local:ProjectDashboardView x:Name="DashboardView"
+                                        Visibility="{Binding IsDashboardView, Converter={StaticResource BoolToVisConverter}}"
+                                        DataContext="{Binding DashboardViewModel}"/>
+
+            <!-- Clients View -->
+            <local:ClientListView x:Name="ClientListView"
+                                  Visibility="{Binding IsClientsView, Converter={StaticResource BoolToVisConverter}}"
+                                  DataContext="{Binding ClientListViewModel}"/>
+
+            <!-- Planning View -->
+            <local:ProjectPlanningView x:Name="PlanningView"
+                                       Visibility="{Binding IsPlanningView, Converter={StaticResource BoolToVisConverter}}"
+                                       DataContext="{Binding PlanningViewModel}"/>
+
+            <!-- Reports View (placeholder) -->
+            <Grid Visibility="{Binding IsReportsView, Converter={StaticResource BoolToVisConverter}}">
+                <TextBlock Text="Reports View - Coming Soon"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="20" Foreground="Gray"/>
+            </Grid>
+
+            <!-- Busy Indicator -->
+            <Border Background="#80FFFFFF"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <mah:ProgressRing IsActive="{Binding IsBusy}" Width="50" Height="50"/>
+                    <TextBlock Text="{Binding BusyMessage}" Margin="0,10,0,0" FontSize="14"/>
+                </StackPanel>
             </Border>
 
-            <!-- Project Details -->
-            <TabControl Grid.Column="1">
-                <TabItem Header="Overview">
-                    <Grid Margin="10">
-                        <TextBlock Text="Project overview and summary will be displayed here"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="16" Foreground="Gray"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Milestones">
-                    <Grid Margin="10">
-                        <TextBlock Text="Milestone tracking will be implemented here"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="16" Foreground="Gray"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Deliverables">
-                    <Grid Margin="10">
-                        <TextBlock Text="Deliverable management will be implemented here"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="16" Foreground="Gray"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Documents">
-                    <Grid Margin="10">
-                        <TextBlock Text="Document management will be implemented here"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="16" Foreground="Gray"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Timeline">
-                    <Grid Margin="10">
-                        <TextBlock Text="Gantt chart / timeline will be implemented here"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="16" Foreground="Gray"/>
-                    </Grid>
-                </TabItem>
-            </TabControl>
+            <!-- Error Display -->
+            <Border Background="#FFE0E0" Padding="15" VerticalAlignment="Top" Margin="20"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
+            </Border>
         </Grid>
-
-        <!-- Footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Generate Report" Margin="0,0,10,0" Padding="20,8"/>
-            <Button Content="Export" Padding="20,8"/>
-        </StackPanel>
     </Grid>
 </mah:MetroWindow>

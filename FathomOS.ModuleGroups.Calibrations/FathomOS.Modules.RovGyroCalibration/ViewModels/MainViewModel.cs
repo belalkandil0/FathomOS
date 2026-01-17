@@ -15,11 +15,45 @@ public class MainViewModel : ViewModelBase
     private string _statusMessage = "Ready";
     private bool _isBusy;
     private double _progressPercentage;
+    private string? _initializationError;
 
     private readonly RovGyroCalculationService _calculationService;
     private readonly DataParsingService _parsingService;
     private readonly Visualization3DService _visualization3DService;
     private readonly ReportExportService _reportExportService;
+    #endregion
+
+    #region Initialization Error Handling
+    /// <summary>
+    /// Event raised when an initialization error occurs.
+    /// The View should subscribe to this to display error messages.
+    /// </summary>
+    public event EventHandler<InitializationErrorEventArgs>? InitializationErrorOccurred;
+
+    /// <summary>
+    /// Gets the initialization error message, if any occurred during construction.
+    /// </summary>
+    public string? InitializationError
+    {
+        get => _initializationError;
+        private set => SetProperty(ref _initializationError, value);
+    }
+
+    /// <summary>
+    /// Gets whether an initialization error occurred.
+    /// </summary>
+    public bool HasInitializationError => !string.IsNullOrEmpty(_initializationError);
+
+    /// <summary>
+    /// Raises the InitializationErrorOccurred event. Call this after the View is ready.
+    /// </summary>
+    public void RaiseInitializationErrorIfNeeded()
+    {
+        if (HasInitializationError)
+        {
+            InitializationErrorOccurred?.Invoke(this, new InitializationErrorEventArgs(_initializationError!));
+        }
+    }
     #endregion
 
     #region Constructor
@@ -54,8 +88,9 @@ public class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"MainViewModel init error:\n{ex.Message}\n\nStack:\n{ex.StackTrace}",
-                "ViewModel Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            // Store error for MVVM-compliant display by the View
+            // The View will subscribe to InitializationErrorOccurred event
+            _initializationError = $"MainViewModel init error:\n{ex.Message}\n\nStack:\n{ex.StackTrace}";
             throw;
         }
     }

@@ -1,0 +1,273 @@
+<UserControl x:Class="FathomOS.Modules.PersonnelManagement.Views.VesselAssignmentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Vessel Assignments" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="Manage sign-on/sign-off workflow and vessel crew assignments"
+                       FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Summary Cards -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Currently Onboard Card -->
+            <Border Grid.Column="0" Background="#E8F5E9" CornerRadius="5" Padding="15" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Currently Onboard" FontSize="12" Foreground="#388E3C"/>
+                    <TextBlock Text="{Binding ActiveCount}" FontSize="32" FontWeight="Light" Foreground="#388E3C"/>
+                    <TextBlock Text="{Binding ActiveText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Upcoming Card -->
+            <Border Grid.Column="1" Background="#E3F2FD" CornerRadius="5" Padding="15" Margin="5,0">
+                <StackPanel>
+                    <TextBlock Text="Upcoming" FontSize="12" Foreground="#1976D2"/>
+                    <TextBlock Text="{Binding UpcomingCount}" FontSize="32" FontWeight="Light" Foreground="#1976D2"/>
+                    <TextBlock Text="{Binding UpcomingText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Overdue Card -->
+            <Border Grid.Column="2" Background="#FFEBEE" CornerRadius="5" Padding="15" Margin="10,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="Overdue for Sign-On" FontSize="12" Foreground="#D32F2F"/>
+                    <TextBlock Text="{Binding OverdueCount}" FontSize="32" FontWeight="Light" Foreground="#D32F2F"/>
+                    <TextBlock Text="{Binding OverdueText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Filter Bar -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,15,0">
+                <TextBlock Text="Personnel:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="200" Padding="10,8"
+                          ItemsSource="{Binding PersonnelList}"
+                          SelectedItem="{Binding SelectedPersonnel}"
+                          DisplayMemberPath="FullName"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,15,0">
+                <TextBlock Text="Status:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="140" Padding="10,8"
+                          ItemsSource="{Binding Statuses}"
+                          SelectedItem="{Binding SelectedStatus}"/>
+            </StackPanel>
+
+            <TextBox Grid.Column="2"
+                     Padding="10,8"
+                     Margin="0,0,10,0"
+                     Text="{Binding VesselFilter, UpdateSourceTrigger=PropertyChanged, Delay=300}">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <VisualBrush AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="Filter by vessel name..."
+                                                           Foreground="Gray" Margin="10,0,0,0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,10,0">
+                <TextBlock Text="Days ahead:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="70" Padding="10,8"
+                          SelectedValue="{Binding DaysAhead}">
+                    <ComboBoxItem Content="7"/>
+                    <ComboBoxItem Content="14"/>
+                    <ComboBoxItem Content="30" IsSelected="True"/>
+                    <ComboBoxItem Content="60"/>
+                </ComboBox>
+            </StackPanel>
+
+            <Button Grid.Column="4"
+                    Content="+ New Assignment"
+                    Padding="15,8"
+                    Command="{Binding NewAssignmentCommand}"/>
+        </Grid>
+
+        <!-- Assignments Tabs -->
+        <TabControl Grid.Row="3">
+            <!-- Active Assignments Tab -->
+            <TabItem Header="Currently Onboard">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#E8F5E9"
+                          ItemsSource="{Binding ActiveAssignments}"
+                          SelectedItem="{Binding SelectedAssignment}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Personnel" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="130"/>
+                        <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="150"/>
+                        <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="140"/>
+                        <DataGridTextColumn Header="Signed On" Binding="{Binding SignOnDateTime, StringFormat='{}{0:dd MMM yyyy HH:mm}'}" Width="130"/>
+                        <DataGridTextColumn Header="Days Onboard" Binding="{Binding DaysOnboard}" Width="100"/>
+                        <DataGridTextColumn Header="Scheduled End" Binding="{Binding ScheduledEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                        <DataGridTextColumn Header="Sign-On Location" Binding="{Binding SignOnLocation}" Width="130"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Upcoming Assignments Tab -->
+            <TabItem Header="Upcoming">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#E3F2FD"
+                          ItemsSource="{Binding UpcomingAssignments}"
+                          SelectedItem="{Binding SelectedAssignment}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Personnel" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="130"/>
+                        <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="150"/>
+                        <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="140"/>
+                        <DataGridTextColumn Header="Start Date" Binding="{Binding ScheduledStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                        <DataGridTextColumn Header="End Date" Binding="{Binding ScheduledEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                        <DataGridTextColumn Header="Days Until Start" Binding="{Binding DaysUntilStart}" Width="100"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- All Assignments Tab -->
+            <TabItem Header="All Assignments">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#F8F8F8"
+                          ItemsSource="{Binding AllAssignments}"
+                          SelectedItem="{Binding SelectedAssignment}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Personnel" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="120"/>
+                        <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="130"/>
+                        <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="130"/>
+                        <DataGridTextColumn Header="Start" Binding="{Binding ScheduledStartDate, StringFormat='{}{0:dd MMM}'}" Width="80"/>
+                        <DataGridTextColumn Header="End" Binding="{Binding ScheduledEndDate, StringFormat='{}{0:dd MMM}'}" Width="80"/>
+                        <DataGridTemplateColumn Header="Status" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
+                                            CornerRadius="3" Padding="5,2" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding StatusDisplay}"
+                                                   Foreground="White" FontSize="11"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Sign-On" Binding="{Binding SignOnDateTime, StringFormat='{}{0:dd MMM HH:mm}'}" Width="100"/>
+                        <DataGridTextColumn Header="Sign-Off" Binding="{Binding SignOffDateTime, StringFormat='{}{0:dd MMM HH:mm}'}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Footer -->
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding BusyMessage}"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Foreground="Gray"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="View"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding ViewAssignmentCommand}"/>
+
+                <Button Content="Edit"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding EditAssignmentCommand}"/>
+
+                <Button Content="Sign On"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        Command="{Binding SignOnCommand}"/>
+
+                <Button Content="Sign Off"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Background="#FF9800"
+                        Foreground="White"
+                        Command="{Binding SignOffCommand}"/>
+
+                <Button Content="Cancel"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding CancelAssignmentCommand}"/>
+
+                <Button Content="Refresh"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding RefreshCommand}"/>
+
+                <Button Content="Export"
+                        Padding="15,5"
+                        Command="{Binding ExportCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -17,15 +17,23 @@ public class GpsSerialService : IDisposable
     private SerialPort? _serialPort;
     private readonly StringBuilder _buffer = new();
     private readonly object _lock = new();
-    
+    private readonly object _portLock = new();
+
     private DateTime? _lastGpsTime;
     private DateTime? _lastGpsDate;
     private DateTime _lastUpdateTime;
     private bool _isConnected;
+    private bool _isDisposed;
     private string _lastError = string.Empty;
     private int _validSentenceCount;
     private int _satelliteCount;
+    private int _timeoutErrorCount;
     private GpsFixQuality _fixQuality = GpsFixQuality.NoFix;
+
+    // Configurable timeout values (in milliseconds)
+    private const int DefaultReadTimeoutMs = 3000;
+    private const int DefaultWriteTimeoutMs = 2000;
+    private const int MaxConsecutiveTimeoutErrors = 5;
 
     /// <summary>
     /// Event raised when GPS time is updated.
@@ -86,35 +94,70 @@ public class GpsSerialService : IDisposable
     /// </summary>
     public bool Connect(GpsSerialConfiguration config)
     {
+        if (_isDisposed)
+        {
+            throw new ObjectDisposedException(nameof(GpsSerialService));
+        }
+
+        SerialPort? newPort = null;
+        bool success = false;
+
         try
         {
             Disconnect();
 
-            _serialPort = new SerialPort
+            lock (_portLock)
             {
-                PortName = config.PortName,
-                BaudRate = config.BaudRate,
-                DataBits = config.DataBits,
-                Parity = config.Parity,
-                StopBits = config.StopBits,
-                Handshake = Handshake.None,
-                ReadTimeout = 2000,
-                WriteTimeout = 2000,
-                Encoding = Encoding.ASCII
-            };
+                newPort = new SerialPort
+                {
+                    PortName = config.PortName,
+                    BaudRate = config.BaudRate,
+                    DataBits = config.DataBits,
+                    Parity = config.Parity,
+                    StopBits = config.StopBits,
+                    Handshake = Handshake.None,
+                    ReadTimeout = config.ReadTimeoutMs > 0 ? config.ReadTimeoutMs : DefaultReadTimeoutMs,
+                    WriteTimeout = config.WriteTimeoutMs > 0 ? config.WriteTimeoutMs : DefaultWriteTimeoutMs,
+                    Encoding = Encoding.ASCII
+                };
 
-            _serialPort.DataReceived += SerialPort_DataReceived;
-            _serialPort.ErrorReceived += SerialPort_ErrorReceived;
-            _serialPort.Open();
+                newPort.DataReceived += SerialPort_DataReceived;
+                newPort.ErrorReceived += SerialPort_ErrorReceived;
+                newPort.Open();
 
-            _isConnected = true;
-            _lastError = string.Empty;
-            _validSentenceCount = 0;
-            
+                _serialPort = newPort;
+                _isConnected = true;
+                _lastError = string.Empty;
+                _validSentenceCount = 0;
+                _timeoutErrorCount = 0;
+                success = true;
+            }
+
             ConnectionChanged?.Invoke(this, true);
-            
-            System.Diagnostics.Debug.WriteLine($"[GPS] Connected to {config.PortName} at {config.BaudRate} baud");
+
+            System.Diagnostics.Debug.WriteLine($"[GPS] Connected to {config.PortName} at {config.BaudRate} baud (ReadTimeout: {newPort.ReadTimeout}ms, WriteTimeout: {newPort.WriteTimeout}ms)");
             return true;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _lastError = $"Access denied to {config.PortName}. Port may be in use by another application.";
+            _isConnected = false;
+            System.Diagnostics.Debug.WriteLine($"[GPS] Access error: {ex.Message}");
+            return false;
+        }
+        catch (System.IO.IOException ex)
+        {
+            _lastError = $"I/O error on {config.PortName}: {ex.Message}";
+            _isConnected = false;
+            System.Diagnostics.Debug.WriteLine($"[GPS] I/O error: {ex.Message}");
+            return false;
+        }
+        catch (TimeoutException ex)
+        {
+            _lastError = $"Timeout connecting to {config.PortName}: {ex.Message}";
+            _isConnected = false;
+            System.Diagnostics.Debug.WriteLine($"[GPS] Timeout error: {ex.Message}");
+            return false;
         }
         catch (Exception ex)
         {
@@ -123,6 +166,27 @@ public class GpsSerialService : IDisposable
             System.Diagnostics.Debug.WriteLine($"[GPS] Connection error: {ex.Message}");
             return false;
         }
+        finally
+        {
+            // If connection failed, ensure the port is properly disposed
+            if (!success && newPort != null)
+            {
+                try
+                {
+                    newPort.DataReceived -= SerialPort_DataReceived;
+                    newPort.ErrorReceived -= SerialPort_ErrorReceived;
+                    if (newPort.IsOpen)
+                    {
+                        newPort.Close();
+                    }
+                    newPort.Dispose();
+                }
+                catch (Exception disposeEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GPS] Error disposing port after failed connection: {disposeEx.Message}");
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -130,27 +194,67 @@ public class GpsSerialService : IDisposable
     /// </summary>
     public void Disconnect()
     {
-        if (_serialPort != null)
+        SerialPort? portToDispose = null;
+
+        lock (_portLock)
+        {
+            if (_serialPort != null)
+            {
+                portToDispose = _serialPort;
+                _serialPort = null;
+            }
+            _isConnected = false;
+        }
+
+        if (portToDispose != null)
         {
             try
             {
-                _serialPort.DataReceived -= SerialPort_DataReceived;
-                _serialPort.ErrorReceived -= SerialPort_ErrorReceived;
-                
-                if (_serialPort.IsOpen)
-                {
-                    _serialPort.Close();
-                }
-                
-                _serialPort.Dispose();
+                portToDispose.DataReceived -= SerialPort_DataReceived;
+                portToDispose.ErrorReceived -= SerialPort_ErrorReceived;
             }
-            catch { }
-            
-            _serialPort = null;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GPS] Error unsubscribing events: {ex.Message}");
+            }
+
+            try
+            {
+                if (portToDispose.IsOpen)
+                {
+                    // Discard any buffered data before closing
+                    try
+                    {
+                        portToDispose.DiscardInBuffer();
+                        portToDispose.DiscardOutBuffer();
+                    }
+                    catch { }
+
+                    portToDispose.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GPS] Error closing port: {ex.Message}");
+            }
+
+            try
+            {
+                portToDispose.Dispose();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GPS] Error disposing port: {ex.Message}");
+            }
+
+            System.Diagnostics.Debug.WriteLine("[GPS] Port disconnected and disposed");
         }
 
-        _isConnected = false;
-        _buffer.Clear();
+        lock (_lock)
+        {
+            _buffer.Clear();
+        }
+
         ConnectionChanged?.Invoke(this, false);
     }
 
@@ -184,16 +288,66 @@ public class GpsSerialService : IDisposable
 
     private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
     {
+        SerialPort? port;
+
+        lock (_portLock)
+        {
+            port = _serialPort;
+            if (port == null || !_isConnected)
+                return;
+        }
+
         try
         {
-            if (_serialPort == null || !_serialPort.IsOpen)
+            if (!port.IsOpen)
                 return;
 
-            var data = _serialPort.ReadExisting();
-            _buffer.Append(data);
+            var data = port.ReadExisting();
+
+            // Reset timeout error count on successful read
+            Interlocked.Exchange(ref _timeoutErrorCount, 0);
+
+            lock (_lock)
+            {
+                _buffer.Append(data);
+            }
 
             // Process complete sentences
             ProcessBuffer();
+        }
+        catch (TimeoutException ex)
+        {
+            var errorCount = Interlocked.Increment(ref _timeoutErrorCount);
+            System.Diagnostics.Debug.WriteLine($"[GPS] Read timeout ({errorCount}/{MaxConsecutiveTimeoutErrors}): {ex.Message}");
+
+            if (errorCount >= MaxConsecutiveTimeoutErrors)
+            {
+                _lastError = $"Too many consecutive timeouts ({errorCount}). Disconnecting.";
+                System.Diagnostics.Debug.WriteLine($"[GPS] {_lastError}");
+
+                // Disconnect on too many consecutive timeout errors (on a separate thread to avoid deadlock)
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        Disconnect();
+                    }
+                    catch (Exception disconnectEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[GPS] Error during timeout-triggered disconnect: {disconnectEx.Message}");
+                    }
+                });
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Port was closed or disposed
+            System.Diagnostics.Debug.WriteLine($"[GPS] Port operation error (likely closed): {ex.Message}");
+        }
+        catch (System.IO.IOException ex)
+        {
+            _lastError = $"I/O error reading from GPS: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[GPS] I/O error: {ex.Message}");
         }
         catch (Exception ex)
         {
@@ -209,14 +363,22 @@ public class GpsSerialService : IDisposable
 
     private void ProcessBuffer()
     {
-        var content = _buffer.ToString();
+        string content;
+        lock (_lock)
+        {
+            content = _buffer.ToString();
+            _buffer.Clear();
+        }
+
         var lines = content.Split('\n');
 
         // Keep incomplete last line in buffer
-        _buffer.Clear();
         if (!content.EndsWith("\n") && lines.Length > 0)
         {
-            _buffer.Append(lines[^1]);
+            lock (_lock)
+            {
+                _buffer.Append(lines[^1]);
+            }
             lines = lines[..^1];
         }
 
@@ -423,9 +585,40 @@ public class GpsSerialService : IDisposable
         return calculatedChecksum == expectedChecksum;
     }
 
+    /// <summary>
+    /// Disposes the GPS service and releases all resources.
+    /// </summary>
     public void Dispose()
     {
-        Disconnect();
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Protected dispose implementation.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_isDisposed)
+            return;
+
+        if (disposing)
+        {
+            // Dispose managed resources
+            System.Diagnostics.Debug.WriteLine("[GPS] Disposing GpsSerialService...");
+            Disconnect();
+        }
+
+        _isDisposed = true;
+        System.Diagnostics.Debug.WriteLine("[GPS] GpsSerialService disposed");
+    }
+
+    /// <summary>
+    /// Finalizer for safety in case Dispose is not called.
+    /// </summary>
+    ~GpsSerialService()
+    {
+        Dispose(disposing: false);
     }
 }
 
@@ -439,6 +632,16 @@ public class GpsSerialConfiguration
     public int DataBits { get; set; } = 8;
     public Parity Parity { get; set; } = Parity.None;
     public StopBits StopBits { get; set; } = StopBits.One;
+
+    /// <summary>
+    /// Read timeout in milliseconds. Set to 0 or negative to use default (3000ms).
+    /// </summary>
+    public int ReadTimeoutMs { get; set; } = 3000;
+
+    /// <summary>
+    /// Write timeout in milliseconds. Set to 0 or negative to use default (2000ms).
+    /// </summary>
+    public int WriteTimeoutMs { get; set; } = 2000;
 }
 
 /// <summary>

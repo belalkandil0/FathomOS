@@ -1,0 +1,296 @@
+<UserControl x:Class="FathomOS.Modules.ProjectManagement.Views.ProjectDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
+        <Style x:Key="StatCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,15,15"/>
+        </Style>
+
+        <Style x:Key="StatValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="36"/>
+            <Setter Property="FontWeight" Value="Light"/>
+            <Setter Property="Foreground" Value="#2196F3"/>
+        </Style>
+
+        <Style x:Key="StatLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#666"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Foreground" Value="#333"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Dashboard" FontSize="28" FontWeight="Light"/>
+                    <TextBlock Text="Project management overview and statistics"
+                               FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="Refresh" Padding="15,8"
+                        Command="{Binding RefreshCommand}"/>
+            </Grid>
+
+            <!-- Statistics Cards -->
+            <Grid Grid.Row="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Projects -->
+                <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalProjects}" Style="{StaticResource StatValueStyle}"/>
+                        <TextBlock Text="Total Projects" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Active Projects -->
+                <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding ActiveProjects}" Style="{StaticResource StatValueStyle}"
+                                   Foreground="#4CAF50"/>
+                        <TextBlock Text="Active Projects" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Upcoming Milestones -->
+                <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding UpcomingMilestoneCount}" Style="{StaticResource StatValueStyle}"
+                                   Foreground="#FF9800"/>
+                        <TextBlock Text="Upcoming Milestones" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Overdue Deliverables -->
+                <Border Grid.Column="3" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding OverdueDeliverableCount}" Style="{StaticResource StatValueStyle}"
+                                   Foreground="#F44336"/>
+                        <TextBlock Text="Overdue Deliverables" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Secondary Stats Row -->
+            <Grid Grid.Row="2" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Clients -->
+                <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalClients}" Style="{StaticResource StatValueStyle}"
+                                   FontSize="28" Foreground="#9C27B0"/>
+                        <TextBlock Text="Total Clients" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- On Hold -->
+                <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding OnHoldProjects}" Style="{StaticResource StatValueStyle}"
+                                   FontSize="28" Foreground="#FF9800"/>
+                        <TextBlock Text="On Hold" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Completed -->
+                <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CompletedProjects}" Style="{StaticResource StatValueStyle}"
+                                   FontSize="28" Foreground="#1565C0"/>
+                        <TextBlock Text="Completed" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Avg Completion -->
+                <Border Grid.Column="3" Style="{StaticResource StatCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource StatValueStyle}" FontSize="28" Foreground="#00BCD4">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0:F0}%">
+                                    <Binding Path="AverageCompletion"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock Text="Avg Completion" Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Content Sections -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Column: Recent Projects & Status Breakdown -->
+                <StackPanel Grid.Column="0">
+                    <!-- Recent Projects -->
+                    <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                            CornerRadius="5" Padding="15" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Recent Projects" Style="{StaticResource SectionHeaderStyle}"/>
+                            <DataGrid ItemsSource="{Binding RecentProjects}"
+                                      SelectedItem="{Binding SelectedProject}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      MaxHeight="200"
+                                      BorderThickness="0">
+                                <DataGrid.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick"
+                                                  Command="{Binding ViewProjectCommand}"
+                                                  CommandParameter="{Binding SelectedProject}"/>
+                                </DataGrid.InputBindings>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="150"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                                    <DataGridTextColumn Header="Progress" Binding="{Binding PercentComplete, StringFormat='{}{0:F0}%'}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Projects by Status -->
+                    <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                            CornerRadius="5" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="Projects by Status" Style="{StaticResource SectionHeaderStyle}"/>
+                            <ItemsControl ItemsSource="{Binding ProjectsByStatus}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding StatusName}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Count}" FontWeight="SemiBold"
+                                                       Foreground="#2196F3"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Column: Milestones & Deliverables -->
+                <StackPanel Grid.Column="2">
+                    <!-- Upcoming Milestones -->
+                    <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                            CornerRadius="5" Padding="15" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Upcoming Milestones (Next 30 Days)" Style="{StaticResource SectionHeaderStyle}"/>
+                            <DataGrid ItemsSource="{Binding UpcomingMilestones}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      MaxHeight="200"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Milestone" Binding="{Binding Name}" Width="150"/>
+                                    <DataGridTextColumn Header="Due Date" Binding="{Binding PlannedDate, StringFormat='{}{0:dd MMM}'}" Width="80"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Text="No upcoming milestones"
+                                       Foreground="Gray" FontStyle="Italic" Margin="0,10"
+                                       Visibility="{Binding UpcomingMilestones.Count, Converter={StaticResource BoolToVisConverter}, ConverterParameter=Inverse}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Overdue Deliverables -->
+                    <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                            CornerRadius="5" Padding="15">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionHeaderStyle}">
+                                <Run Text="Overdue Deliverables"/>
+                                <Run Text=" (" Foreground="#F44336"/>
+                                <Run Text="{Binding OverdueDeliverableCount, Mode=OneWay}" Foreground="#F44336"/>
+                                <Run Text=")" Foreground="#F44336"/>
+                            </TextBlock>
+                            <DataGrid ItemsSource="{Binding OverdueDeliverables}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      MaxHeight="200"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Deliverable" Binding="{Binding Name}" Width="150"/>
+                                    <DataGridTextColumn Header="Due Date" Binding="{Binding PlannedDueDate, StringFormat='{}{0:dd MMM}'}" Width="80"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Text="No overdue deliverables - Great job!"
+                                       Foreground="#4CAF50" FontStyle="Italic" Margin="0,10"
+                                       Visibility="{Binding OverdueDeliverableCount, Converter={StaticResource BoolToVisConverter}, ConverterParameter=Zero}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Busy Indicator Overlay -->
+            <Border Grid.RowSpan="4" Background="#80FFFFFF"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <mah:ProgressRing IsActive="{Binding IsBusy}" Width="50" Height="50"/>
+                    <TextBlock Text="{Binding BusyMessage}" Margin="0,10,0,0" FontSize="14"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

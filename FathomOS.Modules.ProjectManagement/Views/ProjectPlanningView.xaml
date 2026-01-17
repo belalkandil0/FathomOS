@@ -3,10 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="1000">
+             d:DesignHeight="650" d:DesignWidth="1000">
 
-    <Grid Margin="10">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -14,127 +19,202 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Project Planning" FontSize="24" FontWeight="Light"/>
-            <TextBlock Text="Manage resource assignments for projects"
-                       FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Resource Planning" FontSize="28" FontWeight="Light"/>
+            <TextBlock Text="Manage vessel, equipment, and personnel assignments for projects"
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
 
         <!-- Project Selection -->
-        <Grid Grid.Row="1" Margin="0,0,0,10">
+        <Grid Grid.Row="1" Margin="0,0,0,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="Select Project:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <ComboBox x:Name="ProjectCombo" Grid.Column="1" Padding="8"
-                      DisplayMemberPath="ProjectName"
-                      SelectionChanged="ProjectCombo_SelectionChanged"/>
+            <TextBlock Grid.Column="0" Text="Select Project:" VerticalAlignment="Center" Margin="0,0,10,0"
+                       FontWeight="SemiBold"/>
+            <ComboBox Grid.Column="1" Padding="10"
+                      ItemsSource="{Binding Projects}"
+                      SelectedItem="{Binding SelectedProject}"
+                      DisplayMemberPath="ProjectName"/>
+
+            <Button Grid.Column="3" Content="Refresh" Padding="15,8"
+                    Command="{Binding RefreshCommand}"/>
         </Grid>
 
         <!-- Resource Assignment Tabs -->
         <TabControl Grid.Row="2">
             <!-- Vessel Assignments -->
             <TabItem Header="Vessels">
-                <Grid Margin="10">
+                <Grid Margin="15">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button x:Name="AddVesselButton" Content="+ Assign Vessel" Padding="15,5"
-                                Click="AddVesselButton_Click"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+                        <Button Content="+ Assign Vessel" Padding="15,6"
+                                Command="{Binding AddVesselCommand}"
+                                Background="#2196F3" Foreground="White" BorderThickness="0"/>
                     </StackPanel>
 
-                    <DataGrid x:Name="VesselAssignmentsGrid" Grid.Row="1"
-                              AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding VesselAssignments}"
+                              SelectedItem="{Binding SelectedVesselAssignment}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              GridLinesVisibility="Horizontal"
+                              AlternatingRowBackground="#FAFAFA">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Vessel Name" Binding="{Binding VesselName}" Width="180"/>
-                            <DataGridTextColumn Header="IMO Number" Binding="{Binding VesselIMO}" Width="100"/>
+                            <DataGridTextColumn Header="IMO Number" Binding="{Binding VesselImoNumber}" Width="100"/>
                             <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="100"/>
-                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
-                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding PlannedStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding PlannedEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-                            <DataGridTextColumn Header="Daily Rate" Binding="{Binding DailyRate, StringFormat='{}{0:C}'}" Width="100"/>
+                            <DataGridTextColumn Header="Day Rate" Binding="{Binding DayRate, StringFormat='{}{0:C}'}" Width="100"/>
                         </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Edit" Command="{Binding EditVesselCommand}"
+                                          CommandParameter="{Binding SelectedVesselAssignment}"/>
+                                <Separator/>
+                                <MenuItem Header="Remove" Command="{Binding RemoveVesselCommand}"
+                                          CommandParameter="{Binding SelectedVesselAssignment}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
                     </DataGrid>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button x:Name="EditVesselButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
-                        <Button x:Name="RemoveVesselButton" Content="Remove" Padding="15,5"/>
+                        <Button Content="Edit" Padding="15,6" Margin="0,0,5,0"
+                                Command="{Binding EditVesselCommand}"
+                                CommandParameter="{Binding SelectedVesselAssignment}"/>
+                        <Button Content="Remove" Padding="15,6"
+                                Command="{Binding RemoveVesselCommand}"
+                                CommandParameter="{Binding SelectedVesselAssignment}"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
 
             <!-- Equipment Assignments -->
             <TabItem Header="Equipment">
-                <Grid Margin="10">
+                <Grid Margin="15">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button x:Name="AddEquipmentButton" Content="+ Assign Equipment" Padding="15,5"
-                                Click="AddEquipmentButton_Click"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+                        <Button Content="+ Assign Equipment" Padding="15,6"
+                                Command="{Binding AddEquipmentCommand}"
+                                Background="#2196F3" Foreground="White" BorderThickness="0"/>
                     </StackPanel>
 
-                    <DataGrid x:Name="EquipmentAssignmentsGrid" Grid.Row="1"
-                              AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding EquipmentAssignments}"
+                              SelectedItem="{Binding SelectedEquipmentAssignment}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              GridLinesVisibility="Horizontal"
+                              AlternatingRowBackground="#FAFAFA">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Equipment Name" Binding="{Binding EquipmentName}" Width="180"/>
-                            <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Asset Number" Binding="{Binding EquipmentAssetNumber}" Width="120"/>
                             <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="100"/>
-                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
-                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding PlannedStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding PlannedEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                         </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Edit" Command="{Binding EditEquipmentCommand}"
+                                          CommandParameter="{Binding SelectedEquipmentAssignment}"/>
+                                <Separator/>
+                                <MenuItem Header="Remove" Command="{Binding RemoveEquipmentCommand}"
+                                          CommandParameter="{Binding SelectedEquipmentAssignment}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
                     </DataGrid>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button x:Name="EditEquipmentButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
-                        <Button x:Name="RemoveEquipmentButton" Content="Remove" Padding="15,5"/>
+                        <Button Content="Edit" Padding="15,6" Margin="0,0,5,0"
+                                Command="{Binding EditEquipmentCommand}"
+                                CommandParameter="{Binding SelectedEquipmentAssignment}"/>
+                        <Button Content="Remove" Padding="15,6"
+                                Command="{Binding RemoveEquipmentCommand}"
+                                CommandParameter="{Binding SelectedEquipmentAssignment}"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
 
             <!-- Personnel Assignments -->
             <TabItem Header="Personnel">
-                <Grid Margin="10">
+                <Grid Margin="15">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button x:Name="AddPersonnelButton" Content="+ Assign Personnel" Padding="15,5"
-                                Click="AddPersonnelButton_Click"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+                        <Button Content="+ Assign Personnel" Padding="15,6"
+                                Command="{Binding AddPersonnelCommand}"
+                                Background="#2196F3" Foreground="White" BorderThickness="0"/>
                     </StackPanel>
 
-                    <DataGrid x:Name="PersonnelAssignmentsGrid" Grid.Row="1"
-                              AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding PersonnelAssignments}"
+                              SelectedItem="{Binding SelectedPersonnelAssignment}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              GridLinesVisibility="Horizontal"
+                              AlternatingRowBackground="#FAFAFA">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding PersonnelName}" Width="180"/>
-                            <DataGridTextColumn Header="Position" Binding="{Binding PositionTitle}" Width="130"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding FullName}" Width="180"/>
+                            <DataGridTextColumn Header="Position" Binding="{Binding JobTitle}" Width="130"/>
                             <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="120"/>
-                            <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
-                            <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="Start Date" Binding="{Binding PlannedStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="End Date" Binding="{Binding PlannedEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="110"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                         </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Edit" Command="{Binding EditPersonnelCommand}"
+                                          CommandParameter="{Binding SelectedPersonnelAssignment}"/>
+                                <Separator/>
+                                <MenuItem Header="Remove" Command="{Binding RemovePersonnelCommand}"
+                                          CommandParameter="{Binding SelectedPersonnelAssignment}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
                     </DataGrid>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button x:Name="EditPersonnelButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"/>
-                        <Button x:Name="RemovePersonnelButton" Content="Remove" Padding="15,5"/>
+                        <Button Content="Edit" Padding="15,6" Margin="0,0,5,0"
+                                Command="{Binding EditPersonnelCommand}"
+                                CommandParameter="{Binding SelectedPersonnelAssignment}"/>
+                        <Button Content="Remove" Padding="15,6"
+                                Command="{Binding RemovePersonnelCommand}"
+                                CommandParameter="{Binding SelectedPersonnelAssignment}"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>
+
+        <!-- Busy Indicator -->
+        <Border Grid.Row="2" Background="#80FFFFFF"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <mah:ProgressRing IsActive="{Binding IsBusy}" Width="40" Height="40"/>
+                <TextBlock Text="{Binding BusyMessage}" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

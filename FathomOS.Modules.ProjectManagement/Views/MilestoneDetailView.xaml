@@ -1,0 +1,137 @@
+<UserControl x:Class="FathomOS.Modules.ProjectManagement.Views.MilestoneDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="550">
+
+    <UserControl.Resources>
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Foreground" Value="#333"/>
+        </Style>
+
+        <Style x:Key="FieldTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <Style x:Key="FieldComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="20" FontWeight="Light" Margin="0,0,0,20"/>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Name -->
+                <StackPanel Grid.Row="0" Grid.ColumnSpan="3">
+                    <TextBlock Text="Milestone Name *" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FieldTextBoxStyle}"/>
+                </StackPanel>
+
+                <!-- Row 1: Type / Status -->
+                <StackPanel Grid.Row="1" Grid.Column="0">
+                    <TextBlock Text="Type" Style="{StaticResource FieldLabelStyle}"/>
+                    <ComboBox ItemsSource="{Binding MilestoneTypes}"
+                              SelectedItem="{Binding SelectedType}"
+                              Style="{StaticResource FieldComboBoxStyle}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="2">
+                    <TextBlock Text="Status" Style="{StaticResource FieldLabelStyle}"/>
+                    <ComboBox ItemsSource="{Binding MilestoneStatuses}"
+                              SelectedItem="{Binding SelectedStatus}"
+                              Style="{StaticResource FieldComboBoxStyle}"/>
+                </StackPanel>
+
+                <!-- Row 2: Planned Date / Actual Date -->
+                <StackPanel Grid.Row="2" Grid.Column="0">
+                    <TextBlock Text="Planned Date" Style="{StaticResource FieldLabelStyle}"/>
+                    <DatePicker SelectedDate="{Binding PlannedDate}"
+                                Padding="8" Margin="0,0,0,15"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="2">
+                    <TextBlock Text="Actual Date" Style="{StaticResource FieldLabelStyle}"/>
+                    <DatePicker SelectedDate="{Binding ActualDate}"
+                                Padding="8" Margin="0,0,0,15"/>
+                </StackPanel>
+
+                <!-- Row 3: Owner / Sort Order -->
+                <StackPanel Grid.Row="3" Grid.Column="0">
+                    <TextBlock Text="Owner" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Text="{Binding OwnerName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FieldTextBoxStyle}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="3" Grid.Column="2">
+                    <TextBlock Text="Sort Order" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Text="{Binding SortOrder, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FieldTextBoxStyle}"/>
+                </StackPanel>
+
+                <!-- Row 4: Checkboxes -->
+                <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,15">
+                    <CheckBox Content="Critical Path" IsChecked="{Binding IsCritical}" Margin="0,0,20,0"/>
+                    <CheckBox Content="Billable" IsChecked="{Binding IsBillable}" Margin="0,0,20,0"/>
+                    <CheckBox Content="Requires Client Approval" IsChecked="{Binding IsClientApprovalRequired}"/>
+                </StackPanel>
+
+                <!-- Row 5: Description -->
+                <StackPanel Grid.Row="5" Grid.ColumnSpan="3">
+                    <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                             Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto" Padding="8" Margin="0,0,0,15"/>
+                </StackPanel>
+
+                <!-- Row 6: Notes -->
+                <StackPanel Grid.Row="6" Grid.ColumnSpan="3">
+                    <TextBlock Text="Notes" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                             Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto" Padding="8"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Complete" Padding="15,8" Margin="0,0,10,0"
+                    Command="{Binding CompleteCommand}"
+                    Background="#4CAF50" Foreground="White" BorderThickness="0"/>
+            <Button Content="Save" Padding="20,8" Margin="0,0,10,0"
+                    Command="{Binding SaveCommand}"
+                    Background="#2196F3" Foreground="White" BorderThickness="0"/>
+            <Button Content="Cancel" Padding="20,8"
+                    Command="{Binding CancelCommand}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

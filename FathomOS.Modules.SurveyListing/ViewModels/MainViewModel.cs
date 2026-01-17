@@ -21,6 +21,9 @@ public class MainViewModel : INotifyPropertyChanged
     private UserControl? _currentStepView;
     private bool _isProcessing;
 
+    // Cache for step views to avoid recreating on each navigation
+    private readonly Dictionary<int, UserControl> _stepViewCache = new();
+
     // Step ViewModels
     private readonly Step1ViewModel _step1ViewModel;
     private readonly Step2ViewModel _step2ViewModel;
@@ -128,7 +131,10 @@ public class MainViewModel : INotifyPropertyChanged
     public void LoadProject(Project project)
     {
         _project = project;
-        
+
+        // Clear the view cache when loading a new project
+        ClearViewCache();
+
         // Update all step ViewModels
         _step1ViewModel.LoadProject(project);
         _step2ViewModel.LoadProject(project);
@@ -261,7 +267,15 @@ public class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            CurrentStepView = _currentStepIndex switch
+            // Check if view exists in cache
+            if (_stepViewCache.TryGetValue(_currentStepIndex, out var cachedView))
+            {
+                CurrentStepView = cachedView;
+                return;
+            }
+
+            // Create new view and add to cache
+            UserControl? newView = _currentStepIndex switch
             {
                 0 => new Step1_ProjectSetup { DataContext = _step1ViewModel },
                 1 => new Step2_RouteFile { DataContext = _step2ViewModel },
@@ -272,13 +286,36 @@ public class MainViewModel : INotifyPropertyChanged
                 6 => new Step7_OutputOptions { DataContext = _step7ViewModel },
                 _ => null
             };
+
+            if (newView != null)
+            {
+                _stepViewCache[_currentStepIndex] = newView;
+            }
+
+            CurrentStepView = newView;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading step view {_currentStepIndex}: {ex.Message}");
-            DialogService.Instance.ShowError("Navigation Error", 
+            DialogService.Instance.ShowError("Navigation Error",
                 $"Error navigating to step {_currentStepIndex + 1}:\n\n{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Clears the view cache, disposing any disposable views.
+    /// Call this when the wizard is reset or a new project is loaded.
+    /// </summary>
+    public void ClearViewCache()
+    {
+        foreach (var view in _stepViewCache.Values)
+        {
+            if (view is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+        _stepViewCache.Clear();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

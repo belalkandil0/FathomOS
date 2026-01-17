@@ -99,6 +99,31 @@ public class ObservableRangeCollection<T> : ObservableCollection<T>
 
 #endregion
 
+#region InitializationErrorEventArgs
+
+/// <summary>
+/// Event arguments for initialization errors in ViewModels.
+/// Used to pass error information to the View for MVVM-compliant error display.
+/// </summary>
+public class InitializationErrorEventArgs : EventArgs
+{
+    /// <summary>
+    /// The error message to display.
+    /// </summary>
+    public string ErrorMessage { get; }
+
+    /// <summary>
+    /// Creates a new instance of InitializationErrorEventArgs.
+    /// </summary>
+    /// <param name="errorMessage">The error message to display.</param>
+    public InitializationErrorEventArgs(string errorMessage)
+    {
+        ErrorMessage = errorMessage ?? throw new ArgumentNullException(nameof(errorMessage));
+    }
+}
+
+#endregion
+
 #region ViewModelBase
 
 /// <summary>

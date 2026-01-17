@@ -25,6 +25,9 @@
 
     <!-- HTTP Client Extensions for API integration -->
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+
+    <!-- MahApps.Metro for modern UI controls -->
+    <PackageReference Include="MahApps.Metro" Version="2.4.10" />
   </ItemGroup>
 
   <ItemGroup>

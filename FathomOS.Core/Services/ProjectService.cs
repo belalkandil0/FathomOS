@@ -1,5 +1,6 @@
 namespace FathomOS.Core.Services;
 
+using FathomOS.Core.Logging;
 using FathomOS.Core.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,6 +20,8 @@ public class ProjectService
     /// </summary>
     public const string FileFilter = "Survey Listing Projects (*.slproj)|*.slproj|All Files (*.*)|*.*";
 
+    private readonly ILogger? _logger;
+
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
@@ -26,6 +29,23 @@ public class ProjectService
         Converters = { new JsonStringEnumConverter() },
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+
+    /// <summary>
+    /// Initializes a new instance of ProjectService without logging.
+    /// </summary>
+    public ProjectService()
+    {
+        _logger = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of ProjectService with logging support.
+    /// </summary>
+    /// <param name="logger">The logger instance for recording operations and errors.</param>
+    public ProjectService(ILogger logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
     /// <summary>
     /// Save a project to a file
@@ -64,22 +84,65 @@ public class ProjectService
     /// <summary>
     /// Load a project from a file
     /// </summary>
+    /// <param name="filePath">Path to the project file to load.</param>
+    /// <returns>The loaded project.</returns>
+    /// <exception cref="FileNotFoundException">Thrown when the project file does not exist.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when deserialization fails or returns null.</exception>
+    /// <exception cref="JsonException">Thrown when the file contains invalid JSON.</exception>
     public Project Load(string filePath)
     {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"Project file not found: {filePath}");
+        if (string.IsNullOrWhiteSpace(filePath))
+            throw new ArgumentException("File path cannot be empty", nameof(filePath));
 
-        var json = File.ReadAllText(filePath);
-        var project = JsonSerializer.Deserialize<Project>(json, _jsonOptions);
+        if (!File.Exists(filePath))
+        {
+            _logger?.Error($"Project file not found: {filePath}", nameof(ProjectService));
+            throw new FileNotFoundException($"Project file not found: {filePath}");
+        }
+
+        _logger?.Debug($"Loading project from: {filePath}", nameof(ProjectService));
+
+        string json;
+        try
+        {
+            json = File.ReadAllText(filePath);
+        }
+        catch (IOException ex)
+        {
+            _logger?.Error($"Failed to read project file: {filePath}", ex, nameof(ProjectService));
+            throw;
+        }
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            _logger?.Error($"Project file is empty: {filePath}", nameof(ProjectService));
+            throw new InvalidOperationException($"Project file is empty: {filePath}");
+        }
+
+        Project? project;
+        try
+        {
+            project = JsonSerializer.Deserialize<Project>(json, _jsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger?.Error($"Failed to parse project file JSON: {filePath}", ex, nameof(ProjectService));
+            throw new InvalidOperationException($"Failed to parse project file: {filePath}. The file may be corrupted or in an invalid format.", ex);
+        }
 
         if (project == null)
-            throw new InvalidOperationException("Failed to deserialize project file");
+        {
+            _logger?.Error($"Deserialization returned null for project file: {filePath}", nameof(ProjectService));
+            throw new InvalidOperationException($"Failed to deserialize project file: {filePath}. The file content could not be converted to a valid project.");
+        }
 
         // Set the file path reference
         project.ProjectFilePath = filePath;
 
         // Handle file version migrations if needed
         MigrateIfNeeded(project);
+
+        _logger?.Info($"Successfully loaded project: {project.ProjectName ?? "Unnamed"} from {filePath}", nameof(ProjectService));
 
         return project;
     }
@@ -115,20 +178,56 @@ public class ProjectService
     /// <summary>
     /// Check if a file is a valid project file
     /// </summary>
+    /// <param name="filePath">Path to the file to validate.</param>
+    /// <returns>True if the file is a valid project file; otherwise, false.</returns>
     public bool IsValidProjectFile(string filePath)
     {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            _logger?.Debug("IsValidProjectFile called with empty path", nameof(ProjectService));
+            return false;
+        }
+
         try
         {
             if (!File.Exists(filePath))
+            {
+                _logger?.Debug($"File does not exist: {filePath}", nameof(ProjectService));
                 return false;
+            }
 
             var json = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _logger?.Debug($"File is empty: {filePath}", nameof(ProjectService));
+                return false;
+            }
+
             var project = JsonSerializer.Deserialize<Project>(json, _jsonOptions);
-            
-            return project != null && project.FileVersion >= 1;
+
+            if (project == null)
+            {
+                _logger?.Debug($"Deserialization returned null for: {filePath}", nameof(ProjectService));
+                return false;
+            }
+
+            var isValid = project.FileVersion >= 1;
+            _logger?.Debug($"File validation result for {filePath}: {(isValid ? "valid" : "invalid version")}", nameof(ProjectService));
+            return isValid;
         }
-        catch
+        catch (JsonException ex)
         {
+            _logger?.Debug($"JSON parsing failed for {filePath}: {ex.Message}", nameof(ProjectService));
+            return false;
+        }
+        catch (IOException ex)
+        {
+            _logger?.Debug($"IO error reading {filePath}: {ex.Message}", nameof(ProjectService));
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger?.Warning($"Unexpected error validating project file {filePath}: {ex.Message}", ex, nameof(ProjectService));
             return false;
         }
     }
@@ -136,23 +235,52 @@ public class ProjectService
     /// <summary>
     /// Get project info without full loading
     /// </summary>
+    /// <param name="filePath">Path to the project file.</param>
+    /// <returns>Project info if successful; null if the file cannot be read or is invalid.</returns>
     public ProjectInfo? GetProjectInfo(string filePath)
     {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            _logger?.Warning("GetProjectInfo called with empty path", nameof(ProjectService));
+            return null;
+        }
+
         try
         {
             var project = Load(filePath);
+
+            // Ensure SurveyDataFiles is not null before accessing Count
+            var surveyFileCount = project.SurveyDataFiles?.Count ?? 0;
+
             return new ProjectInfo
             {
                 FilePath = filePath,
-                ProjectName = project.ProjectName,
-                ClientName = project.ClientName,
+                ProjectName = project.ProjectName ?? string.Empty,
+                ClientName = project.ClientName ?? string.Empty,
                 CreatedDate = project.CreatedDate,
                 ModifiedDate = project.ModifiedDate,
-                SurveyFileCount = project.SurveyDataFiles.Count
+                SurveyFileCount = surveyFileCount
             };
         }
-        catch
+        catch (FileNotFoundException ex)
         {
+            _logger?.Warning($"Project file not found when getting info: {filePath}", ex, nameof(ProjectService));
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger?.Warning($"Invalid JSON in project file: {filePath}", ex, nameof(ProjectService));
+            return null;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger?.Warning($"Failed to load project info: {filePath}", ex, nameof(ProjectService));
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // Log unexpected exceptions with full details before returning null
+            _logger?.Error($"Unexpected error loading project info from {filePath}", ex, nameof(ProjectService));
             return null;
         }
     }

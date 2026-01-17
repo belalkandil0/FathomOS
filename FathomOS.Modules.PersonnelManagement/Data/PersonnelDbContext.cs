@@ -64,6 +64,12 @@ public class PersonnelDbContext : DbContext
 
     #endregion
 
+    #region Audit
+
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+
+    #endregion
+
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         if (!options.IsConfigured && !string.IsNullOrEmpty(_dbPath))
@@ -239,6 +245,18 @@ public class PersonnelDbContext : DbContext
         modelBuilder.Entity<SyncSettings>(entity =>
         {
             entity.HasKey(s => s.Id);
+        });
+
+        // AuditLog indexes
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasIndex(a => a.EntityType);
+            entity.HasIndex(a => a.EntityId);
+            entity.HasIndex(a => a.Action);
+            entity.HasIndex(a => a.ChangedBy);
+            entity.HasIndex(a => a.ChangedAt);
+            entity.HasIndex(a => new { a.EntityType, a.EntityId });
+            entity.HasIndex(a => new { a.EntityType, a.ChangedAt });
         });
     }
 }

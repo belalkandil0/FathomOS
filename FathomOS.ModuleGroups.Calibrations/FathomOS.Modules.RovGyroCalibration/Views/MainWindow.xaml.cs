@@ -10,6 +10,8 @@ namespace FathomOS.Modules.RovGyroCalibration.Views;
 /// </summary>
 public partial class MainWindow : MetroWindow
 {
+    private MainViewModel? _viewModel;
+
     public MainWindow()
     {
         try
@@ -20,10 +22,18 @@ public partial class MainWindow : MetroWindow
             InitializeComponent();
 
             // Set up the ViewModel
-            DataContext = new MainViewModel();
+            _viewModel = new MainViewModel();
+
+            // Subscribe to initialization error event for MVVM-compliant error display
+            _viewModel.InitializationErrorOccurred += OnViewModelInitializationError;
+
+            DataContext = _viewModel;
 
             // Handle window closing to clean up resources
             Closing += MainWindow_Closing;
+
+            // Check for any deferred initialization errors after the window is loaded
+            Loaded += MainWindow_Loaded;
         }
         catch (Exception ex)
         {
@@ -33,6 +43,23 @@ public partial class MainWindow : MetroWindow
             System.Windows.MessageBox.Show(msg, "Window Error", MessageBoxButton.OK, MessageBoxImage.Error);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Handle window loaded event to check for deferred initialization errors
+    /// </summary>
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Raise any deferred initialization errors now that the UI is ready
+        _viewModel?.RaiseInitializationErrorIfNeeded();
+    }
+
+    /// <summary>
+    /// Handle initialization errors from the ViewModel (MVVM pattern)
+    /// </summary>
+    private void OnViewModelInitializationError(object? sender, InitializationErrorEventArgs e)
+    {
+        System.Windows.MessageBox.Show(e.ErrorMessage, "ViewModel Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     /// <summary>

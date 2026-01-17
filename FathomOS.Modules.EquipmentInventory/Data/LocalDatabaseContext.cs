@@ -64,6 +64,7 @@ public class LocalDatabaseContext : DbContext
     public DbSet<Alert> Alerts { get; set; } = null!;
     public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; } = null!;
     public DbSet<Certification> Certifications { get; set; } = null!;
+    public DbSet<EquipmentCheckout> EquipmentCheckouts { get; set; } = null!;
     
     // Defect Reports / EFN
     public DbSet<DefectReport> DefectReports { get; set; } = null!;
@@ -207,6 +208,22 @@ public class LocalDatabaseContext : DbContext
         {
             entity.HasIndex(h => h.DefectReportId);
             entity.HasIndex(h => h.PerformedAt);
+        });
+
+        // Equipment Checkout indexes and relationships
+        modelBuilder.Entity<EquipmentCheckout>(entity =>
+        {
+            entity.HasKey(c => c.CheckoutId);
+            entity.HasIndex(c => c.EquipmentId);
+            entity.HasIndex(c => c.ProjectId);
+            entity.HasIndex(c => c.CheckedOutToUserId);
+            entity.HasIndex(c => c.CheckedOutAt);
+            entity.HasIndex(c => c.ReturnedAt);
+            entity.HasIndex(c => new { c.EquipmentId, c.ReturnedAt }); // For finding active checkouts
+
+            entity.HasOne(c => c.Equipment).WithMany().HasForeignKey(c => c.EquipmentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(c => c.Project).WithMany().HasForeignKey(c => c.ProjectId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(c => c.CheckedOutToUser).WithMany().HasForeignKey(c => c.CheckedOutToUserId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

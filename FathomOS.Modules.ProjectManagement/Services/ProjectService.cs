@@ -24,7 +24,7 @@ public class ProjectService : IProjectService
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.IsActive)
+            .Where(p => p.IsActive && !p.IsDeleted)
             .OrderByDescending(p => p.PlannedStartDate)
             .ToListAsync();
     }
@@ -38,14 +38,14 @@ public class ProjectService : IProjectService
             .Include(p => p.VesselAssignments)
             .Include(p => p.EquipmentAssignments)
             .Include(p => p.PersonnelAssignments)
-            .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+            .FirstOrDefaultAsync(p => p.ProjectId == projectId && !p.IsDeleted);
     }
 
     public async Task<SurveyProject?> GetProjectByNumberAsync(string projectNumber)
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .FirstOrDefaultAsync(p => p.ProjectNumber == projectNumber);
+            .FirstOrDefaultAsync(p => p.ProjectNumber == projectNumber && !p.IsDeleted);
     }
 
     public async Task<IEnumerable<SurveyProject>> SearchProjectsAsync(string searchTerm)
@@ -53,7 +53,7 @@ public class ProjectService : IProjectService
         var term = searchTerm.ToLower();
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.IsActive &&
+            .Where(p => p.IsActive && !p.IsDeleted &&
                 (p.ProjectName.ToLower().Contains(term) ||
                  p.ProjectNumber.ToLower().Contains(term) ||
                  (p.Description != null && p.Description.ToLower().Contains(term)) ||
@@ -66,7 +66,7 @@ public class ProjectService : IProjectService
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.IsActive && p.Status == status)
+            .Where(p => p.IsActive && !p.IsDeleted && p.Status == status)
             .OrderByDescending(p => p.PlannedStartDate)
             .ToListAsync();
     }
@@ -75,7 +75,7 @@ public class ProjectService : IProjectService
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.IsActive && p.Status == ProjectStatus.Active)
+            .Where(p => p.IsActive && !p.IsDeleted && p.Status == ProjectStatus.Active)
             .OrderByDescending(p => p.PlannedStartDate)
             .ToListAsync();
     }
@@ -83,7 +83,7 @@ public class ProjectService : IProjectService
     public async Task<IEnumerable<SurveyProject>> GetProjectsByClientAsync(Guid clientId)
     {
         return await _context.Projects
-            .Where(p => p.IsActive && p.ClientId == clientId)
+            .Where(p => p.IsActive && !p.IsDeleted && p.ClientId == clientId)
             .OrderByDescending(p => p.PlannedStartDate)
             .ToListAsync();
     }
@@ -110,12 +110,67 @@ public class ProjectService : IProjectService
     public async Task<bool> DeleteProjectAsync(Guid projectId)
     {
         var project = await _context.Projects.FindAsync(projectId);
-        if (project == null) return false;
+        if (project == null || project.IsDeleted) return false;
 
         project.IsActive = false;
+        project.IsDeleted = true;
+        project.DeletedAt = DateTime.UtcNow;
         project.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<bool> RestoreProjectAsync(Guid projectId)
+    {
+        var project = await _context.Projects.FindAsync(projectId);
+        if (project == null || !project.IsDeleted) return false;
+
+        project.IsActive = true;
+        project.IsDeleted = false;
+        project.DeletedAt = null;
+        project.DeletedBy = null;
+        project.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<SurveyProject>> GetDeletedProjectsAsync()
+    {
+        return await _context.Projects
+            .Include(p => p.Client)
+            .Where(p => p.IsDeleted)
+            .OrderByDescending(p => p.DeletedAt)
+            .ToListAsync();
+    }
+
+    public async Task<bool> PermanentlyDeleteProjectAsync(Guid projectId)
+    {
+        var project = await _context.Projects
+            .Include(p => p.Milestones)
+            .Include(p => p.Deliverables)
+            .Include(p => p.VesselAssignments)
+            .Include(p => p.EquipmentAssignments)
+            .Include(p => p.PersonnelAssignments)
+            .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
+        if (project == null) return false;
+
+        // Remove related entities first
+        _context.Milestones.RemoveRange(project.Milestones);
+        _context.Deliverables.RemoveRange(project.Deliverables);
+        _context.VesselAssignments.RemoveRange(project.VesselAssignments);
+        _context.EquipmentAssignments.RemoveRange(project.EquipmentAssignments);
+        _context.PersonnelAssignments.RemoveRange(project.PersonnelAssignments);
+
+        // Remove the project
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<int> GetDeletedProjectCountAsync()
+    {
+        return await _context.Projects.CountAsync(p => p.IsDeleted);
     }
 
     #endregion
@@ -329,12 +384,12 @@ public class ProjectService : IProjectService
 
     public async Task<int> GetTotalProjectCountAsync()
     {
-        return await _context.Projects.CountAsync(p => p.IsActive);
+        return await _context.Projects.CountAsync(p => p.IsActive && !p.IsDeleted);
     }
 
     public async Task<int> GetActiveProjectCountAsync()
     {
-        return await _context.Projects.CountAsync(p => p.IsActive && p.Status == ProjectStatus.Active);
+        return await _context.Projects.CountAsync(p => p.IsActive && !p.IsDeleted && p.Status == ProjectStatus.Active);
     }
 
     public async Task<ProjectStatistics> GetProjectStatisticsAsync(Guid projectId)

@@ -3,8 +3,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
              mc:Ignorable="d"
-             d:DesignHeight="650" d:DesignWidth="780">
+             d:DesignHeight="700" d:DesignWidth="820">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <converters:ExpiryStatusToColorConverter x:Key="ExpiryStatusToColorConverter"/>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="RequiredFieldLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource FieldLabelStyle}">
+            <Setter Property="Foreground" Value="#333"/>
+        </Style>
+
+        <Style x:Key="FieldInputStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+
+        <Style x:Key="DatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+    </UserControl.Resources>
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -15,17 +45,20 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock x:Name="HeaderText" Text="Personnel Details" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="{Binding HeaderText}" FontSize="24" FontWeight="Light"/>
+            <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
         <!-- Content Tabs -->
         <TabControl Grid.Row="1">
-            <!-- Personal Information -->
+            <!-- Personal Information Tab -->
             <TabItem Header="Personal Info">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -40,88 +73,112 @@
                         </Grid.RowDefinitions>
 
                         <!-- Row 0: Employee Number / Title -->
-                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Employee Number *" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="EmployeeNumberBox" Padding="8"/>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Employee Number *" Style="{StaticResource RequiredFieldLabelStyle}"/>
+                            <TextBox Text="{Binding EmployeeNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                     Style="{StaticResource FieldInputStyle}"
+                                     IsEnabled="{Binding IsReadOnly, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Title" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="TitleCombo" Padding="8">
-                                <ComboBoxItem Content="Mr."/>
-                                <ComboBoxItem Content="Ms."/>
-                                <ComboBoxItem Content="Mrs."/>
-                                <ComboBoxItem Content="Dr."/>
-                                <ComboBoxItem Content="Capt."/>
-                            </ComboBox>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Title" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Titles}"
+                                      SelectedItem="{Binding Title}"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
 
                         <!-- Row 1: First Name / Last Name -->
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="First Name *" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="FirstNameBox" Padding="8"/>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="First Name *" Style="{StaticResource RequiredFieldLabelStyle}"/>
+                            <TextBox Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Last Name *" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="LastNameBox" Padding="8"/>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Last Name *" Style="{StaticResource RequiredFieldLabelStyle}"/>
+                            <TextBox Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
 
                         <!-- Row 2: Middle Name / Preferred Name -->
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Middle Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="MiddleNameBox" Padding="8"/>
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Middle Name" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding MiddleName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Preferred Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="PreferredNameBox" Padding="8"/>
+                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Preferred Name" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding PreferredName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
 
                         <!-- Row 3: Date of Birth / Nationality -->
-                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Date of Birth" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <DatePicker x:Name="DateOfBirthPicker" Padding="8"/>
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Date of Birth" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding DateOfBirth}"
+                                        Style="{StaticResource DatePickerStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Nationality" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="NationalityBox" Padding="8"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Nationality" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding Nationality, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
 
                         <!-- Row 4: Email / Mobile Phone -->
-                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Email" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="EmailBox" Padding="8"/>
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Email" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Mobile Phone" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="MobilePhoneBox" Padding="8"/>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Mobile Phone" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding MobileNumber, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
 
-                        <!-- Row 5: Emergency Contact -->
-                        <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Emergency Contact Name" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="EmergencyContactBox" Padding="8"/>
+                        <!-- Row 5: Emergency Contact Name / Phone -->
+                        <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Emergency Contact Name" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding EmergencyContactName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="5" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Emergency Contact Phone" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="EmergencyPhoneBox" Padding="8"/>
+                        <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Emergency Contact Phone" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding EmergencyContactPhone, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
 
                         <!-- Row 6: Address -->
-                        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Margin="0,0,0,10">
-                            <TextBlock Text="Home Address" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="AddressBox" Padding="8" Height="60"
-                                     TextWrapping="Wrap" AcceptsReturn="True"
+                        <StackPanel Grid.Row="6" Grid.ColumnSpan="3" Margin="0,0,0,15">
+                            <TextBlock Text="Home Address" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"
+                                     Height="60"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
                                      VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+
+                        <!-- Row 7: City / Country -->
+                        <StackPanel Grid.Row="7" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="City" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="7" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Country" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding Country, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Employment Information -->
+            <!-- Employment Information Tab -->
             <TabItem Header="Employment">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -130,62 +187,94 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <!-- Row 0: Position / Department -->
-                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Position" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="PositionCombo" Padding="8" DisplayMemberPath="Title"/>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Position" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Positions}"
+                                      SelectedItem="{Binding SelectedPosition}"
+                                      DisplayMemberPath="Title"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Department" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="DepartmentCombo" Padding="8"/>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Department" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Departments}"
+                                      SelectedItem="{Binding Department}"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
 
                         <!-- Row 1: Employment Status / Type -->
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Employment Status" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="StatusCombo" Padding="8"/>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Employment Status" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding EmploymentStatuses}"
+                                      SelectedItem="{Binding EmploymentStatus}"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Employment Type" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="TypeCombo" Padding="8"/>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Employment Type" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding EmploymentTypes}"
+                                      SelectedItem="{Binding EmploymentType}"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
 
                         <!-- Row 2: Hire Date / Rotation Pattern -->
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Hire Date" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <DatePicker x:Name="HireDatePicker" Padding="8"/>
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Hire Date" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding HireDate}"
+                                        Style="{StaticResource DatePickerStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Rotation Pattern" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="RotationCombo" Padding="8" DisplayMemberPath="Name"/>
-                        </StackPanel>
-
-                        <!-- Row 3: Company / Reporting Manager -->
-                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Company" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="CompanyBox" Padding="8"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Reporting Manager" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="ManagerCombo" Padding="8" DisplayMemberPath="FullName"/>
+                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Rotation Pattern" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding RotationPatterns}"
+                                      SelectedItem="{Binding SelectedRotationPattern}"
+                                      DisplayMemberPath="Name"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
 
-                        <!-- Row 4: Daily Rate / Cost Center -->
-                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,10">
-                            <TextBlock Text="Daily Rate" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="DailyRateBox" Padding="8"/>
+                        <!-- Row 3: Manager / Home Base -->
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Reporting Manager" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Managers}"
+                                      SelectedItem="{Binding SelectedManager}"
+                                      DisplayMemberPath="FullName"
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,10">
-                            <TextBlock Text="Cost Center" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                            <TextBox x:Name="CostCenterBox" Padding="8"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Home Base" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding HomeBase, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
+                        </StackPanel>
+
+                        <!-- Row 4: Preferred Airport / Blood Type -->
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Preferred Airport" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding PreferredAirport, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Blood Type" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding BloodType, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInputStyle}"/>
+                        </StackPanel>
+
+                        <!-- Row 5: Medical Dates -->
+                        <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
+                            <TextBlock Text="Last Medical Exam" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding LastMedicalExamDate}"
+                                        Style="{StaticResource DatePickerStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Medical Fitness Expiry" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding MedicalFitnessExpiryDate}"
+                                        Style="{StaticResource DatePickerStyle}"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Certifications -->
+            <!-- Certifications Tab -->
             <TabItem Header="Certifications">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
@@ -193,24 +282,36 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Button x:Name="AddCertButton" Grid.Row="0" Content="+ Add Certification"
-                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"/>
+                    <Button Grid.Row="0" Content="+ Add Certification"
+                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"
+                            Command="{Binding AddCertificationCommand}"/>
 
-                    <DataGrid x:Name="CertificationsGrid" Grid.Row="1"
-                              AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Certifications}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              AlternatingRowBackground="#F8F8F8">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Certification" Binding="{Binding CertificationType.Name}" Width="200"/>
                             <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="120"/>
                             <DataGridTextColumn Header="Issue Date" Binding="{Binding IssueDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
-                            <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                            <DataGridTemplateColumn Header="Expiry Date" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}"
+                                                   Foreground="{Binding ExpiryDate, Converter={StaticResource ExpiryStatusToColorConverter}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="120"/>
                             <DataGridTextColumn Header="Issuing Authority" Binding="{Binding IssuingAuthority}" Width="150"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
 
-            <!-- Vessel Assignments -->
+            <!-- Vessel Assignments Tab -->
             <TabItem Header="Assignments">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
@@ -218,28 +319,73 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Button x:Name="AddAssignmentButton" Grid.Row="0" Content="+ Add Assignment"
-                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"/>
+                    <Button Grid.Row="0" Content="+ Add Assignment"
+                            HorizontalAlignment="Right" Padding="15,5" Margin="0,0,0,10"
+                            Command="{Binding AddAssignmentCommand}"/>
 
-                    <DataGrid x:Name="AssignmentsGrid" Grid.Row="1"
-                              AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding VesselAssignments}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              AlternatingRowBackground="#F8F8F8">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="150"/>
                             <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="150"/>
                             <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="120"/>
                             <DataGridTextColumn Header="Start Date" Binding="{Binding ScheduledStartDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
                             <DataGridTextColumn Header="End Date" Binding="{Binding ScheduledEndDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="120"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="140"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Notes Tab -->
+            <TabItem Header="Notes">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Notes" Style="{StaticResource FieldLabelStyle}"/>
+                    <TextBox Grid.Row="1"
+                             Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FieldInputStyle}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"/>
                 </Grid>
             </TabItem>
         </TabControl>
 
         <!-- Footer Buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button x:Name="SaveButton" Content="Save" Padding="20,8" Margin="0,0,10,0" Click="SaveButton_Click"/>
-            <Button x:Name="CancelButton" Content="Cancel" Padding="20,8" Click="CancelButton_Click"/>
-        </StackPanel>
+        <Grid Grid.Row="2" Margin="0,15,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Validation Errors -->
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Error}"
+                       Foreground="Red"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"/>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Save"
+                        Padding="25,10"
+                        Margin="0,0,10,0"
+                        Command="{Binding SaveCommand}"
+                        IsDefault="True"/>
+                <Button Content="Cancel"
+                        Padding="25,10"
+                        Command="{Binding CancelCommand}"
+                        IsCancel="True"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

@@ -3,8 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+    </UserControl.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -33,44 +39,118 @@
 
             <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,15,0">
                 <TextBlock Text="Personnel:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <ComboBox x:Name="PersonnelFilter" Width="200" DisplayMemberPath="FullName"/>
+                <ComboBox Width="200" Padding="10,8"
+                          ItemsSource="{Binding PersonnelList}"
+                          SelectedItem="{Binding SelectedPersonnel}"
+                          DisplayMemberPath="FullName"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,15,0">
                 <TextBlock Text="Status:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <ComboBox x:Name="StatusFilter" Width="120"/>
+                <ComboBox Width="120" Padding="10,8"
+                          ItemsSource="{Binding Statuses}"
+                          SelectedItem="{Binding SelectedStatus}"/>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0">
                 <TextBlock Text="Period:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <DatePicker x:Name="PeriodStartPicker" Width="110" Margin="0,0,5,0"/>
-                <TextBlock Text="to" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <DatePicker x:Name="PeriodEndPicker" Width="110"/>
+                <DatePicker Width="120" Padding="8"
+                            SelectedDate="{Binding PeriodStartDate}"/>
+                <TextBlock Text="to" VerticalAlignment="Center" Margin="5,0"/>
+                <DatePicker Width="120" Padding="8"
+                            SelectedDate="{Binding PeriodEndDate}"/>
             </StackPanel>
 
-            <Button x:Name="NewTimesheetButton" Grid.Column="4" Content="+ New Timesheet"
-                    Padding="15,8" Click="NewTimesheetButton_Click"/>
+            <Button Grid.Column="4"
+                    Content="+ New Timesheet"
+                    Padding="15,8"
+                    Command="{Binding NewTimesheetCommand}"/>
         </Grid>
 
         <!-- Timesheet List -->
-        <DataGrid x:Name="TimesheetsGrid" Grid.Row="2"
+        <DataGrid Grid.Row="2"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
-                  MouseDoubleClick="TimesheetsGrid_MouseDoubleClick">
+                  GridLinesVisibility="Horizontal"
+                  AlternatingRowBackground="#F8F8F8"
+                  ItemsSource="{Binding FilteredTimesheetList}"
+                  SelectedItem="{Binding SelectedTimesheet}">
+
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick"
+                              Command="{Binding ViewTimesheetCommand}"/>
+            </DataGrid.InputBindings>
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Timesheet #" Binding="{Binding TimesheetNumber}" Width="120"/>
-                <DataGridTextColumn Header="Personnel" Binding="{Binding Personnel.FullName}" Width="150"/>
-                <DataGridTextColumn Header="Period" Binding="{Binding PeriodDisplay}" Width="150"/>
-                <DataGridTextColumn Header="Vessel" Binding="{Binding VesselName}" Width="130"/>
-                <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}" Width="130"/>
-                <DataGridTextColumn Header="Regular Hrs" Binding="{Binding TotalRegularHours, StringFormat='{}{0:F1}'}" Width="80"/>
-                <DataGridTextColumn Header="OT Hrs" Binding="{Binding TotalOvertimeHours, StringFormat='{}{0:F1}'}" Width="70"/>
-                <DataGridTextColumn Header="Total Hrs" Binding="{Binding TotalHours, StringFormat='{}{0:F1}'}" Width="80"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="120"/>
-                <DataGridTextColumn Header="Submitted" Binding="{Binding SubmittedAt, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                <DataGridTextColumn Header="Timesheet #"
+                                    Binding="{Binding TimesheetNumber}"
+                                    Width="120"/>
+
+                <DataGridTextColumn Header="Personnel"
+                                    Binding="{Binding Personnel.FullName}"
+                                    Width="180"/>
+
+                <DataGridTextColumn Header="Period"
+                                    Binding="{Binding PeriodDisplay}"
+                                    Width="160"/>
+
+                <DataGridTextColumn Header="Vessel"
+                                    Binding="{Binding VesselName}"
+                                    Width="130"/>
+
+                <DataGridTextColumn Header="Project"
+                                    Binding="{Binding ProjectName}"
+                                    Width="130"/>
+
+                <DataGridTextColumn Header="Regular"
+                                    Binding="{Binding TotalRegularHours, StringFormat='{}{0:F1}'}"
+                                    Width="70">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="OT"
+                                    Binding="{Binding TotalOvertimeHours, StringFormat='{}{0:F1}'}"
+                                    Width="60">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Total"
+                                    Binding="{Binding TotalHours, StringFormat='{}{0:F1}'}"
+                                    Width="70">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTemplateColumn Header="Status" Width="130">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
+                                    CornerRadius="3" Padding="8,3" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding StatusDisplay}"
+                                           Foreground="White" FontSize="11"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Submitted"
+                                    Binding="{Binding SubmittedAt, StringFormat='{}{0:dd MMM yyyy}'}"
+                                    Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -81,21 +161,54 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <TextBlock x:Name="StatusText" Text="0 timesheets" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"/>
                 <TextBlock Text=" | " Foreground="Gray" VerticalAlignment="Center"/>
-                <TextBlock x:Name="PendingText" Text="0 pending approval" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding PendingText}" VerticalAlignment="Center" Foreground="#FF8800"/>
+
+                <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="15,0,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button x:Name="ViewButton" Content="View" Padding="15,5" Margin="0,0,5,0"
-                        Click="ViewButton_Click"/>
-                <Button x:Name="ApproveButton" Content="Approve" Padding="15,5" Margin="0,0,5,0"
-                        Click="ApproveButton_Click"/>
-                <Button x:Name="RejectButton" Content="Reject" Padding="15,5" Margin="0,0,5,0"
-                        Click="RejectButton_Click"/>
-                <Button x:Name="ExportButton" Content="Export" Padding="15,5"
-                        Click="ExportButton_Click"/>
+                <Button Content="View"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding ViewTimesheetCommand}"/>
+
+                <Button Content="Edit"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding EditTimesheetCommand}"/>
+
+                <Button Content="Submit"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding SubmitCommand}"/>
+
+                <Button Content="Approve"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        Command="{Binding ApproveCommand}"/>
+
+                <Button Content="Reject"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Background="#F44336"
+                        Foreground="White"
+                        Command="{Binding RejectCommand}"/>
+
+                <Button Content="Refresh"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding RefreshCommand}"/>
+
+                <Button Content="Export"
+                        Padding="15,5"
+                        Command="{Binding ExportCommand}"/>
             </StackPanel>
         </Grid>
     </Grid>

@@ -390,6 +390,25 @@ public class SurveyProject
 
     #endregion
 
+    #region Soft Delete
+
+    /// <summary>
+    /// Indicates whether the project has been soft-deleted
+    /// </summary>
+    public bool IsDeleted { get; set; } = false;
+
+    /// <summary>
+    /// Timestamp when the project was soft-deleted
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
+
+    /// <summary>
+    /// User ID who soft-deleted the project
+    /// </summary>
+    public Guid? DeletedBy { get; set; }
+
+    #endregion
+
     #region Navigation Properties
 
     /// <summary>
@@ -476,6 +495,20 @@ public class SurveyProject
 
     [NotMapped]
     public string PhaseDisplay => Phase.ToString();
+
+    /// <summary>
+    /// Indicates whether the project can be restored (is soft-deleted)
+    /// </summary>
+    [NotMapped]
+    public bool CanBeRestored => IsDeleted;
+
+    /// <summary>
+    /// Number of days since the project was deleted
+    /// </summary>
+    [NotMapped]
+    public int? DaysSinceDeleted => DeletedAt.HasValue
+        ? (int)(DateTime.UtcNow - DeletedAt.Value).TotalDays
+        : null;
 
     #endregion
 }

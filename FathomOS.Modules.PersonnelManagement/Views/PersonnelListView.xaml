@@ -3,8 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900">
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+    </UserControl.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -30,48 +37,106 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="SearchBox" Grid.Column="0"
-                     Padding="8" Margin="0,0,10,0"
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     Tag="Search by name, employee number, or email..."/>
+            <TextBox Grid.Column="0"
+                     Padding="10,8"
+                     Margin="0,0,10,0"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=300}"
+                     Tag="Search by name, employee number, or email...">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <VisualBrush AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="Search by name, employee number, or email..."
+                                                           Foreground="Gray" Margin="10,0,0,0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
 
-            <ComboBox x:Name="DepartmentFilter" Grid.Column="1"
-                      Width="150" Margin="0,0,10,0"
+            <ComboBox Grid.Column="1"
+                      Width="160" Margin="0,0,10,0"
+                      Padding="10,8"
                       SelectedItem="{Binding SelectedDepartment}"
-                      ItemsSource="{Binding Departments}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}"/>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+                      ItemsSource="{Binding Departments}"/>
 
-            <ComboBox x:Name="StatusFilter" Grid.Column="2"
-                      Width="120" Margin="0,0,10,0"
+            <ComboBox Grid.Column="2"
+                      Width="130" Margin="0,0,10,0"
+                      Padding="10,8"
                       SelectedItem="{Binding SelectedStatus}"
                       ItemsSource="{Binding Statuses}"/>
 
-            <Button x:Name="AddButton" Grid.Column="3"
-                    Content="+ Add Personnel" Padding="15,8"
-                    Click="AddButton_Click"/>
+            <Button Grid.Column="3"
+                    Content="+ Add Personnel"
+                    Padding="15,8"
+                    Command="{Binding AddPersonnelCommand}"/>
         </Grid>
 
-        <!-- Personnel List -->
-        <DataGrid x:Name="PersonnelGrid" Grid.Row="2"
+        <!-- Personnel List DataGrid -->
+        <DataGrid Grid.Row="2"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
-                  ItemsSource="{Binding PersonnelList}"
-                  SelectedItem="{Binding SelectedPersonnel}"
-                  MouseDoubleClick="PersonnelGrid_MouseDoubleClick">
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  AlternatingRowBackground="#F8F8F8"
+                  ItemsSource="{Binding FilteredPersonnelList}"
+                  SelectedItem="{Binding SelectedPersonnel}">
+
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick"
+                              Command="{Binding EditPersonnelCommand}"/>
+            </DataGrid.InputBindings>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsOffshore}" Value="True">
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee #" Binding="{Binding EmployeeNumber}" Width="100"/>
-                <DataGridTextColumn Header="Full Name" Binding="{Binding FullName}" Width="180"/>
-                <DataGridTextColumn Header="Position" Binding="{Binding Position.Title}" Width="150"/>
-                <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="100"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding EmploymentStatus}" Width="90"/>
+                <DataGridTextColumn Header="Employee #"
+                                    Binding="{Binding EmployeeNumber}"
+                                    Width="100"/>
+
+                <DataGridTextColumn Header="Full Name"
+                                    Binding="{Binding FullName}"
+                                    Width="180"/>
+
+                <DataGridTextColumn Header="Position"
+                                    Binding="{Binding Position.Title}"
+                                    Width="150"/>
+
+                <DataGridTextColumn Header="Department"
+                                    Binding="{Binding Department}"
+                                    Width="100"/>
+
+                <DataGridTemplateColumn Header="Status" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding EmploymentStatus, Converter={StaticResource StatusToColorConverter}}"
+                                    CornerRadius="3" Padding="5,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding EmploymentStatus}"
+                                           Foreground="White" FontSize="11"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <DataGridTemplateColumn Header="Offshore" Width="70">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -80,9 +145,22 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Current Vessel" Binding="{Binding CurrentVesselName}" Width="130"/>
-                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180"/>
-                <DataGridTextColumn Header="Phone" Binding="{Binding MobilePhone}" Width="120"/>
+
+                <DataGridTextColumn Header="Current Vessel"
+                                    Binding="{Binding CurrentVesselId}"
+                                    Width="130"/>
+
+                <DataGridTextColumn Header="Email"
+                                    Binding="{Binding Email}"
+                                    Width="200"/>
+
+                <DataGridTextColumn Header="Phone"
+                                    Binding="{Binding MobileNumber}"
+                                    Width="120"/>
+
+                <DataGridTextColumn Header="Hire Date"
+                                    Binding="{Binding HireDate, StringFormat='{}{0:dd MMM yyyy}'}"
+                                    Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -93,19 +171,38 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <TextBlock x:Name="StatusText" Text="0 personnel" VerticalAlignment="Center"/>
+            <!-- Status Bar -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"/>
                 <TextBlock Text=" | " Foreground="Gray" VerticalAlignment="Center"/>
-                <TextBlock x:Name="OffshoreText" Text="0 offshore" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding OffshoreText}" VerticalAlignment="Center" Foreground="#0066CC"/>
+
+                <!-- Busy Indicator -->
+                <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="15,0,0,0"/>
             </StackPanel>
 
+            <!-- Action Buttons -->
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button x:Name="ViewButton" Content="View" Padding="15,5" Margin="0,0,5,0"
-                        Click="ViewButton_Click"/>
-                <Button x:Name="EditButton" Content="Edit" Padding="15,5" Margin="0,0,5,0"
-                        Click="EditButton_Click"/>
-                <Button x:Name="ExportButton" Content="Export" Padding="15,5"
-                        Click="ExportButton_Click"/>
+                <Button Content="View"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding ViewPersonnelCommand}"/>
+
+                <Button Content="Edit"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding EditPersonnelCommand}"/>
+
+                <Button Content="Refresh"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding RefreshCommand}"/>
+
+                <Button Content="Export"
+                        Padding="15,5"
+                        Command="{Binding ExportCommand}"/>
             </StackPanel>
         </Grid>
     </Grid>

@@ -16,7 +16,10 @@ public enum EquipmentStatus
     Retired,
     OnHire,
     Disposed,
-    InStorage
+    InStorage,
+    CheckedOut,
+    InService,
+    InStock
 }
 
 /// <summary>

@@ -1,0 +1,257 @@
+<UserControl x:Class="FathomOS.Modules.PersonnelManagement.Views.CertificationListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:ExpiryStatusToColorConverter x:Key="ExpiryStatusToColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Certification Management" FontSize="24" FontWeight="Light"/>
+            <TextBlock Text="Track and manage personnel certifications and expiry dates"
+                       FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Summary Cards -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Expiring Soon Card -->
+            <Border Grid.Column="0" Background="#FFF8E1" CornerRadius="5" Padding="15" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Expiring Soon" FontSize="12" Foreground="#FF8800"/>
+                    <TextBlock Text="{Binding ExpiringCount}" FontSize="32" FontWeight="Light" Foreground="#FF8800"/>
+                    <TextBlock Text="{Binding ExpiringText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Expired Card -->
+            <Border Grid.Column="1" Background="#FFEBEE" CornerRadius="5" Padding="15" Margin="5,0">
+                <StackPanel>
+                    <TextBlock Text="Expired" FontSize="12" Foreground="#FF4444"/>
+                    <TextBlock Text="{Binding ExpiredCount}" FontSize="32" FontWeight="Light" Foreground="#FF4444"/>
+                    <TextBlock Text="{Binding ExpiredText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Total Card -->
+            <Border Grid.Column="2" Background="#E3F2FD" CornerRadius="5" Padding="15" Margin="10,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="Total Certifications" FontSize="12" Foreground="#1976D2"/>
+                    <TextBlock Text="{Binding TotalCount}" FontSize="32" FontWeight="Light" Foreground="#1976D2"/>
+                    <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Filter Bar -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+                     Padding="10,8"
+                     Margin="0,0,10,0"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=300}">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <VisualBrush AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="Search by personnel name or certification..."
+                                                           Foreground="Gray" Margin="10,0,0,0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+
+            <ComboBox Grid.Column="1"
+                      Width="180" Margin="0,0,10,0"
+                      Padding="10,8"
+                      SelectedItem="{Binding SelectedCategory}"
+                      ItemsSource="{Binding Categories}"/>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,10,0">
+                <TextBlock Text="Days ahead:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="70" Padding="10,8"
+                          SelectedValue="{Binding DaysAhead}">
+                    <ComboBoxItem Content="30"/>
+                    <ComboBoxItem Content="60" IsSelected="True"/>
+                    <ComboBoxItem Content="90"/>
+                    <ComboBoxItem Content="180"/>
+                </ComboBox>
+            </StackPanel>
+
+            <Button Grid.Column="3"
+                    Content="+ Add Certification"
+                    Padding="15,8"
+                    Command="{Binding AddCertificationCommand}"/>
+        </Grid>
+
+        <!-- Certifications Tabs -->
+        <TabControl Grid.Row="3">
+            <!-- Expiring Certifications Tab -->
+            <TabItem Header="Expiring Soon">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#FFF8F8"
+                          ItemsSource="{Binding ExpiringCertifications}"
+                          SelectedItem="{Binding SelectedCertification}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Employee" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Certification" Binding="{Binding CertificationType.Name}" Width="200"/>
+                        <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="120"/>
+                        <DataGridTemplateColumn Header="Expiry Date" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{Binding ExpiryDate, Converter={StaticResource ExpiryStatusToColorConverter}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Days Remaining" Binding="{Binding DaysUntilExpiry}" Width="100"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
+                        <DataGridTextColumn Header="Issuing Authority" Binding="{Binding IssuingAuthority}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Expired Certifications Tab -->
+            <TabItem Header="Expired">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#FFEBEE"
+                          ItemsSource="{Binding ExpiredCertifications}"
+                          SelectedItem="{Binding SelectedCertification}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Employee" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Certification" Binding="{Binding CertificationType.Name}" Width="200"/>
+                        <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="120"/>
+                        <DataGridTemplateColumn Header="Expired On" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}"
+                                               FontWeight="SemiBold"
+                                               Foreground="#FF4444"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Days Overdue" Binding="{Binding DaysOverdue}" Width="100"/>
+                        <DataGridTextColumn Header="Issuing Authority" Binding="{Binding IssuingAuthority}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- All Certifications Tab -->
+            <TabItem Header="All Certifications">
+                <DataGrid AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          CanUserAddRows="False"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#F8F8F8"
+                          ItemsSource="{Binding AllCertifications}"
+                          SelectedItem="{Binding SelectedCertification}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Employee" Binding="{Binding Personnel.FullName}" Width="180"/>
+                        <DataGridTextColumn Header="Certification" Binding="{Binding CertificationType.Name}" Width="200"/>
+                        <DataGridTextColumn Header="Category" Binding="{Binding CertificationType.Category}" Width="120"/>
+                        <DataGridTextColumn Header="Certificate #" Binding="{Binding CertificateNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Issue Date" Binding="{Binding IssueDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="100"/>
+                        <DataGridTemplateColumn Header="Expiry Date" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ExpiryDate, StringFormat='{}{0:dd MMM yyyy}'}"
+                                               Foreground="{Binding ExpiryDate, Converter={StaticResource ExpiryStatusToColorConverter}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Footer -->
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding BusyMessage}"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Foreground="Gray"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="View Personnel"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding ViewPersonnelCommand}"/>
+
+                <Button Content="Renew"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding RenewCertificationCommand}"/>
+
+                <Button Content="Send Reminder"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding SendReminderCommand}"/>
+
+                <Button Content="Refresh"
+                        Padding="15,5"
+                        Margin="0,0,5,0"
+                        Command="{Binding RefreshCommand}"/>
+
+                <Button Content="Export"
+                        Padding="15,5"
+                        Command="{Binding ExportCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

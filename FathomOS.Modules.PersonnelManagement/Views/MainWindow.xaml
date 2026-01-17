@@ -4,12 +4,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:local="clr-namespace:FathomOS.Modules.PersonnelManagement.Views"
+        xmlns:converters="clr-namespace:FathomOS.Modules.PersonnelManagement.Converters"
         mc:Ignorable="d"
         Title="Personnel Management"
-        Height="700"
-        Width="1000"
+        Height="750"
+        Width="1200"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip">
+
+    <mah:MetroWindow.Resources>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+        <converters:ExpiryStatusToColorConverter x:Key="ExpiryStatusToColorConverter"/>
+    </mah:MetroWindow.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -21,47 +31,61 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Personnel Management" FontSize="28" FontWeight="Light"/>
-            <TextBlock Text="Manage survey crew, certifications, and training records"
+            <TextBlock Text="Manage survey crew, certifications, training records, and competency tracking"
                        FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
 
         <!-- Main Content -->
-        <TabControl Grid.Row="1">
+        <TabControl Grid.Row="1" x:Name="MainTabControl"
+                    SelectedIndex="{Binding SelectedTabIndex}">
+
+            <!-- Crew Roster Tab -->
             <TabItem Header="Crew Roster">
-                <Grid Margin="10">
-                    <TextBlock Text="Crew roster management will be implemented here"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               FontSize="16" Foreground="Gray"/>
-                </Grid>
+                <local:PersonnelListView x:Name="PersonnelListViewControl"/>
             </TabItem>
+
+            <!-- Certifications Tab -->
             <TabItem Header="Certifications">
-                <Grid Margin="10">
-                    <TextBlock Text="Certification tracking will be implemented here"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               FontSize="16" Foreground="Gray"/>
-                </Grid>
+                <local:CertificationListView x:Name="CertificationListViewControl"/>
             </TabItem>
-            <TabItem Header="Training Records">
-                <Grid Margin="10">
-                    <TextBlock Text="Training record management will be implemented here"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               FontSize="16" Foreground="Gray"/>
-                </Grid>
+
+            <!-- Vessel Assignments Tab -->
+            <TabItem Header="Assignments">
+                <local:VesselAssignmentView x:Name="VesselAssignmentViewControl"/>
             </TabItem>
-            <TabItem Header="Competency Matrix">
-                <Grid Margin="10">
-                    <TextBlock Text="Competency matrix will be implemented here"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               FontSize="16" Foreground="Gray"/>
-                </Grid>
+
+            <!-- Timesheets Tab -->
+            <TabItem Header="Timesheets">
+                <local:TimesheetView x:Name="TimesheetViewControl"/>
             </TabItem>
         </TabControl>
 
         <!-- Footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Import" Margin="0,0,10,0" Padding="20,8"/>
-            <Button Content="Export" Margin="0,0,10,0" Padding="20,8"/>
-            <Button Content="Generate Report" Padding="20,8"/>
-        </StackPanel>
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Status Indicator -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <ProgressBar x:Name="BusyIndicator" IsIndeterminate="True" Width="100" Height="3"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="0,0,10,0"/>
+                <TextBlock x:Name="BusyText" Text="{Binding BusyMessage}"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Foreground="Gray"/>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="ImportButton" Content="Import" Margin="0,0,10,0" Padding="20,8"
+                        Command="{Binding ImportCommand}"/>
+                <Button x:Name="ExportButton" Content="Export" Margin="0,0,10,0" Padding="20,8"
+                        Command="{Binding ExportCommand}"/>
+                <Button x:Name="ReportButton" Content="Generate Report" Padding="20,8"
+                        Command="{Binding GenerateReportCommand}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </mah:MetroWindow>

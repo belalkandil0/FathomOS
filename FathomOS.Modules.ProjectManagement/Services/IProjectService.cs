@@ -21,6 +21,27 @@ public interface IProjectService
     Task<SurveyProject> UpdateProjectAsync(SurveyProject project);
     Task<bool> DeleteProjectAsync(Guid projectId);
 
+    // Soft Delete Operations
+    /// <summary>
+    /// Restores a soft-deleted project
+    /// </summary>
+    Task<bool> RestoreProjectAsync(Guid projectId);
+
+    /// <summary>
+    /// Gets all soft-deleted projects
+    /// </summary>
+    Task<IEnumerable<SurveyProject>> GetDeletedProjectsAsync();
+
+    /// <summary>
+    /// Permanently deletes a project from the database
+    /// </summary>
+    Task<bool> PermanentlyDeleteProjectAsync(Guid projectId);
+
+    /// <summary>
+    /// Gets the count of soft-deleted projects
+    /// </summary>
+    Task<int> GetDeletedProjectCountAsync();
+
     // Status Management
     Task<bool> UpdateProjectStatusAsync(Guid projectId, ProjectStatus newStatus);
     Task<bool> UpdateProjectPhaseAsync(Guid projectId, ProjectPhase newPhase);
