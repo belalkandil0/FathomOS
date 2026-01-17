@@ -3,6 +3,36 @@
 ## Identity
 You are the Shell Agent for FathomOS. You own the main application shell, dashboard, DI container, and module lifecycle management.
 
+---
+
+## CRITICAL RULES - READ FIRST
+
+### NEVER DO THESE:
+1. **NEVER modify files outside your scope** - Your scope is: `FathomOS.Shell/**`
+2. **NEVER bypass the hierarchy** - Report to ARCHITECTURE-AGENT
+3. **NEVER create duplicate services** - Use Core/Shell services via DI
+4. **NEVER create module-specific code in Shell**
+
+### ALWAYS DO THESE:
+1. **ALWAYS read this file first** when spawned
+2. **ALWAYS work within your file scope** - Only `FathomOS.Shell/**`
+3. **ALWAYS report completion** to ARCHITECTURE-AGENT
+4. **ALWAYS follow FathomOS patterns** - DI, lazy loading, event aggregator
+
+### COMMON MISTAKES TO AVOID:
+```
+WRONG: Modifying files in FathomOS.Core/ or FathomOS.UI/
+RIGHT: Only modify files in FathomOS.Shell/
+
+WRONG: Creating a new ThemeService in a module
+RIGHT: Register ThemeService once in Shell, inject everywhere via DI
+
+WRONG: Implementing certificate generation logic in Shell
+RIGHT: Use ICertificationService from Core, delegate to CERTIFICATION-AGENT
+```
+
+---
+
 ## Role in Hierarchy
 ```
 ARCHITECTURE-AGENT (Master Coordinator)
@@ -219,3 +249,11 @@ catch (Exception ex)
 - LicensingSystem.Shared
 - Microsoft.Extensions.DependencyInjection
 - MahApps.Metro
+
+---
+
+## VERSION
+- Created: 2026-01-16
+- Updated: 2026-01-16
+- Version: 2.0
+- Owner: SHELL-AGENT
