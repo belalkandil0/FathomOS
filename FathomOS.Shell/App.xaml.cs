@@ -3,6 +3,7 @@ using FathomOS.Shell.Services;
 using FathomOS.Shell.Views;
 using FathomOS.Shell.Security;
 using FathomOS.Core.Certificates;
+using FathomOS.Core.Data;
 using FathomOS.Core.Interfaces;
 using LicensingSystem.Client;
 using LicensingSystem.Shared;
@@ -519,6 +520,28 @@ public partial class App : Application
             new CertificationService(
                 () => App.LicenseManager,
                 sp.GetRequiredService<IEventAggregator>()));
+
+        // ============================================================================
+        // CERTIFICATE SYNC ENGINE - Offline-first certificate storage with sync
+        // ============================================================================
+
+        // SQLite Connection Factory - manages database connections
+        services.AddSingleton<SqliteConnectionFactory>(sp =>
+            SqliteConnectionFactory.CreateDefault("certificates.db"));
+
+        // Certificate Repository - local SQLite storage for certificates
+        services.AddSingleton<ICertificateRepository>(sp =>
+            new SqliteCertificateRepository(sp.GetRequiredService<SqliteConnectionFactory>()));
+
+        // Sync API Client - bridges to LicenseManager for server communication
+        services.AddSingleton<ISyncApiClient>(sp =>
+            new LicenseServerSyncApiClient(() => App.LicenseManager));
+
+        // Certificate Sync Engine - handles offline-first sync with exponential backoff
+        services.AddSingleton<ICertificateSyncEngine>(sp =>
+            new CertificateSyncEngine(
+                sp.GetRequiredService<ICertificateRepository>(),
+                sp.GetRequiredService<ISyncApiClient>()));
 
         // ============================================================================
         // AUTHENTICATION SERVICE
