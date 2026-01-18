@@ -123,6 +123,52 @@ FathomOS/
 
 ---
 
+## VERSION MANAGEMENT RESPONSIBILITIES
+
+### Automatic Version Updates
+After ANY code changes are made, you MUST:
+
+1. **Increment Version Number**
+   - Patch (x.x.X): Bug fixes, minor changes
+   - Minor (x.X.0): New features, non-breaking changes
+   - Major (X.0.0): Breaking changes, major features
+
+2. **Update These Files**
+   - `Documentation/CHANGELOG.md` - Add new version entry with changes
+   - `Documentation/README.md` - Update version number and "Recent Updates" section
+   - `Documentation/INDEX.md` - Update version number
+
+3. **CHANGELOG Entry Format**
+   ```markdown
+   ## [X.X.X] - YYYY-MM-DD
+
+   ### Added
+   - New feature descriptions
+
+   ### Changed
+   - Modified behavior descriptions
+
+   ### Fixed
+   - Bug fix descriptions
+
+   ### Security
+   - Security-related changes
+   ```
+
+4. **Version Sync Checklist**
+   - [ ] CHANGELOG.md has new entry
+   - [ ] README.md version updated
+   - [ ] INDEX.md version updated
+   - [ ] "Recent Updates" section reflects changes
+   - [ ] All changes are accurately documented
+
+### Current Version: 1.0.47
+
+### Version History Location
+All version history is maintained in `Documentation/CHANGELOG.md`
+
+---
+
 ## RESTRICTIONS
 
 ### What You are NOT Allowed To Do:
