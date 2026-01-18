@@ -621,7 +621,7 @@ public class LicenseController : ControllerBase
                 brand = license.Brand,
                 licenseeCode = license.LicenseeCode,
                 supportCode = license.SupportCode,
-                licenseType = license.IsOffline ? "Offline" : "Online",
+                licenseType = license.LicenseType == "Offline" ? "Offline" : "Online",
                 isRevoked = license.IsRevoked,
                 modules = license.Features?
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)

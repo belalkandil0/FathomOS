@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Restore dependencies
+      run: dotnet restore LicensingSystem.sln
+
+    - name: Build
+      run: dotnet build LicensingSystem.sln -c Release --no-restore
+
+    - name: Publish Server
+      run: dotnet publish LicensingSystem.Server -c Release -o ./publish/server
+
+    - name: Publish Desktop UI (Self-Contained)
+      run: dotnet publish LicensingSystem.LicenseGeneratorUI -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./publish/ui
+
+    - name: Create Server ZIP
+      run: Compress-Archive -Path ./publish/server/* -DestinationPath ./FathomOS-LicenseServer-${{ steps.version.outputs.VERSION }}.zip
+
+    - name: Create UI ZIP
+      run: Compress-Archive -Path ./publish/ui/* -DestinationPath ./FathomOS-LicenseManager-${{ steps.version.outputs.VERSION }}.zip
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          FathomOS-LicenseServer-${{ steps.version.outputs.VERSION }}.zip
+          FathomOS-LicenseManager-${{ steps.version.outputs.VERSION }}.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

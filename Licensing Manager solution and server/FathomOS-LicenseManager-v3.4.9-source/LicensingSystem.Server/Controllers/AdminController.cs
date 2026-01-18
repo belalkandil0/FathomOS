@@ -1326,9 +1326,9 @@ public class AdminController : ControllerBase
     public async Task<ActionResult> GetSessions()
     {
         // Get recent activations as "sessions"
-        var sessions = await _db.Activations
+        var sessions = await _db.LicenseActivations
             .Include(a => a.LicenseKey)
-            .OrderByDescending(a => a.LastValidation)
+            .OrderByDescending(a => a.LastSeenAt)
             .Take(50)
             .Select(a => new
             {
@@ -1337,7 +1337,7 @@ public class AdminController : ControllerBase
                 machineName = a.MachineName,
                 ipAddress = a.IpAddress,
                 startedAt = a.ActivatedAt,
-                lastHeartbeat = a.LastValidation
+                lastHeartbeat = a.LastSeenAt
             })
             .ToListAsync();
 
@@ -1422,10 +1422,10 @@ public class AdminController : ControllerBase
     {
         if (int.TryParse(token, out var activationId))
         {
-            var activation = await _db.Activations.FindAsync(activationId);
+            var activation = await _db.LicenseActivations.FindAsync(activationId);
             if (activation != null)
             {
-                _db.Activations.Remove(activation);
+                _db.LicenseActivations.Remove(activation);
                 await _db.SaveChangesAsync();
                 return Ok(new { message = "Session terminated" });
             }
@@ -1440,8 +1440,8 @@ public class AdminController : ControllerBase
     [HttpDelete("sessions")]
     public async Task<ActionResult> TerminateAllSessions()
     {
-        var count = await _db.Activations.CountAsync();
-        _db.Activations.RemoveRange(_db.Activations);
+        var count = await _db.LicenseActivations.CountAsync();
+        _db.LicenseActivations.RemoveRange(_db.LicenseActivations);
         await _db.SaveChangesAsync();
         return Ok(new { message = $"Terminated {count} sessions" });
     }

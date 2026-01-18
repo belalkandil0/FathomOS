@@ -343,12 +343,12 @@ public partial class MainWindow : Window
 
     private void OpenDocs_Click(object sender, RoutedEventArgs e)
     {
-        OpenUrl("https://docs.fathom-os.com");
+        OpenUrl("https://github.com/belalkandil0/FathomOS/wiki");
     }
 
     private void ReportIssue_Click(object sender, RoutedEventArgs e)
     {
-        OpenUrl("https://github.com/s7solutions/fathom-os/issues");
+        OpenUrl("https://github.com/belalkandil0/FathomOS/issues");
     }
 
     private void OpenUrl(string url)

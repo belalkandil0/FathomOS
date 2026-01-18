@@ -79,7 +79,7 @@ public class FathomOSLicenseIntegration : IDisposable
     {
         try
         {
-            CurrentLicense = await _manager.ValidateLicenseAsync();
+            CurrentLicense = await _manager.CheckLicenseAsync();
 
             if (CurrentLicense.IsValid)
             {

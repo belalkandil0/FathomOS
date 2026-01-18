@@ -40,7 +40,7 @@ public class DashboardController : ControllerBase
     /// GET /api/dashboard/stats
     /// </summary>
     [HttpGet("stats")]
-    public async Task<ActionResult<DashboardStats>> GetStats()
+    public async Task<ActionResult<DashboardOverviewStats>> GetStats()
     {
         var now = DateTime.UtcNow;
         var thirtyDaysAgo = now.AddDays(-30);
@@ -83,7 +83,7 @@ public class DashboardController : ControllerBase
         // Active sessions
         var activeSessions = await _db.ActiveSessions.CountAsync(s => s.IsActive);
 
-        return Ok(new DashboardStats
+        return Ok(new DashboardOverviewStats
         {
             Licenses = new LicenseStatistics
             {
@@ -402,7 +402,7 @@ public class DashboardController : ControllerBase
     /// POST /api/dashboard/security/block-ip
     /// </summary>
     [HttpPost("security/block-ip")]
-    public async Task<ActionResult> BlockIp([FromBody] BlockIpRequest request)
+    public async Task<ActionResult> BlockIp([FromBody] DashboardBlockIpRequest request)
     {
         var existing = await _db.BlockedIps.FirstOrDefaultAsync(b => b.IpAddress == request.IpAddress);
 
@@ -467,7 +467,7 @@ public class DashboardController : ControllerBase
     /// POST /api/dashboard/2fa/setup
     /// </summary>
     [HttpPost("2fa/setup")]
-    public async Task<ActionResult<TwoFactorSetupResponse>> Setup2FA([FromBody] Setup2FARequest request)
+    public async Task<ActionResult<TwoFactorSetupResponse>> Setup2FA([FromBody] DashboardSetup2FARequest request)
     {
         var user = await _db.AdminUsers.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
@@ -545,7 +545,7 @@ public class DashboardController : ControllerBase
     /// POST /api/dashboard/2fa/disable
     /// </summary>
     [HttpPost("2fa/disable")]
-    public async Task<ActionResult> Disable2FA([FromBody] Disable2FARequest request)
+    public async Task<ActionResult> Disable2FA([FromBody] DashboardDisable2FARequest request)
     {
         var user = await _db.AdminUsers.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
@@ -630,7 +630,7 @@ public class DashboardController : ControllerBase
 
 // ==================== Models ====================
 
-public class DashboardStats
+public class DashboardOverviewStats
 {
     public LicenseStatistics Licenses { get; set; } = new();
     public ActivationStatistics Activations { get; set; } = new();
@@ -711,7 +711,7 @@ public class RestoreBackupRequest
 
 // ==================== Security & 2FA Models ====================
 
-public class BlockIpRequest
+public class DashboardBlockIpRequest
 {
     public string IpAddress { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
@@ -724,7 +724,7 @@ public class UnblockIpRequest
     public string IpAddress { get; set; } = string.Empty;
 }
 
-public class Setup2FARequest
+public class DashboardSetup2FARequest
 {
     public string Email { get; set; } = string.Empty;
 }
@@ -742,7 +742,7 @@ public class Enable2FARequest
     public string Code { get; set; } = string.Empty;
 }
 
-public class Disable2FARequest
+public class DashboardDisable2FARequest
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
