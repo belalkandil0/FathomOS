@@ -52,7 +52,7 @@ public class HealthController : ControllerBase
         {
             Status = "healthy",
             Timestamp = DateTime.UtcNow,
-            Version = "3.5.0",
+            Version = "3.5.1",
             Uptime = DateTime.UtcNow - _startTime
         });
     }
@@ -129,7 +129,7 @@ public class HealthController : ControllerBase
         {
             Status = status,
             Timestamp = DateTime.UtcNow,
-            Version = "3.5.0",
+            Version = "3.5.1",
             Uptime = DateTime.UtcNow - _startTime,
             CheckDurationMs = stopwatch.ElapsedMilliseconds,
 
