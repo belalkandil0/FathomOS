@@ -271,23 +271,61 @@ FathomOS modules register to handle specific file types:
 
 ### License Management
 
-FathomOS uses a hardware-bound licensing system:
-- Licenses are tied to hardware fingerprint
-- Online activation required
-- Optional offline activation
-- License branding for resellers
+FathomOS uses an **offline-first licensing system** based on ECDSA digital signatures:
+
+| Feature | Description |
+|---------|-------------|
+| **Offline Validation** | Licenses verified locally using embedded public key |
+| **License Formats** | `.lic` files (JSON) or license key strings (`FATHOM-XXX-...`) |
+| **Hardware Binding** | Optional binding to machine fingerprints |
+| **No Server Required** | Internet connection not required for license validation |
+| **Local Admin Accounts** | User accounts stored locally in FathomOS |
+
+#### License Contents
+
+Each license contains:
+- Client name and code (for branding)
+- Product edition (Basic, Professional, Enterprise)
+- Licensed modules list
+- Expiration date
+- Cryptographic signature (ECDSA P-256)
+- Optional hardware fingerprints
+
+#### License Workflow
+
+```
+Vendor (License Generator UI)     Customer (FathomOS App)
+         |                                  |
+    1. Create license                       |
+    2. Sign with private key                |
+    3. Export .lic file or key    ------>   4. Load license
+         |                                  5. Verify signature (public key)
+         |                                  6. Create local admin account
+         |                                  7. Start using application
+```
+
+#### Server (Optional)
+
+A tracking server is available for vendors who want to:
+- Store license records for analytics
+- Track certificate generation
+- Provide public certificate verification
+- Manage customer records
+
+The server uses API key authentication and is not required for license validation.
 
 ### Certificate Security
 
 - SHA-256 hash verification
 - Digital signatures
-- Server synchronization
+- Optional server synchronization
 - Tamper detection
 
 ### Data Protection
 
 - SQLite encrypted storage
-- Protected credential storage
+- PBKDF2 password hashing for local accounts
+- DPAPI encryption for sensitive data (Windows)
 - Audit logging
 
 ---

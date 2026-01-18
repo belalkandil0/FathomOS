@@ -1,6 +1,6 @@
 # FathomOS Licensing Manager - Deployment Guide
 
-**Version:** 3.4.9
+**Version:** 3.5.0
 **Last Updated:** January 2026
 
 ---
@@ -20,28 +20,45 @@
 
 ---
 
+## Important: Offline-First Architecture (v3.5.0)
+
+**The licensing system has been redesigned for offline-first operation:**
+
+| Component | Old Role (v3.4.x) | New Role (v3.5.0) |
+|-----------|-------------------|-------------------|
+| Server | Required for activation | **Optional** - tracking only |
+| License Generator UI | Connected to server | **Standalone** - works offline |
+| FathomOS Client | Online validation | **Offline validation** (ECDSA signatures) |
+| Authentication | Username/password + 2FA | **API key** (for server) |
+| User Accounts | Server-based | **Local** (in FathomOS) |
+
+---
+
 ## 1. System Overview
 
 The FathomOS Licensing Manager consists of three components:
 
-### Server (ASP.NET Core 8.0)
-- RESTful API for license management
+### Server (ASP.NET Core 8.0) - OPTIONAL
+- **Purpose:** License tracking and analytics (NOT validation)
+- RESTful API for license record storage
 - SQLite database for persistence
 - Swagger UI for API documentation
-- Admin authentication with optional 2FA
-- Rate limiting and audit logging
+- **Simple API key authentication** (no username/password)
+- Public certificate verification portal
 
 ### Desktop License Manager UI (WPF .NET 8.0)
-- Windows application for generating licenses
+- **Standalone** Windows application for generating licenses
 - ECDSA key management (P-256)
-- Online and offline license generation
+- **Offline license generation** (no server required)
+- Optional server sync for tracking
 - Module and tier management
 
 ### Client Library (LicensingSystem.Client)
 - Integrates into FathomOS application
-- Supports online and offline license validation
+- **Offline license validation** using ECDSA signatures
 - Hardware fingerprinting
-- Certificate generation and sync
+- Local user account management
+- Certificate generation (local) with optional sync
 
 ---
 
@@ -330,69 +347,69 @@ If no keys exist, the application will prompt you to generate them:
 
 ## 5. Initial Configuration
 
-### Setting Up Admin Account (First Run)
+### API Key Authentication (v3.5.0)
 
-On first server startup, no admin accounts exist. Create one:
+The server now uses **simple API key authentication** instead of username/password.
+
+#### Getting Your API Key
+
+**Option 1: Auto-Generated (First Run)**
+1. Start the server
+2. Check the console output for the API key
+3. The key is displayed only once - save it immediately!
+
+```
++==================================================================+
+|  API Key (SAVE THIS - shown only once):                          |
+|  abc123xyz-your-api-key-here                                     |
++==================================================================+
+```
+
+**Option 2: Environment Variable**
+Set the `ADMIN_API_KEY` environment variable before starting:
 
 ```bash
-# Using curl
-curl -X POST "http://localhost:5000/api/admin/auth/setup" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@yourcompany.com",
-    "username": "admin",
-    "password": "YourSecurePassword123!",
-    "displayName": "System Administrator"
-  }'
+# Linux/macOS
+export ADMIN_API_KEY="your-secure-api-key-here"
+
+# Windows PowerShell
+$env:ADMIN_API_KEY = "your-secure-api-key-here"
 ```
 
-Or using PowerShell:
-```powershell
-Invoke-RestMethod -Uri "http://localhost:5000/api/admin/auth/setup" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{
-    "email": "admin@yourcompany.com",
-    "username": "admin",
-    "password": "YourSecurePassword123!",
-    "displayName": "System Administrator"
-  }'
+#### Using the API Key
+
+Include the key in the `X-API-Key` header for all admin requests:
+
+```bash
+curl -H "X-API-Key: your-api-key-here" \
+  https://your-server/api/admin/licenses
 ```
 
-### Configuring Cryptographic Keys
+### DEPRECATED: Username/Password Setup
 
-Keys can be configured in three ways:
+The web setup wizard and username/password authentication from v3.4.x are deprecated. The endpoints remain for backward compatibility but return deprecation messages.
 
-1. **appsettings.json (Development Only):**
-   ```json
-   {
-     "Licensing": {
-       "PrivateKeyPem": "-----BEGIN PRIVATE KEY-----\n...",
-       "CertificatePrivateKeyPem": "-----BEGIN EC PRIVATE KEY-----\n...",
-       "CertificatePublicKeyPem": "-----BEGIN PUBLIC KEY-----\n..."
-     }
-   }
-   ```
+### Configuring Cryptographic Keys (Optional)
 
-2. **Environment Variables (Recommended for Production):**
-   ```bash
-   export LICENSING_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----..."
-   export CERTIFICATE_PRIVATE_KEY="-----BEGIN EC PRIVATE KEY-----..."
-   export CERTIFICATE_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----..."
-   ```
+The server can optionally store cryptographic keys for certificate signing. However, the **License Generator UI is the primary tool** for key management.
 
-3. **Desktop UI:** Generate and manage keys through the UI.
+Keys can be configured via environment variables:
+
+```bash
+export CERTIFICATE_PRIVATE_KEY="-----BEGIN EC PRIVATE KEY-----..."
+export CERTIFICATE_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----..."
+```
 
 ### Creating License Tiers
 
 ```bash
 # Get existing tiers
-curl "http://localhost:5000/api/admin/tiers"
+curl -H "X-API-Key: your-key" "http://localhost:5000/api/admin/tiers"
 
-# Tiers are pre-configured in the database schema
 # Update tier modules via API:
-curl -X PUT "http://localhost:5000/api/admin/tiers/Professional/modules" \
+curl -X PUT -H "X-API-Key: your-key" \
   -H "Content-Type: application/json" \
+  "http://localhost:5000/api/admin/tiers/Professional/modules" \
   -d '{"moduleIds": ["SurveyListing", "TideAnalysis", "DataExport"]}'
 ```
 
@@ -400,8 +417,9 @@ curl -X PUT "http://localhost:5000/api/admin/tiers/Professional/modules" \
 
 ```bash
 # Add a new module
-curl -X POST "http://localhost:5000/api/admin/modules" \
+curl -X POST -H "X-API-Key: your-key" \
   -H "Content-Type: application/json" \
+  "http://localhost:5000/api/admin/modules" \
   -d '{
     "moduleId": "SurveyListing",
     "displayName": "Survey Listing",
@@ -412,7 +430,7 @@ curl -X POST "http://localhost:5000/api/admin/modules" \
   }'
 
 # List all modules
-curl "http://localhost:5000/api/admin/modules"
+curl -H "X-API-Key: your-key" "http://localhost:5000/api/admin/modules"
 ```
 
 ---
@@ -635,32 +653,11 @@ HTTPS is automatically handled by Render's proxy.
 #### Using Reverse Proxy (Recommended):
 Use nginx or Traefik as reverse proxy with SSL termination.
 
-### 2FA for Admin Accounts
+### DEPRECATED: 2FA for Admin Accounts
 
-#### Enable 2FA:
+**Note:** 2FA and username/password authentication are deprecated in v3.5.0. The server now uses API key authentication.
 
-1. **Login first:**
-   ```bash
-   curl -X POST "http://localhost:5000/api/admin/auth/login" \
-     -H "Content-Type: application/json" \
-     -d '{"username": "admin", "password": "YourPassword"}'
-   ```
-
-2. **Setup 2FA:**
-   ```bash
-   curl -X POST "http://localhost:5000/api/admin/auth/setup-2fa" \
-     -H "Content-Type: application/json" \
-     -d '{"sessionToken": "your-session-token"}'
-   ```
-
-   Response includes QR code URL for authenticator app.
-
-3. **Confirm 2FA:**
-   ```bash
-   curl -X POST "http://localhost:5000/api/admin/auth/confirm-2fa" \
-     -H "Content-Type: application/json" \
-     -d '{"sessionToken": "your-session-token", "code": "123456"}'
-   ```
+The 2FA endpoints remain for backward compatibility but return deprecation messages. If you need admin authentication, use the `X-API-Key` header instead.
 
 ---
 
@@ -710,13 +707,23 @@ http://localhost:5000/swagger
 | `/api/admin/tiers` | GET | List tiers |
 | `/api/admin/tiers/{tierId}/modules` | PUT | Update tier modules |
 
-#### Admin - Authentication
+#### License Sync (v3.5.0)
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/admin/auth/setup` | POST | Initial admin setup |
-| `/api/admin/auth/login` | POST | Admin login |
-| `/api/admin/auth/verify-2fa` | POST | Verify 2FA code |
-| `/api/admin/auth/logout` | POST | Logout |
+| `/api/admin/licenses/sync` | POST | Sync a license record from UI |
+| `/api/admin/licenses/sync-bulk` | POST | Bulk sync multiple licenses |
+| `/api/admin/licenses/synced` | GET | List synced license records |
+| `/api/admin/licenses/synced/{id}/revoke` | POST | Mark license as revoked |
+
+#### Admin - Authentication (DEPRECATED)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/admin/auth/setup` | POST | ~~Initial admin setup~~ Returns deprecation message |
+| `/api/admin/auth/login` | POST | ~~Admin login~~ Returns deprecation message |
+| `/api/admin/auth/verify-2fa` | POST | ~~Verify 2FA code~~ Returns deprecation message |
+| `/api/admin/auth/logout` | POST | ~~Logout~~ Returns deprecation message |
+
+**Note:** Use `X-API-Key` header authentication instead of the deprecated auth endpoints.
 
 ---
 
@@ -767,13 +774,18 @@ http://localhost:5000/swagger
 1. Wait 15 minutes for rate limit to reset
 2. For legitimate high-volume use, adjust rate limits in code
 
-#### Issue: "Admin setup already completed"
+#### Issue: "Admin setup already completed" (DEPRECATED)
 
-**Cause:** Attempting to create initial admin when one exists.
+**Note:** Admin setup is no longer required in v3.5.0. Use API key authentication instead.
+
+#### Issue: "API key not found" or "Unauthorized"
+
+**Cause:** Missing or invalid API key.
 
 **Solution:**
-1. Login with existing admin credentials
-2. If lost, delete `licenses.db` to reset (WARNING: loses all data)
+1. Check the `X-API-Key` header is included in the request
+2. Verify the API key is correct (check server console output or `ADMIN_API_KEY` env var)
+3. If you lost the auto-generated key, restart the server with `ADMIN_API_KEY` env var set
 
 #### Issue: Desktop UI can't connect to server
 

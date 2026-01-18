@@ -74,9 +74,33 @@ Fathom OS uses `.s7p` project files (JSON format) that can store:
 - Module-specific settings
 - Processing results
 
+## Licensing
+
+FathomOS uses an **offline-first licensing system** based on ECDSA digital signatures:
+
+| Feature | Description |
+|---------|-------------|
+| **Offline Validation** | No internet required - licenses verified locally |
+| **License Formats** | `.lic` files or license key strings |
+| **Local Accounts** | User accounts stored locally (not server-based) |
+| **Server Optional** | Tracking server available but not required |
+
+### Quick Start
+
+1. Obtain license file from vendor
+2. Launch FathomOS
+3. Load license file or enter license key
+4. Create local admin account
+5. Start using the application
+
+For detailed licensing documentation, see:
+- [Licensing Overview](Documentation/Licensing/README.md)
+- [Vendor Guide](Documentation/Licensing/VendorGuide.md)
+- [Technical Reference](Documentation/Licensing/TechnicalReference.md)
+
 ## License
 
-© 2024 S7 Solutions. All rights reserved.
+© 2024-2026 S7 Solutions. All rights reserved.
 
 ## Version History
 

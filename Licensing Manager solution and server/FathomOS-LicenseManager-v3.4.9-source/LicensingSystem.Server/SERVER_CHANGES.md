@@ -2,7 +2,39 @@
 
 ## Overview
 
-The License Server is now **OPTIONAL** and used only for tracking purposes. License validation happens **OFFLINE** in the FathomOS application.
+The License Server is now **OPTIONAL** and used only for tracking purposes. License validation happens **OFFLINE** in the FathomOS application using ECDSA digital signatures.
+
+## Architecture Change Summary
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        OLD ARCHITECTURE (v3.4.x)                     │
+│                                                                      │
+│  FathomOS App ──────> License Server ──────> Validate & Respond      │
+│       │                     │                                        │
+│       │              (Server Required)                               │
+│       │                     │                                        │
+│       └── Must be online ──┘                                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                        NEW ARCHITECTURE (v3.5.0)                     │
+│                                                                      │
+│  License Generator UI                                                │
+│       │                                                              │
+│       ├── Sign license (ECDSA private key)                          │
+│       ├── Export .lic file ─────────────> Customer                   │
+│       │                                       │                      │
+│       └── (Optional) Sync to Server           │                      │
+│                 │                             │                      │
+│                 ▼                             ▼                      │
+│          Tracking Server              FathomOS App                   │
+│          (Analytics only)             (Offline validation)           │
+│                                             │                        │
+│                                   Verify with public key             │
+│                                   (No server needed!)                │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ## New Role
 
@@ -11,6 +43,12 @@ The server now provides:
 2. **Certificate Verification** - Public portal for verifying processing certificates
 3. **License Tracking/Analytics** - Dashboard for monitoring license usage
 4. **Customer Lookup** - Search and manage customer records
+
+**The server does NOT:**
+- Validate licenses (done offline in FathomOS)
+- Issue licenses (done by License Generator UI)
+- Manage user accounts (done locally in FathomOS)
+- Require setup wizards or complex authentication
 
 ## Key Changes
 
@@ -157,3 +195,54 @@ The following are deprecated and return compatibility messages:
 - AdminAuthController - Returns deprecation messages
 
 These are kept for backward compatibility with existing integrations.
+
+## Comparison: Old vs New
+
+| Feature | v3.4.x (Old) | v3.5.0 (New) |
+|---------|--------------|--------------|
+| License Validation | Server-based | **Offline (ECDSA)** |
+| Server Required | Yes | **No (optional)** |
+| Authentication | Username/password + 2FA | **API key** |
+| Setup | Web wizard required | **Auto-configured** |
+| User Accounts | Server-managed | **Local in FathomOS** |
+| License Generator | Server-connected | **Standalone** |
+| Internet Required | Always | **Never (for validation)** |
+
+## Benefits of New Architecture
+
+1. **Offline-First**: Perfect for offshore, vessel, and air-gapped deployments
+2. **Simpler Setup**: No web wizards, no account creation, just an API key
+3. **More Secure**: Private keys never leave the License Generator UI
+4. **More Reliable**: No single point of failure (server downtime doesn't block users)
+5. **Faster**: No network round-trips for validation
+
+## License Generator UI Changes
+
+The Desktop UI now:
+- Works completely offline
+- Generates and manages ECDSA key pairs locally
+- Signs licenses without server connection
+- Optionally syncs license records to server for tracking
+
+## FathomOS Client Changes
+
+The FathomOS application now:
+- Validates licenses locally using embedded public key
+- Stores licenses in DPAPI-encrypted local storage
+- Manages local user accounts (no server accounts)
+- Optionally syncs certificates to server
+
+## Migration Checklist
+
+1. [ ] Update License Generator UI to v3.5.0
+2. [ ] Generate ECDSA key pair in License Generator UI
+3. [ ] Export public key and embed in FathomOS build
+4. [ ] (Optional) Deploy tracking server with API key
+5. [ ] (Optional) Configure License Generator UI to sync to server
+6. [ ] Inform customers about new offline license files
+
+## Related Documentation
+
+- [Deployment Guide](../../../DEPLOYMENT_GUIDE.md)
+- [Vendor Guide](../../../../Documentation/Licensing/VendorGuide.md)
+- [Technical Reference](../../../../Documentation/Licensing/TechnicalReference.md)

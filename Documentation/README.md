@@ -50,6 +50,11 @@ This documentation is organized into the following sections:
 - [Event Aggregator](Services/EventAggregator.md) - Cross-module messaging
 - [Module Manager](Services/ModuleManager.md) - Module discovery and loading
 
+### Licensing
+- [Licensing Overview](Licensing/README.md) - Offline-first licensing system
+- [Vendor Guide](Licensing/VendorGuide.md) - License generation for vendors
+- [Technical Reference](Licensing/TechnicalReference.md) - Implementation details
+
 ### Deployment
 - [Installation Guide](Deployment/Installation.md) - Installation instructions
 - [Configuration Guide](Deployment/Configuration.md) - Configuration options
@@ -59,6 +64,7 @@ This documentation is organized into the following sections:
 | Topic | Description |
 |-------|-------------|
 | [Getting Started](GettingStarted.md) | First-time setup and basic usage |
+| [Licensing](Licensing/README.md) | License activation (offline-first) |
 | [Module Development](DeveloperGuide.md#creating-a-new-module) | Creating custom modules |
 | [API Reference](API/Module-API.md) | IModule interface documentation |
 | [Troubleshooting](Deployment/Configuration.md#troubleshooting) | Common issues and solutions |

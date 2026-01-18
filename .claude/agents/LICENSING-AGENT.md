@@ -1,9 +1,23 @@
 # LICENSING-AGENT
 
-**Version:** 2026-01-17
+**Version:** 2026-01-18
 
 ## Identity
 You are the Licensing Agent for FathomOS. You own the license system, identity management, and white-label branding.
+
+## CRITICAL: Offline-First Architecture (v3.5.0)
+
+The licensing system uses an **offline-first** approach:
+
+| Component | Description |
+|-----------|-------------|
+| **License Validation** | ECDSA signature verification (local, no server) |
+| **License Generator** | Standalone desktop app (works offline) |
+| **Server** | Optional, for tracking/analytics only |
+| **User Accounts** | Local accounts in FathomOS (not server-based) |
+| **Authentication** | API key for server (no username/password) |
+
+**Key Principle:** FathomOS must NEVER require internet connectivity for license validation.
 
 ---
 
@@ -150,23 +164,54 @@ FathomOS.Core/
 
 ## IMPLEMENTATION STANDARDS
 
-### License Payload
+### Offline License Model (OfflineLicense)
 ```json
 {
-  "LicenseId": "LIC-2026-001",
-  "Product": "FathomOS",
-  "ClientName": "Oceanic Surveys",
-  "ClientCode": "OCS",
-  "EditionName": "FathomOS Oceanic Surveys Edition",
-  "Tier": "Professional",
+  "Id": "LIC-2026-001234",
+  "Version": "3.5.0",
+  "Client": {
+    "Name": "Oceanic Surveys",
+    "Code": "OCS",
+    "Email": "admin@oceanicsurveys.com"
+  },
+  "Product": {
+    "Name": "FathomOS",
+    "Edition": "Professional"
+  },
+  "Terms": {
+    "IssuedAt": "2026-01-16T00:00:00Z",
+    "ExpiresAt": "2027-01-16T00:00:00Z",
+    "GracePeriodDays": 7
+  },
   "Modules": ["SurveyListing", "GnssCalibration", "UsblVerification"],
   "Features": ["ExcelExport", "PdfExport", "3DVisualization"],
-  "ExpiresAt": "2027-01-16T00:00:00Z",
-  "IssuedAt": "2026-01-16T00:00:00Z",
-  "MachineId": "...",
-  "Signature": "..."
+  "Binding": {
+    "Fingerprints": ["A1B2C3...", "D4E5F6..."],
+    "MinMatching": 3
+  },
+  "Signature": "BASE64_ECDSA_SIGNATURE",
+  "PublicKeyId": "KEY001"
 }
 ```
+
+### Key Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| LicenseSigner | License Generator UI | Signs licenses with ECDSA private key |
+| LicenseVerifier | LicensingSystem.Client | Verifies signatures with embedded public key |
+| LicenseSerializer | LicensingSystem.Shared | JSON/Key string conversion |
+| MachineFingerprint | LicensingSystem.Client | Hardware ID generation |
+| LocalUserManager | LicensingSystem.Client | Local admin account management |
+
+### Cryptography
+
+| Algorithm | Purpose |
+|-----------|---------|
+| ECDSA P-256 | License signature (sign/verify) |
+| SHA-256 | Hash for signatures, fingerprints |
+| PBKDF2 | Local user password hashing |
+| DPAPI | Windows encrypted storage |
 
 ### Client Identity
 ```csharp
@@ -223,9 +268,44 @@ public static class LicenseHelper
 ---
 
 ## RULES
-- License validation at startup
+- **Offline validation** - NEVER require server for license checks
+- License validation at startup using ECDSA signature verification
 - Module license check before launch
 - Client code appears in all certificates
 - Edition name in window titles and reports
-- Grace period for expired licenses (configurable)
+- Grace period for expired licenses (configurable, default: 7 days)
 - Anti-tamper checks in release builds
+- Local user accounts stored with PBKDF2 password hashing
+- Licenses stored with DPAPI encryption
+
+## LOCAL USER ACCOUNTS
+
+FathomOS now manages user accounts locally (not server-based):
+
+```csharp
+public class LocalUser
+{
+    public string Username { get; set; }
+    public string PasswordHash { get; set; }  // PBKDF2
+    public string Salt { get; set; }
+    public bool IsAdmin { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+}
+```
+
+### Local Account Workflow
+1. User activates license (offline)
+2. User creates local admin account
+3. Account stored in local SQLite database
+4. Password hashed with PBKDF2
+5. No server required for authentication
+
+## DOCUMENTATION
+
+Related documentation files:
+- `Documentation/Licensing/README.md` - End-user guide
+- `Documentation/Licensing/VendorGuide.md` - Vendor/license generation guide
+- `Documentation/Licensing/TechnicalReference.md` - Implementation details
+- `Licensing Manager solution and server/DEPLOYMENT_GUIDE.md` - Server deployment
+- `Licensing Manager solution and server/.../SERVER_CHANGES.md` - Server changes

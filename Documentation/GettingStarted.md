@@ -25,7 +25,7 @@
 | Memory | 4 GB RAM |
 | Storage | 500 MB available space |
 | Display | 1366 x 768 resolution |
-| Network | Internet connection for activation |
+| Network | Not required (offline-first licensing) |
 
 ### Recommended Requirements
 
@@ -36,7 +36,7 @@
 | Memory | 8 GB RAM or more |
 | Storage | 1 GB available space (SSD preferred) |
 | Display | 1920 x 1080 resolution or higher |
-| Network | Stable internet connection |
+| Network | Optional (for certificate sync) |
 
 ### Software Prerequisites
 
@@ -80,26 +80,41 @@ FathomOS can run from a portable location:
 
 ## Activation
 
-### Online Activation
+FathomOS uses an **offline-first licensing system**. No internet connection is required for license activation or validation.
+
+### Getting Your License
+
+Contact your vendor to obtain one of the following:
+- **License file** (`.lic` extension) - JSON format containing license data
+- **License key string** - Format: `FATHOM-XXX-XXX-XXX-XXX`
+
+### Activating with a License File
 
 1. Launch FathomOS
-2. Click "Activate License" when prompted
-3. Enter your license key
+2. When prompted, click "Load License File"
+3. Browse to and select your `.lic` file
+4. FathomOS verifies the license signature automatically
+5. Proceed to create your local admin account
+
+### Activating with a License Key
+
+1. Launch FathomOS
+2. When prompted, click "Enter License Key"
+3. Enter your license key (e.g., `FATHOM-PRO-A1B2-C3D4-E5F6`)
 4. Click "Activate"
-5. Wait for server confirmation
+5. FathomOS verifies the license signature automatically
+6. Proceed to create your local admin account
 
-### Offline Activation
+### Creating Your Local Admin Account
 
-For computers without internet access:
+After license activation, create your local administrator account:
 
-1. Launch FathomOS
-2. Click "Offline Activation"
-3. Copy the hardware fingerprint displayed
-4. Visit the activation portal on another computer
-5. Enter the license key and hardware fingerprint
-6. Copy the activation response
-7. Paste the response in FathomOS
-8. Click "Complete Activation"
+1. Enter your desired username
+2. Enter a strong password (minimum 8 characters)
+3. Confirm your password
+4. Click "Create Account"
+
+This account is stored locally and does not require any server connection.
 
 ### Trial Mode
 
@@ -107,6 +122,7 @@ FathomOS can run in trial mode for evaluation:
 - 14-day trial period
 - Full functionality available
 - Watermark on exports
+- No license file required
 
 ---
 
@@ -293,10 +309,11 @@ Click the "Survey Listing Generator" tile on the dashboard.
 
 ### License Activation Fails
 
-1. Check internet connection
-2. Verify license key is correct
-3. Ensure system clock is accurate
-4. Contact support if hardware fingerprint changed
+1. Verify the license file is not corrupted (open in text editor to check JSON)
+2. Verify license key is entered correctly
+3. Ensure system clock is accurate (affects expiration check)
+4. If hardware-bound, contact vendor for new license if hardware changed
+5. Check that the license has not expired
 
 ### Module Not Appearing
 
