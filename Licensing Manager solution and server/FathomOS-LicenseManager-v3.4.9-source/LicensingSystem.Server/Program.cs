@@ -1,10 +1,11 @@
 // LicensingSystem.Server/Program.cs
 // ASP.NET Core server setup - Configured for Render.com
-// Updated v3.3.0 with Customer Portal, Security, Health Monitoring
+// Updated v3.4.9 with Customer Portal, Security, Health Monitoring, First-Time Setup
 
 using Microsoft.EntityFrameworkCore;
 using LicensingSystem.Server.Data;
 using LicensingSystem.Server.Services;
+using LicensingSystem.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +102,9 @@ builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 // License obfuscation
 builder.Services.AddScoped<ILicenseObfuscationService, LicenseObfuscationService>();
 
+// First-time admin setup service
+builder.Services.AddScoped<ISetupService, SetupService>();
+
 // ==================== CORS ====================
 
 // Add CORS for desktop app and customer portal
@@ -138,6 +142,18 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseCors("AllowAll");
+
+// Setup middleware - redirects to setup page if first-time setup is required
+app.UseSetupMiddleware();
+
+// Map /setup to serve setup.html
+app.MapGet("/setup", async context =>
+{
+    context.Response.ContentType = "text/html";
+    var setupPath = Path.Combine(app.Environment.WebRootPath, "setup.html");
+    await context.Response.SendFileAsync(setupPath);
+});
+
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
@@ -221,17 +237,73 @@ try
     var tableCount = db.Model.GetEntityTypes().Count();
     Console.WriteLine($"Entity types configured: {tableCount}");
     
-    Console.WriteLine("✅ Database initialized successfully");
+    Console.WriteLine("[OK] Database initialized successfully");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Database initialization error: {ex.Message}");
+    Console.WriteLine($"[ERROR] Database initialization error: {ex.Message}");
     if (ex.InnerException != null)
     {
         Console.WriteLine($"   Inner exception: {ex.InnerException.Message}");
     }
     Console.WriteLine($"   Stack trace: {ex.StackTrace}");
     // Continue running - endpoints will show more specific errors
+}
+
+// ==================== First-Time Admin Setup ====================
+Console.WriteLine("Checking first-time setup status...");
+try
+{
+    using var setupScope = app.Services.CreateScope();
+    var setupService = setupScope.ServiceProvider.GetRequiredService<ISetupService>();
+
+    var setupRequired = await setupService.IsSetupRequiredAsync();
+
+    if (setupRequired)
+    {
+        Console.WriteLine("");
+        Console.WriteLine("========================================");
+        Console.WriteLine("   FIRST-TIME SETUP REQUIRED");
+        Console.WriteLine("========================================");
+
+        // Try auto-setup from environment variables
+        var autoSetupSuccess = await setupService.TryAutoSetupFromEnvironmentAsync();
+
+        if (autoSetupSuccess)
+        {
+            Console.WriteLine("[OK] Auto-setup from environment variables completed!");
+            Console.WriteLine("   Admin account created from ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD");
+        }
+        else
+        {
+            // Generate and display setup token
+            var setupToken = await setupService.GenerateSetupTokenAsync();
+
+            Console.WriteLine("");
+            Console.WriteLine("   No admin account exists. Complete setup to continue.");
+            Console.WriteLine("");
+            Console.WriteLine("   OPTION 1: Use the Setup Wizard");
+            Console.WriteLine("   Navigate to: http://localhost:5000/setup");
+            Console.WriteLine("");
+            Console.WriteLine("   Setup Token (valid for 24 hours):");
+            Console.WriteLine($"   {setupToken}");
+            Console.WriteLine("");
+            Console.WriteLine("   OPTION 2: Use Environment Variables");
+            Console.WriteLine("   Set ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD and restart");
+            Console.WriteLine("");
+            Console.WriteLine("========================================");
+            Console.WriteLine("");
+        }
+    }
+    else
+    {
+        Console.WriteLine("[OK] Setup already completed - admin account exists");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[WARNING] Setup check error: {ex.Message}");
+    // Continue running - the middleware will handle setup checks
 }
 
 // Start background cleanup task

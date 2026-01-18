@@ -52,6 +52,9 @@ public class LicenseDbContext : DbContext
     // Database Backup Tracking
     public DbSet<DatabaseBackupRecord> DatabaseBackups => Set<DatabaseBackupRecord>();
 
+    // First-Time Setup Configuration
+    public DbSet<SetupConfigRecord> SetupConfigs => Set<SetupConfigRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // LicenseKeyRecord configuration
@@ -326,13 +329,24 @@ public class LicenseDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.CreatedAt);
-            
+
             entity.Property(e => e.FileName).HasMaxLength(256).IsRequired();
             entity.Property(e => e.FilePath).HasMaxLength(512).IsRequired();
             entity.Property(e => e.Checksum).HasMaxLength(128);
             entity.Property(e => e.EncryptionKey).HasMaxLength(256);
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.Notes).HasMaxLength(1024);
+        });
+
+        // SetupConfigRecord configuration
+        modelBuilder.Entity<SetupConfigRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SetupTokenHash);
+
+            entity.Property(e => e.SetupTokenHash).HasMaxLength(128);
+            entity.Property(e => e.SetupMethod).HasMaxLength(50);
+            entity.Property(e => e.SetupCompletedByIp).HasMaxLength(64);
         });
 
         // Seed default data
@@ -1405,9 +1419,56 @@ public class DatabaseBackupRecord
     /// Whether this backup has been verified
     /// </summary>
     public bool IsVerified { get; set; }
-    
+
     /// <summary>
     /// When the backup was last verified
     /// </summary>
     public DateTime? VerifiedAt { get; set; }
+}
+
+// ============================================================================
+// SETUP CONFIGURATION RECORD (First-time Admin Setup)
+// ============================================================================
+
+/// <summary>
+/// Tracks first-time admin setup configuration and tokens
+/// </summary>
+public class SetupConfigRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// SHA-256 hash of the setup token (32 bytes random token, hashed for security)
+    /// </summary>
+    public string? SetupTokenHash { get; set; }
+
+    /// <summary>
+    /// When the setup token was generated
+    /// </summary>
+    public DateTime? SetupTokenGeneratedAt { get; set; }
+
+    /// <summary>
+    /// When the setup token expires (24 hours after generation)
+    /// </summary>
+    public DateTime? SetupTokenExpiresAt { get; set; }
+
+    /// <summary>
+    /// Whether initial setup has been completed
+    /// </summary>
+    public bool IsSetupCompleted { get; set; }
+
+    /// <summary>
+    /// When setup was completed
+    /// </summary>
+    public DateTime? SetupCompletedAt { get; set; }
+
+    /// <summary>
+    /// IP address that completed the setup
+    /// </summary>
+    public string? SetupCompletedByIp { get; set; }
+
+    /// <summary>
+    /// How setup was completed: Token, Environment, Console
+    /// </summary>
+    public string? SetupMethod { get; set; }
 }
