@@ -211,33 +211,41 @@
                 </Grid.RowDefinitions>
                 
                 <StackPanel Grid.Row="0" Margin="20,24,20,32">
-                    <TextBlock Text="⚓ FATHOM OS" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                    <TextBlock Text="License Manager v3.2" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                    <TextBlock Text="FATHOM OS" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                    <TextBlock Text="License Manager v3.4.9" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                    <Border x:Name="OfflineBadge" Background="#2D1F0F" CornerRadius="4" Padding="8,4" Margin="0,8,0,0" HorizontalAlignment="Left">
+                        <TextBlock x:Name="ModeBadgeText" Text="STANDALONE MODE" FontSize="9" FontWeight="SemiBold" Foreground="#D29922"/>
+                    </Border>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="1" Margin="8,0">
-                    <RadioButton x:Name="NavDashboard" Style="{StaticResource NavButton}" Content="📊  Dashboard" IsChecked="True" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavCreate" Style="{StaticResource NavButton}" Content="✨  Create License" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavManage" Style="{StaticResource NavButton}" Content="📁  Manage Licenses" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavKeys" Style="{StaticResource NavButton}" Content="🔐  Generate Keys" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavModules" Style="{StaticResource NavButton}" Content="📦  Modules &amp; Tiers" Checked="NavButton_Checked"/>
-                    
-                    <!-- Server Admin Section -->
-                    <TextBlock Text="SERVER ADMIN" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="14,20,0,8"/>
-                    <RadioButton x:Name="NavServerAdmin" Style="{StaticResource NavButton}" Content="🖥️  Server Admin" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavAuditLogs" Style="{StaticResource NavButton}" Content="📋  Audit Logs" Checked="NavButton_Checked"/>
-                    <RadioButton x:Name="NavCustomers" Style="{StaticResource NavButton}" Content="👥  Customers" Checked="NavButton_Checked"/>
-                    
-                    <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" Content="⚙️  Settings" Checked="NavButton_Checked" Margin="0,12,0,0"/>
+                    <RadioButton x:Name="NavDashboard" Style="{StaticResource NavButton}" Content="Dashboard" IsChecked="True" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavCreate" Style="{StaticResource NavButton}" Content="Create License" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavManage" Style="{StaticResource NavButton}" Content="Manage Licenses" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavKeys" Style="{StaticResource NavButton}" Content="Key Management" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavModules" Style="{StaticResource NavButton}" Content="Modules and Tiers" Checked="NavButton_Checked"/>
+
+                    <!-- Server Section (shown when connected) -->
+                    <TextBlock x:Name="ServerAdminHeader" Text="SERVER (OPTIONAL)" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="14,20,0,8"/>
+                    <RadioButton x:Name="NavServerAdmin" Style="{StaticResource NavButton}" Content="Server Admin" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavAuditLogs" Style="{StaticResource NavButton}" Content="Audit Logs" Checked="NavButton_Checked"/>
+                    <RadioButton x:Name="NavCustomers" Style="{StaticResource NavButton}" Content="Customers" Checked="NavButton_Checked"/>
+
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" Content="Settings" Checked="NavButton_Checked" Margin="0,12,0,0"/>
                 </StackPanel>
                 
                 <Border Grid.Row="2" Background="{StaticResource CardBrush}" CornerRadius="8" Margin="12,12" Padding="14">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource ErrorBrush}" Margin="0,0,8,0"/>
-                            <TextBlock x:Name="ConnectionStatus" Text="Disconnected" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource WarningBrush}" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="ConnectionStatus" Text="Offline Mode" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                         </StackPanel>
-                        <TextBlock x:Name="ServerUrlDisplay" Text="No server configured" FontSize="10" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="ServerUrlDisplay" Text="Working locally" FontSize="10" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock x:Name="UnsyncedCount" Text="" FontSize="10" Foreground="{StaticResource WarningBrush}"/>
+                        </StackPanel>
+                        <Button x:Name="ServerSettingsButton" Content="Server Settings" Style="{StaticResource SecondaryButton}"
+                                Padding="10,6" FontSize="11" Margin="0,8,0,0" Click="ServerSettings_Click"/>
                     </StackPanel>
                 </Border>
             </Grid>

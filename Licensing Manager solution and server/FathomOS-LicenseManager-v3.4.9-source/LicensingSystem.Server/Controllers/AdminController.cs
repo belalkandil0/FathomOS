@@ -11,7 +11,8 @@ namespace LicensingSystem.Server.Controllers;
 
 /// <summary>
 /// Admin endpoints for license management
-/// NOTE: In production, secure these endpoints with authentication!
+/// All endpoints require X-API-Key header (except public endpoints)
+/// This server is OPTIONAL - license validation happens offline in FathomOS app
 /// </summary>
 [ApiController]
 [Route("api/admin")]
@@ -22,7 +23,7 @@ public class AdminController : ControllerBase
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
-        LicenseDbContext db, 
+        LicenseDbContext db,
         ILicenseService licenseService,
         ILogger<AdminController> logger)
     {
@@ -30,6 +31,238 @@ public class AdminController : ControllerBase
         _licenseService = licenseService;
         _logger = logger;
     }
+
+    #region License Sync (for License Generator UI)
+
+    /// <summary>
+    /// Sync a license record from the License Generator UI.
+    /// This stores a copy of offline-generated licenses for tracking.
+    /// POST /api/admin/licenses/sync
+    /// </summary>
+    [HttpPost("licenses/sync")]
+    public async Task<ActionResult<LicenseSyncResponse>> SyncLicense([FromBody] LicenseSyncRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.LicenseId))
+        {
+            return BadRequest(new LicenseSyncResponse
+            {
+                Success = false,
+                Message = "LicenseId is required"
+            });
+        }
+
+        try
+        {
+            // Check if this license already exists
+            var existing = await _db.SyncedLicenses
+                .FirstOrDefaultAsync(l => l.LicenseId == request.LicenseId);
+
+            if (existing != null)
+            {
+                // Update existing record
+                existing.ClientName = request.ClientName ?? existing.ClientName;
+                existing.ClientCode = request.ClientCode ?? existing.ClientCode;
+                existing.Edition = request.Edition ?? existing.Edition;
+                existing.LicenseJson = request.LicenseJson ?? existing.LicenseJson;
+                existing.ExpiresAt = request.ExpiresAt != default ? request.ExpiresAt : existing.ExpiresAt;
+                existing.CustomerEmail = request.CustomerEmail ?? existing.CustomerEmail;
+                existing.Features = request.Features ?? existing.Features;
+                existing.Brand = request.Brand ?? existing.Brand;
+                existing.SyncedAt = DateTime.UtcNow;
+
+                await _db.SaveChangesAsync();
+
+                _logger.LogInformation("Updated synced license record: {LicenseId}", request.LicenseId);
+
+                return Ok(new LicenseSyncResponse
+                {
+                    Success = true,
+                    Message = "License record updated",
+                    LicenseId = request.LicenseId,
+                    IsNew = false
+                });
+            }
+
+            // Create new synced license record
+            var syncedLicense = new SyncedLicenseRecord
+            {
+                LicenseId = request.LicenseId,
+                ClientName = request.ClientName,
+                ClientCode = request.ClientCode,
+                Edition = request.Edition,
+                LicenseJson = request.LicenseJson,
+                IssuedAt = request.IssuedAt != default ? request.IssuedAt : DateTime.UtcNow,
+                ExpiresAt = request.ExpiresAt,
+                SyncedAt = DateTime.UtcNow,
+                IsRevoked = false,
+                CustomerEmail = request.CustomerEmail,
+                Features = request.Features,
+                Brand = request.Brand
+            };
+
+            _db.SyncedLicenses.Add(syncedLicense);
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("Synced new license record: {LicenseId} for {ClientName}",
+                request.LicenseId, request.ClientName);
+
+            return Ok(new LicenseSyncResponse
+            {
+                Success = true,
+                Message = "License record synced successfully",
+                LicenseId = request.LicenseId,
+                IsNew = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing license: {LicenseId}", request.LicenseId);
+            return StatusCode(500, new LicenseSyncResponse
+            {
+                Success = false,
+                Message = $"Error syncing license: {ex.Message}"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Bulk sync multiple license records.
+    /// POST /api/admin/licenses/sync-bulk
+    /// </summary>
+    [HttpPost("licenses/sync-bulk")]
+    public async Task<ActionResult<BulkLicenseSyncResponse>> SyncLicensesBulk([FromBody] BulkLicenseSyncRequest request)
+    {
+        if (request?.Licenses == null || !request.Licenses.Any())
+        {
+            return BadRequest(new BulkLicenseSyncResponse
+            {
+                Success = false,
+                Message = "No licenses provided"
+            });
+        }
+
+        var syncedCount = 0;
+        var updatedCount = 0;
+        var failedIds = new List<string>();
+
+        foreach (var license in request.Licenses)
+        {
+            try
+            {
+                var existing = await _db.SyncedLicenses
+                    .FirstOrDefaultAsync(l => l.LicenseId == license.LicenseId);
+
+                if (existing != null)
+                {
+                    existing.ClientName = license.ClientName ?? existing.ClientName;
+                    existing.ClientCode = license.ClientCode ?? existing.ClientCode;
+                    existing.Edition = license.Edition ?? existing.Edition;
+                    existing.LicenseJson = license.LicenseJson ?? existing.LicenseJson;
+                    existing.ExpiresAt = license.ExpiresAt != default ? license.ExpiresAt : existing.ExpiresAt;
+                    existing.SyncedAt = DateTime.UtcNow;
+                    updatedCount++;
+                }
+                else
+                {
+                    _db.SyncedLicenses.Add(new SyncedLicenseRecord
+                    {
+                        LicenseId = license.LicenseId,
+                        ClientName = license.ClientName,
+                        ClientCode = license.ClientCode,
+                        Edition = license.Edition,
+                        LicenseJson = license.LicenseJson,
+                        IssuedAt = license.IssuedAt != default ? license.IssuedAt : DateTime.UtcNow,
+                        ExpiresAt = license.ExpiresAt,
+                        SyncedAt = DateTime.UtcNow,
+                        CustomerEmail = license.CustomerEmail,
+                        Features = license.Features,
+                        Brand = license.Brand
+                    });
+                    syncedCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to sync license: {LicenseId}", license.LicenseId);
+                failedIds.Add(license.LicenseId);
+            }
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Bulk sync completed: {SyncedCount} new, {UpdatedCount} updated, {FailedCount} failed",
+            syncedCount, updatedCount, failedIds.Count);
+
+        return Ok(new BulkLicenseSyncResponse
+        {
+            Success = failedIds.Count == 0,
+            Message = $"Synced {syncedCount} new, updated {updatedCount} existing" +
+                      (failedIds.Count > 0 ? $", {failedIds.Count} failed" : ""),
+            SyncedCount = syncedCount,
+            UpdatedCount = updatedCount,
+            FailedIds = failedIds
+        });
+    }
+
+    /// <summary>
+    /// Get all synced license records (for tracking dashboard).
+    /// GET /api/admin/licenses/synced
+    /// </summary>
+    [HttpGet("licenses/synced")]
+    public async Task<ActionResult<List<SyncedLicenseInfo>>> GetSyncedLicenses(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 100)
+    {
+        var licenses = await _db.SyncedLicenses
+            .OrderByDescending(l => l.SyncedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(l => new SyncedLicenseInfo
+            {
+                Id = l.Id,
+                LicenseId = l.LicenseId,
+                ClientName = l.ClientName,
+                ClientCode = l.ClientCode,
+                Edition = l.Edition,
+                IssuedAt = l.IssuedAt,
+                ExpiresAt = l.ExpiresAt,
+                SyncedAt = l.SyncedAt,
+                IsRevoked = l.IsRevoked,
+                CustomerEmail = l.CustomerEmail,
+                Brand = l.Brand,
+                Status = l.IsRevoked ? "Revoked" :
+                         (l.ExpiresAt < DateTime.UtcNow ? "Expired" : "Active")
+            })
+            .ToListAsync();
+
+        return Ok(licenses);
+    }
+
+    /// <summary>
+    /// Revoke a synced license (mark as revoked for tracking).
+    /// POST /api/admin/licenses/synced/{licenseId}/revoke
+    /// </summary>
+    [HttpPost("licenses/synced/{licenseId}/revoke")]
+    public async Task<ActionResult> RevokeSyncedLicense(string licenseId, [FromBody] RevokeLicenseRequest? request = null)
+    {
+        var license = await _db.SyncedLicenses
+            .FirstOrDefaultAsync(l => l.LicenseId == licenseId);
+
+        if (license == null)
+            return NotFound(new { message = "Synced license not found" });
+
+        license.IsRevoked = true;
+        license.RevokedAt = DateTime.UtcNow;
+        license.RevokedReason = request?.Reason ?? "Revoked by admin";
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Revoked synced license: {LicenseId}", licenseId);
+
+        return Ok(new { message = "License marked as revoked" });
+    }
+
+    #endregion
 
     /// <summary>
     /// Lists all license keys
@@ -1839,4 +2072,75 @@ public class UpdateBrandingRequest
     public string? LicenseeCode { get; set; }
     public string? BrandLogo { get; set; }
     public string? BrandLogoUrl { get; set; }
+}
+
+// ============================================================================
+// License Sync DTOs (for License Generator UI sync)
+// ============================================================================
+
+/// <summary>
+/// Request to sync a single license record from the License Generator UI
+/// </summary>
+public class LicenseSyncRequest
+{
+    public string LicenseId { get; set; } = string.Empty;
+    public string? ClientName { get; set; }
+    public string? ClientCode { get; set; }
+    public string? Edition { get; set; }
+    public string? LicenseJson { get; set; }
+    public DateTime IssuedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public string? CustomerEmail { get; set; }
+    public string? Features { get; set; }
+    public string? Brand { get; set; }
+}
+
+/// <summary>
+/// Response from license sync
+/// </summary>
+public class LicenseSyncResponse
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public string? LicenseId { get; set; }
+    public bool IsNew { get; set; }
+}
+
+/// <summary>
+/// Request for bulk license sync
+/// </summary>
+public class BulkLicenseSyncRequest
+{
+    public List<LicenseSyncRequest> Licenses { get; set; } = new();
+}
+
+/// <summary>
+/// Response from bulk license sync
+/// </summary>
+public class BulkLicenseSyncResponse
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public int SyncedCount { get; set; }
+    public int UpdatedCount { get; set; }
+    public List<string> FailedIds { get; set; } = new();
+}
+
+/// <summary>
+/// Synced license information for display
+/// </summary>
+public class SyncedLicenseInfo
+{
+    public int Id { get; set; }
+    public string LicenseId { get; set; } = string.Empty;
+    public string? ClientName { get; set; }
+    public string? ClientCode { get; set; }
+    public string? Edition { get; set; }
+    public DateTime IssuedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public DateTime SyncedAt { get; set; }
+    public bool IsRevoked { get; set; }
+    public string? CustomerEmail { get; set; }
+    public string? Brand { get; set; }
+    public string Status { get; set; } = "Active";
 }

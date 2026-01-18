@@ -26,9 +26,15 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
     <PackageReference Include="QRCoder" Version="1.4.3" />
-    
+
     <!-- QuestPDF 2023.12.x is more stable than 2024.x for initialization -->
     <PackageReference Include="QuestPDF" Version="2023.12.6" />
+
+    <!-- SQLite for local license database (standalone mode) -->
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+
+    <!-- DPAPI for secure key storage -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

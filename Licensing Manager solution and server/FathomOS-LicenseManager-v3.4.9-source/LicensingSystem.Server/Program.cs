@@ -1,6 +1,8 @@
 // LicensingSystem.Server/Program.cs
-// ASP.NET Core server setup - Configured for Render.com
-// Updated v3.4.9 with Customer Portal, Security, Health Monitoring, First-Time Setup
+// FathomOS License Server - OPTIONAL tracking server
+// License validation is performed OFFLINE in the FathomOS app
+// This server is for: license record storage, certificate verification, analytics
+// Updated v3.5.0 - Simplified with API key authentication
 
 using Microsoft.EntityFrameworkCore;
 using LicensingSystem.Server.Data;
@@ -9,79 +11,66 @@ using LicensingSystem.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// ==================== Services ====================
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Fathom OS License API", Version = "v3.4.9" });
+    c.SwaggerDoc("v1", new() { Title = "FathomOS License Server", Version = "v3.5.0" });
 });
 builder.Services.AddHttpContextAccessor();
 
-// Add database context - handle database path properly
-var dbPath = Environment.GetEnvironmentVariable("DB_PATH");
-Console.WriteLine($"DB_PATH env var: '{dbPath ?? "(not set)"}'");
+// ==================== Database ====================
 
-// Determine the best database location
+var dbPath = Environment.GetEnvironmentVariable("DB_PATH");
+
 if (string.IsNullOrWhiteSpace(dbPath))
 {
-    // Try /app/data first (for persistent storage)
+    // Try /app/data first (for persistent storage in containers)
     var preferredPath = "/app/data/licenses.db";
     var preferredDir = Path.GetDirectoryName(preferredPath)!;
-    
+
     if (Directory.Exists(preferredDir))
     {
         dbPath = preferredPath;
-        Console.WriteLine($"Using existing data directory: {preferredDir}");
     }
     else
     {
-        // Try to create it
         try
         {
             Directory.CreateDirectory(preferredDir);
             dbPath = preferredPath;
-            Console.WriteLine($"Created data directory: {preferredDir}");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Cannot create {preferredDir}: {ex.Message}");
             // Fall back to current working directory
             dbPath = Path.Combine(Directory.GetCurrentDirectory(), "licenses.db");
-            Console.WriteLine($"Falling back to: {dbPath}");
         }
     }
 }
 else
 {
-    // Use the provided path, ensure directory exists
     var dir = Path.GetDirectoryName(dbPath);
     if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
     {
-        try
-        {
-            Directory.CreateDirectory(dir);
-            Console.WriteLine($"Created directory from DB_PATH: {dir}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Cannot create directory from DB_PATH: {ex.Message}");
-            dbPath = "licenses.db";
-        }
+        try { Directory.CreateDirectory(dir); }
+        catch { dbPath = "licenses.db"; }
     }
 }
-
-Console.WriteLine($"Final database path: {dbPath}");
 
 builder.Services.AddDbContext<LicenseDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
 // ==================== Register Services ====================
 
+// API Key authentication service
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+
 // Core license service
 builder.Services.AddScoped<ILicenseService, LicenseService>();
 
-// Audit logging (register first as other services depend on it)
+// Audit logging
 builder.Services.AddScoped<IAuditService, AuditService>();
 
 // Security services
@@ -102,15 +91,11 @@ builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 // License obfuscation
 builder.Services.AddScoped<ILicenseObfuscationService, LicenseObfuscationService>();
 
-// First-time admin setup service
+// DEPRECATED: Setup service (kept for backward compatibility)
 builder.Services.AddScoped<ISetupService, SetupService>();
-
-// Admin setup file service (for offline/file-based deployments)
-builder.Services.AddScoped<IAdminSetupFileService, AdminSetupFileService>();
 
 // ==================== CORS ====================
 
-// Add CORS for desktop app and customer portal
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -121,16 +106,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add health checks
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Enable Swagger in all environments for now (can disable later)
+// ==================== Middleware Pipeline ====================
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Fathom OS License API v3.3");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "FathomOS License Server v3.5.0");
     c.RoutePrefix = "swagger";
 });
 
@@ -146,64 +131,72 @@ app.UseStaticFiles();
 
 app.UseCors("AllowAll");
 
-// Setup middleware - redirects to setup page if first-time setup is required
-app.UseSetupMiddleware();
-
-// Map /setup to serve setup.html
-app.MapGet("/setup", async context =>
-{
-    context.Response.ContentType = "text/html";
-    var setupPath = Path.Combine(app.Environment.WebRootPath, "setup.html");
-    await context.Response.SendFileAsync(setupPath);
-});
+// API Key authentication middleware (replaces old setup/admin auth)
+app.UseApiKeyAuth();
 
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
 
-// Root endpoint for quick testing
-app.MapGet("/", () => Results.Ok(new 
-{ 
-    service = "FathomOS License Server",
-    status = "running",
-    version = "3.4.9",
-    features = new[] 
-    {
-        "License Management",
-        "Customer Portal",
-        "Session Tracking",
-        "Health Monitoring",
-        "Audit Logging",
-        "Database Backup"
-    },
-    docs = "/swagger",
-    portal = "/portal",
-    debug = "/db-status"
+// ==================== Health Endpoint ====================
+
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    version = "3.5.0",
+    mode = "tracking",
+    message = "License validation is performed offline. This server is for tracking only."
 }));
 
-// Database status endpoint for debugging
-app.MapGet("/db-status", async (LicenseDbContext db) => 
+// ==================== Root Endpoint ====================
+
+app.MapGet("/", () => Results.Ok(new
+{
+    service = "FathomOS License Server",
+    status = "running",
+    version = "3.5.0",
+    mode = "tracking",
+    description = "License validation is performed OFFLINE in FathomOS app. This server provides license tracking and certificate verification.",
+    endpoints = new
+    {
+        admin = new[]
+        {
+            "POST /api/admin/licenses/sync - Sync license records (requires X-API-Key)",
+            "GET  /api/admin/licenses - List all licenses (requires X-API-Key)",
+            "GET  /api/admin/licenses/{id} - Get license details (requires X-API-Key)",
+            "GET  /api/admin/stats - Dashboard statistics (requires X-API-Key)"
+        },
+        @public = new[]
+        {
+            "GET  /api/certificates/verify/{id} - Verify a certificate (public)",
+            "GET  /health - Server health status (public)",
+            "GET  /db-status - Database status (public)"
+        }
+    },
+    docs = "/swagger"
+}));
+
+// ==================== Database Status ====================
+
+app.MapGet("/db-status", async (LicenseDbContext db) =>
 {
     try
     {
         var canConnect = await db.Database.CanConnectAsync();
         var licenseCount = canConnect ? await db.LicenseKeys.CountAsync() : -1;
-        var activationCount = canConnect ? await db.LicenseActivations.CountAsync() : -1;
-        var transferCount = canConnect ? await db.LicenseTransfers.CountAsync() : -1;
-        var auditLogCount = canConnect ? await db.AuditLogs.CountAsync() : -1;
-        
+        var syncedLicenseCount = canConnect ? await db.SyncedLicenses.CountAsync() : -1;
+        var certificateCount = canConnect ? await db.Certificates.CountAsync() : -1;
+
         return Results.Ok(new
         {
             status = "ok",
             canConnect,
             licenseCount,
-            activationCount,
-            transferCount,
-            auditLogCount,
-            dbPath = dbPath,
-            workingDirectory = Directory.GetCurrentDirectory(),
+            syncedLicenseCount,
+            certificateCount,
+            dbPath,
+            mode = "tracking",
             timestamp = DateTime.UtcNow,
-            version = "3.4.8"
+            version = "3.5.0"
         });
     }
     catch (Exception ex)
@@ -213,174 +206,106 @@ app.MapGet("/db-status", async (LicenseDbContext db) =>
             status = "error",
             canConnect = false,
             error = ex.Message,
-            innerError = ex.InnerException?.Message,
-            dbPath = dbPath,
-            workingDirectory = Directory.GetCurrentDirectory(),
+            dbPath,
             timestamp = DateTime.UtcNow
         });
     }
 });
 
-// Ensure database is created with detailed error handling
-Console.WriteLine("Initializing database...");
+// ==================== Database Initialization ====================
+
+Console.WriteLine();
+Console.WriteLine("Initializing FathomOS License Server...");
+
 try
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<LicenseDbContext>();
-    
-    // Check if we can connect
-    var canConnect = db.Database.CanConnect();
-    Console.WriteLine($"Database can connect: {canConnect}");
-    
+
     // Create database if needed
     var created = db.Database.EnsureCreated();
-    Console.WriteLine($"Database created: {created}");
-    
-    // Verify tables exist
-    var tableCount = db.Model.GetEntityTypes().Count();
-    Console.WriteLine($"Entity types configured: {tableCount}");
-    
+    if (created)
+    {
+        Console.WriteLine("[OK] Database created");
+    }
+
     Console.WriteLine("[OK] Database initialized successfully");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"[ERROR] Database initialization error: {ex.Message}");
-    if (ex.InnerException != null)
-    {
-        Console.WriteLine($"   Inner exception: {ex.InnerException.Message}");
-    }
-    Console.WriteLine($"   Stack trace: {ex.StackTrace}");
-    // Continue running - endpoints will show more specific errors
 }
 
-// ==================== First-Time Admin Setup ====================
+// ==================== API Key Initialization ====================
 
-// Step 1: Check for pre-seeded admin credentials file (for offline deployments)
-Console.WriteLine("Checking for pre-seeded admin credentials file...");
+string? displayApiKey = null;
+bool isFirstRun = false;
+
 try
 {
-    using var fileSetupScope = app.Services.CreateScope();
-    var fileSetupService = fileSetupScope.ServiceProvider.GetService<IAdminSetupFileService>();
-    var setupServiceForFile = fileSetupScope.ServiceProvider.GetRequiredService<ISetupService>();
+    using var scope = app.Services.CreateScope();
+    var apiKeyService = scope.ServiceProvider.GetRequiredService<IApiKeyService>();
 
-    if (fileSetupService != null)
-    {
-        var credentials = await fileSetupService.ReadSetupFileAsync();
-
-        if (credentials != null && await setupServiceForFile.IsSetupRequiredAsync())
-        {
-            Console.WriteLine("");
-            Console.WriteLine("========================================");
-            Console.WriteLine("   FILE-BASED ADMIN SETUP DETECTED");
-            Console.WriteLine("========================================");
-            Console.WriteLine($"   Found admin-credentials.json");
-            Console.WriteLine($"   Email: {credentials.Email}");
-            Console.WriteLine($"   Username: {credentials.Username}");
-            Console.WriteLine("   Creating admin account from file...");
-
-            var result = await setupServiceForFile.CompleteSetupAsync(new SetupCompletionRequest
-            {
-                Email = credentials.Email,
-                Username = credentials.Username,
-                Password = credentials.Password,
-                DisplayName = credentials.DisplayName ?? credentials.Username
-            }, "file-based-setup");
-
-            if (result.Success)
-            {
-                Console.WriteLine("");
-                Console.WriteLine("[OK] Admin account created from admin-credentials.json");
-                Console.WriteLine("   Securely deleting credentials file...");
-                await fileSetupService.DeleteSetupFileAsync();
-                Console.WriteLine("[OK] Credentials file deleted");
-                Console.WriteLine("========================================");
-                Console.WriteLine("");
-
-                if (credentials.ForcePasswordChange)
-                {
-                    Console.WriteLine("[INFO] ForcePasswordChange is enabled - user should change password on first login");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"[WARNING] Failed to create admin from file: {result.ErrorMessage}");
-                Console.WriteLine("   The credentials file will NOT be deleted.");
-                Console.WriteLine("   Fix the issue and restart the server.");
-                Console.WriteLine("========================================");
-            }
-        }
-    }
+    var (apiKey, firstRun) = await apiKeyService.GetOrCreateApiKeyAsync();
+    displayApiKey = apiKey;
+    isFirstRun = firstRun;
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"[WARNING] File-based setup check error: {ex.Message}");
-    // Continue - the existing setup check will handle things
+    Console.WriteLine($"[WARNING] API key initialization error: {ex.Message}");
 }
 
-// Step 2: Check existing setup status and offer alternatives
-Console.WriteLine("Checking first-time setup status...");
-try
+// ==================== Startup Banner ====================
+
+Console.WriteLine();
+Console.WriteLine("+==================================================================+");
+Console.WriteLine("|                 FathomOS License Server v3.5.0                  |");
+Console.WriteLine("+==================================================================+");
+Console.WriteLine("|  Status: Running                                                |");
+Console.WriteLine("|  Mode:   License Tracking (validation is offline)               |");
+Console.WriteLine("|                                                                  |");
+Console.WriteLine("|  Endpoints:                                                      |");
+Console.WriteLine("|    * POST /api/admin/licenses/sync - Sync license records       |");
+Console.WriteLine("|    * GET  /api/admin/licenses - List licenses                   |");
+Console.WriteLine("|    * GET  /api/certificates/verify/{id} - Public verification   |");
+Console.WriteLine("|                                                                  |");
+Console.WriteLine("|  Protected endpoints require X-API-Key header                   |");
+
+if (isFirstRun && !string.IsNullOrEmpty(displayApiKey))
 {
-    using var setupScope = app.Services.CreateScope();
-    var setupService = setupScope.ServiceProvider.GetRequiredService<ISetupService>();
-
-    var setupRequired = await setupService.IsSetupRequiredAsync();
-
-    if (setupRequired)
+    Console.WriteLine("|                                                                  |");
+    Console.WriteLine("+------------------------------------------------------------------+");
+    Console.WriteLine("|  API Key (SAVE THIS - shown only once):                          |");
+    Console.WriteLine($"|  {displayApiKey,-62} |");
+    Console.WriteLine("+------------------------------------------------------------------+");
+    Console.WriteLine("|  Use this key in License Generator UI to connect.               |");
+}
+else
+{
+    var envKeySet = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ADMIN_API_KEY"));
+    if (envKeySet)
     {
-        Console.WriteLine("");
-        Console.WriteLine("========================================");
-        Console.WriteLine("   FIRST-TIME SETUP REQUIRED");
-        Console.WriteLine("========================================");
-
-        // Try auto-setup from environment variables
-        var autoSetupSuccess = await setupService.TryAutoSetupFromEnvironmentAsync();
-
-        if (autoSetupSuccess)
-        {
-            Console.WriteLine("[OK] Auto-setup from environment variables completed!");
-            Console.WriteLine("   Admin account created from ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD");
-        }
-        else
-        {
-            // Generate and display setup token
-            var setupToken = await setupService.GenerateSetupTokenAsync();
-
-            Console.WriteLine("");
-            Console.WriteLine("   No admin account exists. Complete setup to continue.");
-            Console.WriteLine("");
-            Console.WriteLine("   OPTION 1: Use the Web Setup Wizard");
-            Console.WriteLine("   Navigate to: http://localhost:5000/setup");
-            Console.WriteLine("");
-            Console.WriteLine("   Setup Token (valid for 24 hours):");
-            Console.WriteLine($"   {setupToken}");
-            Console.WriteLine("");
-            Console.WriteLine("   OPTION 2: Use the Desktop UI Manager");
-            Console.WriteLine("   Launch the License Manager UI - it will prompt for setup");
-            Console.WriteLine("   (No token required when running on same machine)");
-            Console.WriteLine("");
-            Console.WriteLine("   OPTION 3: Use Environment Variables");
-            Console.WriteLine("   Set ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD and restart");
-            Console.WriteLine("");
-            Console.WriteLine("   OPTION 4: Use admin-credentials.json (for offline deployments)");
-            Console.WriteLine("   Place file in data directory and restart server");
-            Console.WriteLine("");
-            Console.WriteLine("========================================");
-            Console.WriteLine("");
-        }
+        Console.WriteLine("|                                                                  |");
+        Console.WriteLine("|  API Key: Using ADMIN_API_KEY environment variable              |");
     }
     else
     {
-        Console.WriteLine("[OK] Setup already completed - admin account exists");
+        using var scope = app.Services.CreateScope();
+        var apiKeyService = scope.ServiceProvider.GetRequiredService<IApiKeyService>();
+        var hint = await apiKeyService.GetApiKeyHintAsync();
+        if (hint != null)
+        {
+            Console.WriteLine("|                                                                  |");
+            Console.WriteLine($"|  API Key: {hint,-52} |");
+        }
     }
 }
-catch (Exception ex)
-{
-    Console.WriteLine($"[WARNING] Setup check error: {ex.Message}");
-    // Continue running - the middleware will handle setup checks
-}
 
-// Start background cleanup task
+Console.WriteLine("+==================================================================+");
+Console.WriteLine();
+
+// ==================== Background Cleanup Task ====================
+
 _ = Task.Run(async () =>
 {
     while (true)
@@ -388,21 +313,21 @@ _ = Task.Run(async () =>
         try
         {
             await Task.Delay(TimeSpan.FromHours(1));
-            
+
             using var scope = app.Services.CreateScope();
-            
+
             // Cleanup rate limits
             var rateLimitService = scope.ServiceProvider.GetRequiredService<IRateLimitService>();
             await rateLimitService.CleanupExpiredAsync();
-            
+
             // Cleanup inactive sessions
             var sessionService = scope.ServiceProvider.GetRequiredService<ISessionService>();
             await sessionService.CleanupInactiveSessionsAsync(TimeSpan.FromMinutes(10));
-            
+
             // Cleanup old health metrics
             var healthService = scope.ServiceProvider.GetRequiredService<IHealthMonitorService>();
             await healthService.CleanupOldMetricsAsync(30);
-            
+
             Console.WriteLine($"[{DateTime.UtcNow:u}] Background cleanup completed");
         }
         catch (Exception ex)

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using LicenseGeneratorUI.Services;
 using LicensingSystem.Shared;
+using Microsoft.Win32;
 
 namespace LicenseGeneratorUI.Views;
 
@@ -16,18 +17,22 @@ public partial class MainWindow : Window
 {
     private readonly HttpClient _httpClient;
     private readonly SettingsService _settings;
+    private readonly KeyStorageService _keyService;
+    private readonly LocalLicenseDatabase _localDb;
     private string _serverUrl = "";
     private bool _isConnected = false;
     private bool _isInitialized = false;  // Prevent events during initialization
+    private bool _isStandaloneMode = true;  // New: standalone mode flag
     private List<LicenseInfo> _licenses = new();
     private string? _privateKey;
     private string? _publicKey;
-    
+    private ECDsa? _signingKey;  // New: loaded signing key
+
     // Module/Tier data for Create License page
     private List<ModuleInfoFull> _allModules = new();
     private List<TierInfoFull> _allTiers = new();
     private Dictionary<string, CheckBox> _moduleCheckboxes = new();
-    
+
     // Offline license data
     private string? _lastOfflineLicenseContent;
     private bool _isOfflineLicense = false;
@@ -37,32 +42,321 @@ public partial class MainWindow : Window
         try
         {
             InitializeComponent();
-            
+
             _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
             _settings = new SettingsService();
-            
+            _keyService = new KeyStorageService();
+            _localDb = new LocalLicenseDatabase();
+
             _isInitialized = true;  // Mark as initialized after InitializeComponent
-            
-            LoadSettings();
-            
-            // Don't await - let it run in background
+
+            // Run standalone startup flow
             Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
-                    await ConnectToServerAsync();
+                    await RunStandaloneStartupAsync();
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Connection error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Startup error: {ex.Message}");
+                    MessageBox.Show($"Startup error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Failed to initialize main window:\n\n{ex.Message}\n\n{ex.StackTrace}", 
+            MessageBox.Show($"Failed to initialize main window:\n\n{ex.Message}\n\n{ex.StackTrace}",
                 "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Standalone startup flow - checks for keys, optionally connects to server
+    /// </summary>
+    private async Task RunStandaloneStartupAsync()
+    {
+        // Step 1: Check if private key exists
+        if (!_keyService.HasPrivateKey())
+        {
+            var keyWindow = new KeyManagementWindow(_keyService);
+            keyWindow.Owner = this;
+
+            if (keyWindow.ShowDialog() != true)
+            {
+                // User cancelled - close app
+                Close();
+                return;
+            }
+
+            _settings.HasCompletedSetup = true;
+            _settings.PublicKeyId = _keyService.GetPublicKeyId();
+            _settings.Save();
+        }
+
+        // Step 2: Load the private key
+        try
+        {
+            _signingKey = _keyService.LoadPrivateKeyAsECDsa();
+            _privateKey = _keyService.LoadPrivateKey();
+            _publicKey = _keyService.LoadPublicKey();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to load signing keys: {ex.Message}\n\nPlease set up keys again.",
+                "Key Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            var keyWindow = new KeyManagementWindow(_keyService);
+            keyWindow.Owner = this;
+            if (keyWindow.ShowDialog() != true)
+            {
+                Close();
+                return;
+            }
+
+            _signingKey = _keyService.LoadPrivateKeyAsECDsa();
+            _privateKey = _keyService.LoadPrivateKey();
+            _publicKey = _keyService.LoadPublicKey();
+        }
+
+        // Step 3: Load settings
+        LoadSettings();
+
+        // Step 4: Optional server connection
+        if (_settings.HasServerConfig && !_settings.WorkOffline)
+        {
+            await TryConnectToServerAsync();
+        }
+        else
+        {
+            UpdateStandaloneStatus();
+        }
+
+        // Step 5: Load local licenses
+        LoadLocalLicenses();
+
+        // Step 6: Load modules (from local config or server)
+        await LoadModulesAsync();
+    }
+
+    /// <summary>
+    /// Try to connect to the configured server
+    /// </summary>
+    private async Task TryConnectToServerAsync()
+    {
+        if (string.IsNullOrEmpty(_serverUrl))
+        {
+            UpdateStandaloneStatus();
+            return;
+        }
+
+        try
+        {
+            var response = await _httpClient.GetAsync($"{_serverUrl}/api/license/time");
+            _isConnected = response.IsSuccessStatusCode;
+            _isStandaloneMode = !_isConnected;
+
+            if (_isConnected)
+            {
+                await UpdateServerInfoAsync();
+            }
+        }
+        catch
+        {
+            _isConnected = false;
+            _isStandaloneMode = true;
+        }
+
+        UpdateServerStatus();
+    }
+
+    /// <summary>
+    /// Load licenses from local database
+    /// </summary>
+    private void LoadLocalLicenses()
+    {
+        try
+        {
+            var stats = _localDb.GetStatistics();
+            var localLicenses = _localDb.GetAllLicenses();
+
+            // Convert to LicenseInfo for display
+            _licenses = localLicenses.Select(l => new LicenseInfo
+            {
+                Id = l.Id,
+                LicenseId = l.LicenseId,
+                LicenseKey = l.LicenseKey,
+                CustomerName = l.CustomerName,
+                CustomerEmail = l.CustomerEmail,
+                Edition = l.Edition,
+                SubscriptionType = l.SubscriptionType,
+                ExpiresAt = l.ExpiresAt,
+                CreatedAt = l.CreatedAt,
+                IsRevoked = l.IsRevoked,
+                Status = l.Status,
+                Brand = l.Brand,
+                LicenseeCode = l.LicenseeCode,
+                SupportCode = l.SupportCode
+            }).ToList();
+
+            UpdateLicenseList();
+            UpdateLocalStats(stats);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading local licenses: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update stats from local database
+    /// </summary>
+    private void UpdateLocalStats(LicenseStatistics stats)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            TotalLicenses.Text = stats.TotalLicenses.ToString();
+            ActiveLicenses.Text = stats.ActiveLicenses.ToString();
+            ExpiringSoon.Text = stats.ExpiringSoon.ToString();
+            RevokedLicenses.Text = stats.RevokedLicenses.ToString();
+
+            // Update unsynced count
+            if (stats.UnsyncedLicenses > 0)
+            {
+                UnsyncedCount.Text = $"{stats.UnsyncedLicenses} unsynced";
+            }
+            else
+            {
+                UnsyncedCount.Text = "";
+            }
+        });
+    }
+
+    /// <summary>
+    /// Update UI for standalone/offline mode
+    /// </summary>
+    private void UpdateStandaloneStatus()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            _isStandaloneMode = true;
+            _isConnected = false;
+
+            StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!);
+            ConnectionStatus.Text = "Offline Mode";
+            ServerUrlDisplay.Text = "Working locally";
+
+            // Update mode badge
+            OfflineBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D1F0F")!);
+            ModeBadgeText.Text = "STANDALONE MODE";
+            ModeBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!);
+
+            // Hide server-only features
+            ServerInfoCard.Visibility = Visibility.Collapsed;
+        });
+    }
+
+    /// <summary>
+    /// Load modules from local config or server
+    /// </summary>
+    private async Task LoadModulesAsync()
+    {
+        if (_isConnected && !string.IsNullOrEmpty(_serverUrl))
+        {
+            // Load from server
+            await LoadModulesFromServerAsync();
+        }
+        else
+        {
+            // Load default/local modules
+            LoadDefaultModules();
+        }
+    }
+
+    /// <summary>
+    /// Load modules from server
+    /// </summary>
+    private async Task LoadModulesFromServerAsync()
+    {
+        try
+        {
+            var modulesResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/modules");
+            if (modulesResponse.IsSuccessStatusCode)
+            {
+                var json = await modulesResponse.Content.ReadAsStringAsync();
+                _allModules = JsonSerializer.Deserialize<List<ModuleInfoFull>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+            }
+
+            var tiersResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/tiers");
+            if (tiersResponse.IsSuccessStatusCode)
+            {
+                var json = await tiersResponse.Content.ReadAsStringAsync();
+                _allTiers = JsonSerializer.Deserialize<List<TierInfoFull>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading modules from server: {ex.Message}");
+            LoadDefaultModules();
+        }
+    }
+
+    /// <summary>
+    /// Load default modules for offline mode
+    /// </summary>
+    private void LoadDefaultModules()
+    {
+        // Default FathomOS modules
+        _allModules = new List<ModuleInfoFull>
+        {
+            new() { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing", CertificateCode = "SL", DisplayOrder = 1 },
+            new() { Id = 2, ModuleId = "PipelineAnalysis", DisplayName = "Pipeline Analysis", CertificateCode = "PA", DisplayOrder = 2 },
+            new() { Id = 3, ModuleId = "DataVisualization", DisplayName = "Data Visualization", CertificateCode = "DV", DisplayOrder = 3 },
+            new() { Id = 4, ModuleId = "ReportGeneration", DisplayName = "Report Generation", CertificateCode = "RG", DisplayOrder = 4 },
+            new() { Id = 5, ModuleId = "QualityControl", DisplayName = "Quality Control", CertificateCode = "QC", DisplayOrder = 5 }
+        };
+
+        _allTiers = new List<TierInfoFull>
+        {
+            new() { Id = 1, TierId = "Basic", DisplayName = "Basic", DisplayOrder = 1,
+                    Modules = _allModules.Where(m => m.ModuleId == "SurveyListing").ToList() },
+            new() { Id = 2, TierId = "Professional", DisplayName = "Professional", DisplayOrder = 2,
+                    Modules = _allModules.Where(m => m.ModuleId == "SurveyListing" || m.ModuleId == "PipelineAnalysis" || m.ModuleId == "DataVisualization").ToList() },
+            new() { Id = 3, TierId = "Enterprise", DisplayName = "Enterprise", DisplayOrder = 3,
+                    Modules = _allModules.ToList() }
+        };
+    }
+
+    /// <summary>
+    /// Open server settings dialog
+    /// </summary>
+    private void ServerSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var serverWindow = new ServerConnectionWindow(_settings);
+        serverWindow.Owner = this;
+
+        if (serverWindow.ShowDialog() == true)
+        {
+            if (serverWindow.WorkOffline)
+            {
+                _isStandaloneMode = true;
+                _isConnected = false;
+                _settings.WorkOffline = true;
+                _settings.Save();
+                UpdateStandaloneStatus();
+            }
+            else
+            {
+                _serverUrl = serverWindow.ServerUrl ?? "";
+                _settings.WorkOffline = false;
+                _settings.Save();
+
+                // Try to connect
+                _ = TryConnectToServerAsync();
+            }
         }
     }
 
@@ -144,8 +438,7 @@ public partial class MainWindow : Window
     private void LoadSettings()
     {
         _serverUrl = _settings.ServerUrl;
-        _privateKey = _settings.PrivateKey;
-        _publicKey = _settings.PublicKey;
+        // Keys are now loaded from KeyStorageService in RunStandaloneStartupAsync
     }
 
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -153,87 +446,24 @@ public partial class MainWindow : Window
         _serverUrl = ServerUrlInput.Text.Trim().TrimEnd('/');
         _settings.ServerUrl = _serverUrl;
         _settings.Save();
-        
-        await ConnectToServerAsync();
-        MessageBox.Show(_isConnected ? "✅ Settings saved and connected!" : "⚠️ Settings saved but could not connect to server.", 
-            "Settings", MessageBoxButton.OK, _isConnected ? MessageBoxImage.Information : MessageBoxImage.Warning);
+
+        await TryConnectToServerAsync();
+        MessageBox.Show(_isConnected ? "Settings saved and connected!" : "Settings saved. Working in offline mode.",
+            "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private async void TestConnection_Click(object sender, RoutedEventArgs e)
     {
-        await ConnectToServerAsync();
-        MessageBox.Show(_isConnected ? "✅ Connection successful!" : "❌ Connection failed. Check the URL.", 
-            "Connection Test", MessageBoxButton.OK, _isConnected ? MessageBoxImage.Information : MessageBoxImage.Error);
+        _serverUrl = ServerUrlInput.Text.Trim().TrimEnd('/');
+        await TryConnectToServerAsync();
+        MessageBox.Show(_isConnected ? "Connection successful!" : "Connection failed. The app will work in offline mode.",
+            "Connection Test", MessageBoxButton.OK, _isConnected ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
     private async Task ConnectToServerAsync()
     {
-        if (string.IsNullOrEmpty(_serverUrl))
-        {
-            _isConnected = false;
-            UpdateServerStatus();
-            return;
-        }
-
-        try
-        {
-            var response = await _httpClient.GetAsync($"{_serverUrl}/api/license/time");
-
-            // Check if server returned 503 with setup_required
-            if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                if (content.Contains("setup_required"))
-                {
-                    _isConnected = false;
-                    UpdateServerStatus();
-
-                    // Show setup dialog on UI thread
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        ShowSetupRequiredDialog();
-                    });
-                    return;
-                }
-            }
-
-            _isConnected = response.IsSuccessStatusCode;
-
-            // If connected, fetch server info
-            if (_isConnected)
-            {
-                await UpdateServerInfoAsync();
-            }
-        }
-        catch
-        {
-            _isConnected = false;
-        }
-
-        UpdateServerStatus();
-
-        if (_isConnected)
-        {
-            await LoadLicensesAsync();
-        }
-    }
-
-    /// <summary>
-    /// Show the setup required dialog when server needs first-time configuration
-    /// </summary>
-    private void ShowSetupRequiredDialog()
-    {
-        var setupWindow = new SetupRequiredWindow(_serverUrl, _httpClient);
-        setupWindow.Owner = this;
-
-        if (setupWindow.ShowDialog() == true)
-        {
-            // Setup completed successfully, try to connect again
-            _ = Dispatcher.InvokeAsync(async () =>
-            {
-                await ConnectToServerAsync();
-            });
-        }
+        // Redirect to the new method
+        await TryConnectToServerAsync();
     }
 
     private async Task UpdateServerInfoAsync()
@@ -283,21 +513,35 @@ public partial class MainWindow : Window
         {
             if (_isConnected)
             {
-                StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3FB950"));
+                StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3FB950")!);
                 ConnectionStatus.Text = "Connected";
-                SettingsConnectionDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3FB950"));
+                SettingsConnectionDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3FB950")!);
                 SettingsConnectionStatus.Text = "Connected";
                 ServerInfoCard.Visibility = Visibility.Visible;
+
+                // Update mode badge for connected state
+                OfflineBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A2E1A")!);
+                ModeBadgeText.Text = "CONNECTED";
+                ModeBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3FB950")!);
+
+                _isStandaloneMode = false;
             }
             else
             {
-                StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F85149"));
-                ConnectionStatus.Text = "Disconnected";
-                SettingsConnectionDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F85149"));
+                StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!);
+                ConnectionStatus.Text = "Offline Mode";
+                SettingsConnectionDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!);
                 SettingsConnectionStatus.Text = "Not Connected";
                 ServerInfoCard.Visibility = Visibility.Collapsed;
+
+                // Update mode badge for offline state
+                OfflineBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D1F0F")!);
+                ModeBadgeText.Text = "STANDALONE MODE";
+                ModeBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D29922")!);
+
+                _isStandaloneMode = true;
             }
-            ServerUrlDisplay.Text = string.IsNullOrEmpty(_serverUrl) ? "No server" : _serverUrl;
+            ServerUrlDisplay.Text = string.IsNullOrEmpty(_serverUrl) ? "Working locally" : _serverUrl;
         });
     }
 
@@ -422,24 +666,37 @@ public partial class MainWindow : Window
 
     private async Task LoadLicensesAsync()
     {
-        if (string.IsNullOrEmpty(_serverUrl) || !_isConnected) return;
+        // In standalone mode, load from local database
+        if (_isStandaloneMode || !_isConnected)
+        {
+            LoadLocalLicenses();
+            return;
+        }
 
+        // When connected, try to load from server first
         try
         {
             var response = await _httpClient.GetAsync($"{_serverUrl}/api/admin/licenses");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                _licenses = JsonSerializer.Deserialize<List<LicenseInfo>>(json, 
+                _licenses = JsonSerializer.Deserialize<List<LicenseInfo>>(json,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                
+
                 UpdateLicenseList();
                 UpdateStats();
+            }
+            else
+            {
+                // Fall back to local database
+                LoadLocalLicenses();
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load licenses: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Failed to load licenses from server: {ex.Message}");
+            // Fall back to local database
+            LoadLocalLicenses();
         }
     }
 
@@ -722,20 +979,33 @@ public partial class MainWindow : Window
             {
                 try
                 {
-                    var response = await _httpClient.PostAsync(
-                        $"{_serverUrl}/api/admin/licenses/{license.Id}/revoke",
-                        new StringContent(JsonSerializer.Serialize(new { reason = "Revoked via License Manager" }), 
-                            Encoding.UTF8, "application/json"));
-
-                    if (response.IsSuccessStatusCode)
+                    // In standalone mode, revoke locally
+                    if (_isStandaloneMode || !_isConnected)
                     {
+                        _localDb.RevokeLicense(license.LicenseId ?? "", "Revoked via License Manager");
                         MessageBox.Show("License revoked successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        await LoadLicensesAsync();
+                        LoadLocalLicenses();
                     }
                     else
                     {
-                        var error = await response.Content.ReadAsStringAsync();
-                        MessageBox.Show($"Failed to revoke: {error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Connected mode - use server API
+                        var response = await _httpClient.PostAsync(
+                            $"{_serverUrl}/api/admin/licenses/{license.Id}/revoke",
+                            new StringContent(JsonSerializer.Serialize(new { reason = "Revoked via License Manager" }),
+                                Encoding.UTF8, "application/json"));
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Also revoke locally
+                            _localDb.RevokeLicense(license.LicenseId ?? "", "Revoked via License Manager");
+                            MessageBox.Show("License revoked successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                            await LoadLicensesAsync();
+                        }
+                        else
+                        {
+                            var error = await response.Content.ReadAsStringAsync();
+                            MessageBox.Show($"Failed to revoke: {error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -822,49 +1092,50 @@ public partial class MainWindow : Window
 
     private async Task LoadModulesForCreateAsync()
     {
-        if (!_isConnected || string.IsNullOrEmpty(_serverUrl))
+        // In standalone mode, use local modules; when connected, try to load from server
+        if (_isConnected && !string.IsNullOrEmpty(_serverUrl))
         {
-            Dispatcher.Invoke(() =>
+            try
             {
-                ModuleCheckboxPanel.Children.Clear();
-                ModuleCheckboxPanel.Children.Add(new TextBlock
+                // Load modules from server
+                var modulesResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/modules");
+                if (modulesResponse.IsSuccessStatusCode)
                 {
-                    Text = "Connect to server to load modules",
-                    FontSize = 12,
-                    Foreground = FindResource("TextMutedBrush") as Brush,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                });
-            });
-            return;
-        }
+                    var json = await modulesResponse.Content.ReadAsStringAsync();
+                    _allModules = JsonSerializer.Deserialize<List<ModuleInfoFull>>(json,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                }
 
-        try
-        {
-            // Load modules
-            var modulesResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/modules");
-            if (modulesResponse.IsSuccessStatusCode)
-            {
-                var json = await modulesResponse.Content.ReadAsStringAsync();
-                _allModules = JsonSerializer.Deserialize<List<ModuleInfoFull>>(json, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                // Load tiers from server
+                var tiersResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/tiers");
+                if (tiersResponse.IsSuccessStatusCode)
+                {
+                    var json = await tiersResponse.Content.ReadAsStringAsync();
+                    _allTiers = JsonSerializer.Deserialize<List<TierInfoFull>>(json,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                }
             }
-
-            // Load tiers
-            var tiersResponse = await _httpClient.GetAsync($"{_serverUrl}/api/admin/tiers");
-            if (tiersResponse.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                var json = await tiersResponse.Content.ReadAsStringAsync();
-                _allTiers = JsonSerializer.Deserialize<List<TierInfoFull>>(json, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                System.Diagnostics.Debug.WriteLine($"Error loading modules from server: {ex.Message}");
+                // Fall back to default modules
+                if (_allModules.Count == 0)
+                {
+                    LoadDefaultModules();
+                }
             }
-
-            BuildModuleCheckboxes();
-            ApplyTierSelection();
         }
-        catch (Exception ex)
+        else
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading modules for create: {ex.Message}");
+            // Standalone mode - use default modules if not already loaded
+            if (_allModules.Count == 0)
+            {
+                LoadDefaultModules();
+            }
         }
+
+        BuildModuleCheckboxes();
+        ApplyTierSelection();
     }
 
     private void BuildModuleCheckboxes()
@@ -1338,15 +1609,16 @@ public partial class MainWindow : Window
         // Validate Hardware ID for offline licenses
         if (_isOfflineLicense && string.IsNullOrWhiteSpace(HardwareIdInput?.Text))
         {
-            MessageBox.Show("Hardware ID is required for offline licenses.\n\nCustomer can find this in:\nFathom OS → Help → License Info → Copy Hardware ID", 
+            MessageBox.Show("Hardware ID is required for offline licenses.\n\nCustomer can find this in:\nFathom OS -> Help -> License Info -> Copy Hardware ID",
                 "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
             HardwareIdInput?.Focus();
             return;
         }
 
-        if (!_isConnected)
+        // Check if we have a signing key
+        if (_signingKey == null)
         {
-            MessageBox.Show("Not connected to server. Please configure server in Settings.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show("Signing key not loaded. Please set up keys in Key Management.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -1364,79 +1636,269 @@ public partial class MainWindow : Window
                 supportCode = SupportCodeInput?.Text?.Trim();
             }
 
-            var request = new
+            var customerName = CustomerNameInput.Text.Trim();
+            var customerEmail = CustomerEmailInput.Text.Trim();
+            var edition = GetSelectedEdition();
+            var features = GetSelectedFeatures();
+            var brand = string.IsNullOrWhiteSpace(BrandNameInput.Text) ? null : BrandNameInput.Text.Trim();
+            var licenseeCode = string.IsNullOrWhiteSpace(LicenseeCodeInput.Text) ? null : LicenseeCodeInput.Text.Trim().ToUpperInvariant();
+            var hardwareId = _isOfflineLicense ? HardwareIdInput?.Text?.Trim() : null;
+
+            // In standalone mode or when disconnected, create license locally
+            if (_isStandaloneMode || !_isConnected)
             {
-                customerName = CustomerNameInput.Text.Trim(),
-                customerEmail = CustomerEmailInput.Text.Trim(),
-                edition = GetSelectedEdition(),
-                subscriptionType = subscription,
-                durationMonths = duration,
-                features = GetSelectedFeatures(),
-                brand = string.IsNullOrWhiteSpace(BrandNameInput.Text) ? null : BrandNameInput.Text.Trim(),
-                licenseeCode = string.IsNullOrWhiteSpace(LicenseeCodeInput.Text) ? null : LicenseeCodeInput.Text.Trim().ToUpperInvariant(),
-                supportCode = supportCode,
-                licenseType = _isOfflineLicense ? "Offline" : "Online",
-                hardwareId = _isOfflineLicense ? HardwareIdInput?.Text?.Trim() : null
-            };
-
-            var response = await _httpClient.PostAsync(
-                $"{_serverUrl}/api/admin/licenses",
-                new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
-
-            if (response.IsSuccessStatusCode)
-            {
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<CreateLicenseResult>(json, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                ResultPreview.Visibility = Visibility.Visible;
-                
-                var licenseType = _isOfflineLicense ? "OFFLINE" : "ONLINE";
-                var resultText = $"✅ {licenseType} LICENSE CREATED\n" +
-                                $"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                                $"License Key: {result?.LicenseKey}\n" +
-                                $"Support Code: {result?.SupportCode ?? supportCode ?? "N/A"}\n" +
-                                $"Type: {licenseType}\n" +
-                                $"Expires: {result?.ExpiresAt:yyyy-MM-dd}\n\n" +
-                                $"Features: {string.Join(", ", GetSelectedFeatures())}";
-
-                if (_isOfflineLicense)
-                {
-                    resultText += $"\n\nHardware ID: {request.hardwareId}";
-                    resultText += "\n\n⚠️ Click 'Save .lic File' to download the license file for the customer.";
-                    
-                    // Store the offline license content
-                    _lastOfflineLicenseContent = result?.LicenseFileContent;
-                    SaveLicenseFileButton.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    _lastOfflineLicenseContent = null;
-                    SaveLicenseFileButton.Visibility = Visibility.Collapsed;
-                }
-
-                ResultTextBox.Text = resultText;
-
-                if (exportPdf && result != null)
-                {
-                    ExportPdfCertificate(result, request.customerName, request.customerEmail, request.edition, 
-                        subscription, request.brand, request.licenseeCode, result.SupportCode ?? supportCode, 
-                        GetSelectedFeatures(), _isOfflineLicense);
-                }
-
-                // Refresh dashboard
-                await LoadLicensesAsync();
+                await CreateLicenseLocallyAsync(customerName, customerEmail, edition, subscription, duration,
+                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf);
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                MessageBox.Show($"Failed to create license:\n{error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Connected mode - use server API
+                await CreateLicenseViaServerAsync(customerName, customerEmail, edition, subscription, duration,
+                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf);
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error creating license: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    /// <summary>
+    /// Create a license locally in standalone mode
+    /// </summary>
+    private async Task CreateLicenseLocallyAsync(string customerName, string customerEmail, string edition,
+        string subscription, int durationMonths, List<string> features, string? brand, string? licenseeCode,
+        string? supportCode, string? hardwareId, bool exportPdf)
+    {
+        // Generate license ID
+        var licenseId = LicenseSigningService.GenerateLicenseId();
+
+        // Generate license key
+        var licenseKey = GenerateLicenseKey();
+
+        // Calculate expiration
+        var issuedAt = DateTime.UtcNow;
+        var expiresAt = subscription == "Lifetime"
+            ? DateTime.UtcNow.AddYears(100)
+            : DateTime.UtcNow.AddMonths(durationMonths);
+
+        // Build LicenseFile
+        var licenseFile = new LicenseFile
+        {
+            Version = 3,
+            LicenseId = licenseId,
+            Product = LicenseConstants.ProductName,
+            Edition = edition,
+            CustomerEmail = customerEmail,
+            CustomerName = customerName,
+            IssuedAt = issuedAt,
+            ExpiresAt = expiresAt,
+            SubscriptionType = subscription switch
+            {
+                "Monthly" => SubscriptionType.Monthly,
+                "Lifetime" => SubscriptionType.Lifetime,
+                _ => SubscriptionType.Yearly
+            },
+            LicenseType = _isOfflineLicense ? LicenseType.Offline : LicenseType.Online,
+            Features = features,
+            Brand = brand,
+            LicenseeCode = licenseeCode,
+            SupportCode = supportCode
+        };
+
+        if (!string.IsNullOrEmpty(hardwareId))
+        {
+            licenseFile.HardwareFingerprints = new List<string> { hardwareId };
+        }
+
+        // Sign the license
+        var signingService = new LicenseSigningService();
+        var signedLicense = signingService.SignLicense(licenseFile, _signingKey!);
+
+        // Save to local database
+        _localDb.SaveLicense(licenseFile, signedLicense, licenseKey);
+
+        // Generate license file content for offline licenses
+        string? licenseFileContent = null;
+        if (_isOfflineLicense)
+        {
+            licenseFileContent = JsonSerializer.Serialize(signedLicense, new JsonSerializerOptions { WriteIndented = true });
+        }
+
+        // Update UI
+        ResultPreview.Visibility = Visibility.Visible;
+
+        var licenseTypeStr = _isOfflineLicense ? "OFFLINE" : "ONLINE";
+        var resultText = $"LICENSE CREATED (Standalone Mode)\n" +
+                        $"===================================\n" +
+                        $"License Key: {licenseKey}\n" +
+                        $"License ID: {licenseId}\n" +
+                        $"Support Code: {supportCode ?? "N/A"}\n" +
+                        $"Type: {licenseTypeStr}\n" +
+                        $"Expires: {expiresAt:yyyy-MM-dd}\n\n" +
+                        $"Features: {string.Join(", ", features)}";
+
+        if (_isOfflineLicense)
+        {
+            resultText += $"\n\nHardware ID: {hardwareId}";
+            resultText += "\n\nClick 'Save .lic File' to download the license file for the customer.";
+
+            _lastOfflineLicenseContent = licenseFileContent;
+            SaveLicenseFileButton.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            _lastOfflineLicenseContent = null;
+            SaveLicenseFileButton.Visibility = Visibility.Collapsed;
+        }
+
+        ResultTextBox.Text = resultText;
+
+        if (exportPdf)
+        {
+            var result = new CreateLicenseResult
+            {
+                LicenseId = licenseId,
+                LicenseKey = licenseKey,
+                SupportCode = supportCode,
+                ExpiresAt = expiresAt,
+                LicenseFileContent = licenseFileContent
+            };
+            ExportPdfCertificate(result, customerName, customerEmail, edition, subscription, brand, licenseeCode, supportCode, features, _isOfflineLicense);
+        }
+
+        // Refresh local licenses
+        LoadLocalLicenses();
+
+        // Auto-sync to server if enabled
+        if (_settings.AutoSyncToServer && _isConnected)
+        {
+            await SyncLicenseToServerAsync(licenseFile, signedLicense, licenseKey);
+        }
+    }
+
+    /// <summary>
+    /// Create a license via server API
+    /// </summary>
+    private async Task CreateLicenseViaServerAsync(string customerName, string customerEmail, string edition,
+        string subscription, int durationMonths, List<string> features, string? brand, string? licenseeCode,
+        string? supportCode, string? hardwareId, bool exportPdf)
+    {
+        var request = new
+        {
+            customerName,
+            customerEmail,
+            edition,
+            subscriptionType = subscription,
+            durationMonths,
+            features,
+            brand,
+            licenseeCode,
+            supportCode,
+            licenseType = _isOfflineLicense ? "Offline" : "Online",
+            hardwareId
+        };
+
+        var response = await _httpClient.PostAsync(
+            $"{_serverUrl}/api/admin/licenses",
+            new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<CreateLicenseResult>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            ResultPreview.Visibility = Visibility.Visible;
+
+            var licenseType = _isOfflineLicense ? "OFFLINE" : "ONLINE";
+            var resultText = $"{licenseType} LICENSE CREATED\n" +
+                            $"===================================\n" +
+                            $"License Key: {result?.LicenseKey}\n" +
+                            $"Support Code: {result?.SupportCode ?? supportCode ?? "N/A"}\n" +
+                            $"Type: {licenseType}\n" +
+                            $"Expires: {result?.ExpiresAt:yyyy-MM-dd}\n\n" +
+                            $"Features: {string.Join(", ", features)}";
+
+            if (_isOfflineLicense)
+            {
+                resultText += $"\n\nHardware ID: {hardwareId}";
+                resultText += "\n\nClick 'Save .lic File' to download the license file for the customer.";
+
+                _lastOfflineLicenseContent = result?.LicenseFileContent;
+                SaveLicenseFileButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _lastOfflineLicenseContent = null;
+                SaveLicenseFileButton.Visibility = Visibility.Collapsed;
+            }
+
+            ResultTextBox.Text = resultText;
+
+            if (exportPdf && result != null)
+            {
+                ExportPdfCertificate(result, customerName, customerEmail, edition,
+                    subscription, brand, licenseeCode, result.SupportCode ?? supportCode,
+                    features, _isOfflineLicense);
+            }
+
+            // Refresh dashboard
+            await LoadLicensesAsync();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            MessageBox.Show($"Failed to create license:\n{error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>
+    /// Sync a locally created license to server
+    /// </summary>
+    private async Task SyncLicenseToServerAsync(LicenseFile license, SignedLicense signedLicense, string licenseKey)
+    {
+        try
+        {
+            var request = new
+            {
+                license,
+                signedLicense,
+                licenseKey
+            };
+
+            var response = await _httpClient.PostAsync(
+                $"{_serverUrl}/api/admin/licenses/sync",
+                new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                _localDb.MarkSynced(license.LicenseId);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to sync license to server: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Generate a unique license key
+    /// </summary>
+    private static string GenerateLicenseKey()
+    {
+        var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var random = new Random();
+        var segments = new List<string>();
+
+        for (int i = 0; i < 4; i++)
+        {
+            var segment = new string(Enumerable.Range(0, 5)
+                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+            segments.Add(segment);
+        }
+
+        return string.Join("-", segments);
     }
 
     private void ExportPdfCertificate(CreateLicenseResult result, string customerName, string customerEmail, 
@@ -1547,42 +2009,66 @@ public partial class MainWindow : Window
 
     private void LoadStoredKeys()
     {
-        if (!string.IsNullOrEmpty(_privateKey) && !string.IsNullOrEmpty(_publicKey))
+        try
         {
-            PrivateKeyBox.Text = _privateKey;
-            PublicKeyBox.Text = _publicKey;
-            KeysPanel.Visibility = Visibility.Visible;
+            if (_keyService.HasPrivateKey())
+            {
+                _privateKey = _keyService.LoadPrivateKey();
+                _publicKey = _keyService.LoadPublicKey();
+
+                PrivateKeyBox.Text = "(Private key stored securely with DPAPI encryption)\n\nKey ID: " + (_keyService.GetPublicKeyId() ?? "Unknown");
+                PublicKeyBox.Text = _publicKey;
+                KeysPanel.Visibility = Visibility.Visible;
+            }
+            else if (!string.IsNullOrEmpty(_privateKey) && !string.IsNullOrEmpty(_publicKey))
+            {
+                PrivateKeyBox.Text = "(Private key loaded)";
+                PublicKeyBox.Text = _publicKey;
+                KeysPanel.Visibility = Visibility.Visible;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading stored keys: {ex.Message}");
         }
     }
 
     private void GenerateKeys_Click(object sender, RoutedEventArgs e)
     {
+        var result = MessageBox.Show(
+            "WARNING: Regenerating keys will invalidate ALL existing offline licenses!\n\n" +
+            "Only do this if:\n" +
+            "- You suspect your keys have been compromised\n" +
+            "- You are setting up for the first time\n\n" +
+            "Are you sure you want to continue?",
+            "Regenerate Keys", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes) return;
+
         try
         {
-            using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            
-            // Export private key
-            var privateKeyBytes = ecdsa.ExportECPrivateKey();
-            _privateKey = "-----BEGIN EC PRIVATE KEY-----\n" +
-                         Convert.ToBase64String(privateKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
-                         "\n-----END EC PRIVATE KEY-----";
-            
-            // Export public key
-            var publicKeyBytes = ecdsa.ExportSubjectPublicKeyInfo();
-            _publicKey = "-----BEGIN PUBLIC KEY-----\n" +
-                        Convert.ToBase64String(publicKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
-                        "\n-----END PUBLIC KEY-----";
+            // Generate new keys via KeyStorageService
+            var (privateKey, publicKey) = _keyService.GenerateKeyPair();
 
-            PrivateKeyBox.Text = _privateKey;
+            // Store the keys securely
+            _keyService.StorePrivateKey(privateKey);
+            _keyService.StorePublicKey(publicKey);
+
+            // Update local references
+            _privateKey = privateKey;
+            _publicKey = publicKey;
+            _signingKey = _keyService.LoadPrivateKeyAsECDsa();
+
+            // Update settings
+            _settings.PublicKeyId = _keyService.GetPublicKeyId();
+            _settings.Save();
+
+            // Update UI
+            PrivateKeyBox.Text = "(Private key stored securely with DPAPI encryption)\n\nKey ID: " + (_keyService.GetPublicKeyId() ?? "Unknown");
             PublicKeyBox.Text = _publicKey;
             KeysPanel.Visibility = Visibility.Visible;
 
-            // Save to settings
-            _settings.PrivateKey = _privateKey;
-            _settings.PublicKey = _publicKey;
-            _settings.Save();
-
-            MessageBox.Show("Keys generated successfully!\n\n⚠️ IMPORTANT: Keep the private key SECRET!\nOnly share the public key.", 
+            MessageBox.Show("Keys generated successfully!\n\nIMPORTANT:\n- Keep the private key backup in a secure location\n- Update the public key in your FathomOS application\n- All existing offline licenses are now invalid",
                 "Keys Generated", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -1603,66 +2089,95 @@ public partial class MainWindow : Window
         {
             try
             {
-                var keyContent = File.ReadAllText(openDialog.FileName);
-                _privateKey = keyContent;
-                PrivateKeyBox.Text = keyContent;
-                KeysPanel.Visibility = Visibility.Visible;
-                
-                _settings.PrivateKey = _privateKey;
+                // Import via KeyStorageService (which validates and stores securely)
+                _keyService.ImportPrivateKey(openDialog.FileName);
+
+                // Reload keys
+                _privateKey = _keyService.LoadPrivateKey();
+                _publicKey = _keyService.LoadPublicKey();
+                _signingKey = _keyService.LoadPrivateKeyAsECDsa();
+
+                // Update settings
+                _settings.PublicKeyId = _keyService.GetPublicKeyId();
                 _settings.Save();
-                
-                MessageBox.Show("Private key loaded!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // Update UI
+                PrivateKeyBox.Text = "(Private key stored securely with DPAPI encryption)\n\nKey ID: " + (_keyService.GetPublicKeyId() ?? "Unknown");
+                PublicKeyBox.Text = _publicKey;
+                KeysPanel.Visibility = Visibility.Visible;
+
+                MessageBox.Show("Private key imported and stored securely!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error importing key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
 
     private void CopyPrivateKey_Click(object sender, RoutedEventArgs e)
     {
-        if (!string.IsNullOrEmpty(PrivateKeyBox.Text))
-        {
-            Clipboard.SetText(PrivateKeyBox.Text);
-            MessageBox.Show("Private key copied to clipboard!", "Copied", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        MessageBox.Show("For security reasons, the private key cannot be copied directly.\n\nUse 'Export Private Key' to save a backup to a file.",
+            "Security", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void CopyPublicKey_Click(object sender, RoutedEventArgs e)
     {
-        if (!string.IsNullOrEmpty(PublicKeyBox.Text))
+        if (!string.IsNullOrEmpty(_publicKey))
         {
-            Clipboard.SetText(PublicKeyBox.Text);
+            Clipboard.SetText(_publicKey);
             MessageBox.Show("Public key copied to clipboard!", "Copied", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 
     private void ExportPrivateKey_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(_privateKey))
+        if (!_keyService.HasPrivateKey())
         {
             MessageBox.Show("No private key to export. Generate keys first.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
+        var warningResult = MessageBox.Show(
+            "WARNING: The private key is extremely sensitive!\n\n" +
+            "Anyone with access to this file can create valid licenses.\n\n" +
+            "Store this backup in a secure location (encrypted drive, password manager, etc.).\n\n" +
+            "Do you want to continue?",
+            "Security Warning",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (warningResult != MessageBoxResult.Yes) return;
+
         var saveDialog = new SaveFileDialog
         {
-            Title = "Export Private Key",
+            Title = "Export Private Key Backup",
             Filter = "PEM Files (*.pem)|*.pem",
-            FileName = "private_key.pem"
+            FileName = "fathom_private_key_BACKUP.pem"
         };
 
         if (saveDialog.ShowDialog() == true)
         {
-            File.WriteAllText(saveDialog.FileName, _privateKey);
-            MessageBox.Show("Private key exported!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                _keyService.ExportPrivateKey(saveDialog.FileName);
+                MessageBox.Show(
+                    $"Private key backup saved to:\n{saveDialog.FileName}\n\n" +
+                    "IMPORTANT: Store this file securely and delete it from any unsecured locations!",
+                    "Backup Created",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to export private key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 
     private void ExportPublicKey_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(_publicKey))
+        if (!_keyService.HasPublicKey())
         {
             MessageBox.Show("No public key to export. Generate keys first.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -1672,13 +2187,20 @@ public partial class MainWindow : Window
         {
             Title = "Export Public Key",
             Filter = "PEM Files (*.pem)|*.pem",
-            FileName = "public_key.pem"
+            FileName = "fathom_public_key.pem"
         };
 
         if (saveDialog.ShowDialog() == true)
         {
-            File.WriteAllText(saveDialog.FileName, _publicKey);
-            MessageBox.Show("Public key exported!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                _keyService.ExportPublicKey(saveDialog.FileName);
+                MessageBox.Show($"Public key exported to:\n{saveDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to export public key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 
@@ -1698,27 +2220,56 @@ public partial class MainWindow : Window
 
     private async Task LoadModulesAndTiersAsync()
     {
-        if (!_isConnected) 
+        // In standalone mode, load default modules
+        if (_isStandaloneMode || !_isConnected)
         {
+            if (_allModules.Count == 0)
+            {
+                LoadDefaultModules();
+            }
+
             Dispatcher.Invoke(() =>
             {
                 ModulesListPanel.Children.Clear();
-                ModulesListPanel.Children.Add(new TextBlock 
-                { 
-                    Text = "Connect to server to manage modules.", 
-                    FontSize = 12, 
-                    Foreground = FindResource("TextMutedBrush") as Brush, 
-                    Margin = new Thickness(0, 8, 0, 8) 
+                ModulesListPanel.Children.Add(new TextBlock
+                {
+                    Text = "Standalone Mode - Using default modules:",
+                    FontSize = 12,
+                    Foreground = FindResource("TextMutedBrush") as Brush,
+                    Margin = new Thickness(0, 8, 0, 8)
                 });
-                
+
+                foreach (var module in _allModules)
+                {
+                    ModulesListPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"  - {module.DisplayName} ({module.CertificateCode})",
+                        FontSize = 12,
+                        Foreground = FindResource("TextSecondaryBrush") as Brush,
+                        Margin = new Thickness(0, 4, 0, 4)
+                    });
+                }
+
                 TiersListPanel.Children.Clear();
-                TiersListPanel.Children.Add(new TextBlock 
-                { 
-                    Text = "Connect to server to manage tiers.", 
-                    FontSize = 12, 
-                    Foreground = FindResource("TextMutedBrush") as Brush, 
-                    Margin = new Thickness(0, 8, 0, 8) 
+                TiersListPanel.Children.Add(new TextBlock
+                {
+                    Text = "Standalone Mode - Using default tiers:",
+                    FontSize = 12,
+                    Foreground = FindResource("TextMutedBrush") as Brush,
+                    Margin = new Thickness(0, 8, 0, 8)
                 });
+
+                foreach (var tier in _allTiers)
+                {
+                    var moduleNames = tier.Modules?.Select(m => m.ModuleId).ToList() ?? new List<string?>();
+                    TiersListPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"  - {tier.DisplayName}: {string.Join(", ", moduleNames)}",
+                        FontSize = 12,
+                        Foreground = FindResource("TextSecondaryBrush") as Brush,
+                        Margin = new Thickness(0, 4, 0, 4)
+                    });
+                }
             });
             return;
         }

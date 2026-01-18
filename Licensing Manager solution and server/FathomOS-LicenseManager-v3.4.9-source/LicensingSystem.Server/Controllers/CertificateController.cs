@@ -15,6 +15,15 @@ namespace LicensingSystem.Server.Controllers;
 /// <summary>
 /// Controller for certificate management operations.
 /// Handles syncing, verification, and listing of processing certificates.
+///
+/// PUBLIC ENDPOINTS (no authentication required):
+///   - GET /api/certificates/verify/{certificateId} - Verify a certificate
+///
+/// PROTECTED ENDPOINTS (require X-API-Key header):
+///   - POST /api/certificates/sync - Sync certificates from client
+///   - GET /api/certificates/list - List certificates
+///   - GET /api/certificates/{certificateId} - Get certificate details
+///   - POST /api/certificates/sequence - Get next sequence number
 /// </summary>
 [ApiController]
 [Route("api/certificates")]

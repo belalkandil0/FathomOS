@@ -16,18 +16,18 @@ public class SettingsService
         var appDataPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "FathomOSLicenseManager");
-        
+
         Directory.CreateDirectory(appDataPath);
         _settingsPath = Path.Combine(appDataPath, "settings.json");
-        
+
         _settings = LoadSettings();
     }
 
     // Direct property accessors
-    public string ServerUrl 
-    { 
-        get => string.IsNullOrEmpty(_settings.ServerUrl) 
-            ? "https://fathom-os-license-server.onrender.com" 
+    public string ServerUrl
+    {
+        get => string.IsNullOrEmpty(_settings.ServerUrl)
+            ? "https://s7fathom-license-server.onrender.com"
             : _settings.ServerUrl;
         set => _settings.ServerUrl = value;
     }
@@ -90,6 +90,71 @@ public class SettingsService
         set => _settings.DefaultBrand = value;
     }
 
+    // === NEW: Standalone Mode Settings ===
+
+    /// <summary>
+    /// API Key for server authentication
+    /// </summary>
+    public string? ApiKey
+    {
+        get => _settings.ApiKey;
+        set => _settings.ApiKey = value;
+    }
+
+    /// <summary>
+    /// Whether to automatically sync licenses to server when connected
+    /// </summary>
+    public bool AutoSyncToServer
+    {
+        get => _settings.AutoSyncToServer;
+        set => _settings.AutoSyncToServer = value;
+    }
+
+    /// <summary>
+    /// Whether the initial key setup has been completed
+    /// </summary>
+    public bool HasCompletedSetup
+    {
+        get => _settings.HasCompletedSetup;
+        set => _settings.HasCompletedSetup = value;
+    }
+
+    /// <summary>
+    /// Whether server configuration has been set up
+    /// </summary>
+    public bool HasServerConfig
+    {
+        get => _settings.HasServerConfig;
+        set => _settings.HasServerConfig = value;
+    }
+
+    /// <summary>
+    /// ID/fingerprint of the current public key (for key rotation tracking)
+    /// </summary>
+    public string? PublicKeyId
+    {
+        get => _settings.PublicKeyId;
+        set => _settings.PublicKeyId = value;
+    }
+
+    /// <summary>
+    /// Whether to work in offline mode (no server connection)
+    /// </summary>
+    public bool WorkOffline
+    {
+        get => _settings.WorkOffline;
+        set => _settings.WorkOffline = value;
+    }
+
+    /// <summary>
+    /// Last time licenses were synced to server
+    /// </summary>
+    public DateTime? LastSyncTime
+    {
+        get => _settings.LastSyncTime;
+        set => _settings.LastSyncTime = value;
+    }
+
     public void Save()
     {
         try
@@ -140,10 +205,19 @@ public class AppSettings
     public int GracePeriodDays { get; set; } = 14;
     public string KeyStoragePath { get; set; } = string.Empty;
     public string LastLicenseDirectory { get; set; } = string.Empty;
-    public string ServerUrl { get; set; } = "https://fathom-os-license-server.onrender.com";
+    public string ServerUrl { get; set; } = "https://s7fathom-license-server.onrender.com";
     public string? PrivateKey { get; set; }
     public string? PublicKey { get; set; }
     public string DefaultEdition { get; set; } = "Professional";
     public string DefaultDuration { get; set; } = "1 Year";
     public string DefaultBrand { get; set; } = "";
+
+    // === NEW: Standalone Mode Settings ===
+    public string? ApiKey { get; set; }
+    public bool AutoSyncToServer { get; set; } = false;
+    public bool HasCompletedSetup { get; set; } = false;
+    public bool HasServerConfig { get; set; } = false;
+    public string? PublicKeyId { get; set; }
+    public bool WorkOffline { get; set; } = true;
+    public DateTime? LastSyncTime { get; set; }
 }

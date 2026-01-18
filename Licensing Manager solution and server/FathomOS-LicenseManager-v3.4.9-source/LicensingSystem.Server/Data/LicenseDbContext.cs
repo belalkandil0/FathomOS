@@ -55,6 +55,12 @@ public class LicenseDbContext : DbContext
     // First-Time Setup Configuration
     public DbSet<SetupConfigRecord> SetupConfigs => Set<SetupConfigRecord>();
 
+    // API Key Authentication (replaces admin auth)
+    public DbSet<ApiKeyRecord> ApiKeys => Set<ApiKeyRecord>();
+
+    // Synced License Records (for tracking offline licenses)
+    public DbSet<SyncedLicenseRecord> SyncedLicenses => Set<SyncedLicenseRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // LicenseKeyRecord configuration
@@ -347,6 +353,32 @@ public class LicenseDbContext : DbContext
             entity.Property(e => e.SetupTokenHash).HasMaxLength(128);
             entity.Property(e => e.SetupMethod).HasMaxLength(50);
             entity.Property(e => e.SetupCompletedByIp).HasMaxLength(64);
+        });
+
+        // ApiKeyRecord configuration (new for simplified auth)
+        modelBuilder.Entity<ApiKeyRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.KeyHash);
+
+            entity.Property(e => e.KeyHash).HasMaxLength(128).IsRequired();
+            entity.Property(e => e.KeyHint).HasMaxLength(10);
+        });
+
+        // SyncedLicenseRecord configuration (for tracking offline licenses)
+        modelBuilder.Entity<SyncedLicenseRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.LicenseId).IsUnique();
+            entity.HasIndex(e => e.ClientCode);
+            entity.HasIndex(e => e.IssuedAt);
+
+            entity.Property(e => e.LicenseId).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.ClientName).HasMaxLength(256);
+            entity.Property(e => e.ClientCode).HasMaxLength(10);
+            entity.Property(e => e.Edition).HasMaxLength(64);
+            entity.Property(e => e.LicenseJson).HasColumnType("TEXT");
+            entity.Property(e => e.RevokedReason).HasMaxLength(512);
         });
 
         // Seed default data
@@ -1497,4 +1529,125 @@ public class SetupConfigRecord
     /// How setup was completed: Token, Environment, Console
     /// </summary>
     public string? SetupMethod { get; set; }
+}
+
+// ============================================================================
+// API KEY AUTHENTICATION (New for simplified server)
+// ============================================================================
+
+/// <summary>
+/// Stores API key hashes for server authentication.
+/// Replaces the complex admin username/password system.
+/// </summary>
+public class ApiKeyRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// SHA-256 hash of the API key (never store plain key)
+    /// </summary>
+    public string KeyHash { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Last 4 characters of the key for identification
+    /// </summary>
+    public string? KeyHint { get; set; }
+
+    /// <summary>
+    /// When the API key was created
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// When the API key was last used
+    /// </summary>
+    public DateTime? LastUsedAt { get; set; }
+
+    /// <summary>
+    /// Whether this API key is active
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+}
+
+// ============================================================================
+// SYNCED LICENSE RECORDS (For tracking offline licenses)
+// ============================================================================
+
+/// <summary>
+/// Stores license records synced from the License Generator UI.
+/// Used for tracking and analytics - license validation is performed offline.
+/// </summary>
+public class SyncedLicenseRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Unique license identifier
+    /// </summary>
+    public string LicenseId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Client/customer name
+    /// </summary>
+    public string? ClientName { get; set; }
+
+    /// <summary>
+    /// Client/licensee code (2-letter code)
+    /// </summary>
+    public string? ClientCode { get; set; }
+
+    /// <summary>
+    /// License edition (Basic, Professional, Enterprise)
+    /// </summary>
+    public string? Edition { get; set; }
+
+    /// <summary>
+    /// Full license JSON data (for reference)
+    /// </summary>
+    public string? LicenseJson { get; set; }
+
+    /// <summary>
+    /// When the license was issued
+    /// </summary>
+    public DateTime IssuedAt { get; set; }
+
+    /// <summary>
+    /// When the license expires
+    /// </summary>
+    public DateTime ExpiresAt { get; set; }
+
+    /// <summary>
+    /// When the license was synced to this server
+    /// </summary>
+    public DateTime SyncedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Whether this license has been revoked
+    /// </summary>
+    public bool IsRevoked { get; set; }
+
+    /// <summary>
+    /// Reason for revocation (if revoked)
+    /// </summary>
+    public string? RevokedReason { get; set; }
+
+    /// <summary>
+    /// When the license was revoked
+    /// </summary>
+    public DateTime? RevokedAt { get; set; }
+
+    /// <summary>
+    /// Customer email (for lookup)
+    /// </summary>
+    public string? CustomerEmail { get; set; }
+
+    /// <summary>
+    /// Features included in the license
+    /// </summary>
+    public string? Features { get; set; }
+
+    /// <summary>
+    /// Brand/company name for white-labeling
+    /// </summary>
+    public string? Brand { get; set; }
 }

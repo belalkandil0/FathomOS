@@ -12,11 +12,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FathomOS.Shell;
 
 /// <summary>
-/// Fathom OS main application entry point with licensing support
+/// Fathom OS main application entry point with licensing support.
+/// Implements first-launch flow: License Activation -> Account Creation -> Login
 /// </summary>
 public partial class App : Application
 {
     private ModuleManager? _moduleManager;
+    private static LocalUser? _currentLocalUser;
 
     /// <summary>
     /// Dependency Injection Service Provider
@@ -28,6 +30,15 @@ public partial class App : Application
     /// Fathom OS License Integration - provides session management, heartbeat, and events
     /// </summary>
     public static FathomOSLicenseIntegration Licensing { get; private set; } = null!;
+
+    /// <summary>
+    /// The currently logged in local user (for local authentication flow).
+    /// </summary>
+    public static LocalUser? CurrentLocalUser
+    {
+        get => _currentLocalUser;
+        set => _currentLocalUser = value;
+    }
     
     /// <summary>
     /// License Manager - provides license checking capabilities (backward compatibility)
@@ -251,166 +262,168 @@ public partial class App : Application
             };
             
             // ============================================================================
-            // LICENSE VALIDATION - Initialize licensing and check status
+            // FIRST-LAUNCH FLOW - License Activation, Account Creation, Login
+            // Uses AppStartupService to determine the correct startup sequence
             // ============================================================================
-            System.Diagnostics.Debug.WriteLine("DEBUG: Initializing license...");
-            var result = await Licensing.InitializeAsync();
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Initial license check result:");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   IsValid: {result.IsValid}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   Status: {result.Status}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   Message: {result.Message}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   LicenseId: {result.License?.LicenseId ?? "null"}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   Product: {result.License?.Product ?? "null"}");
-            
-            // Handle revoked license - MUST clear local data
-            if (result.Status == LicenseStatus.Revoked)
+            var userService = Services.GetRequiredService<ILocalUserService>();
+            var startupService = new AppStartupService(Licensing, userService);
+
+            var startupFlow = await startupService.DetermineStartupFlowAsync();
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Startup flow result: {startupFlow.Result}");
+
+            // Process the startup flow
+            switch (startupFlow.Result)
             {
-                // Clear stored license to prevent reuse
-                LicenseManager.Deactivate();
-                
-                MessageBox.Show(
-                    "Your license has been revoked.\n\n" +
-                    "Please contact support for assistance.",
-                    "License Revoked",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                Shutdown();
-                return;
-            }
-            
-            // Handle expired license (past grace period)
-            if (result.Status == LicenseStatus.Expired)
-            {
-                MessageBox.Show(
-                    "Your license has expired and the grace period has ended.\n\n" +
-                    "Please renew your subscription to continue using Fathom OS.",
-                    "License Expired",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                
-                // Show activation window for renewal
-                var renewWindow = new ActivationWindow();
-                if (renewWindow.ShowDialog() != true || !renewWindow.ActivationSuccessful)
-                {
-                    Shutdown();
-                    return;
-                }
-                
-                // Re-check after renewal attempt
-                result = await Licensing.InitializeAsync();
-                if (!result.IsValid && result.Status != LicenseStatus.GracePeriod)
-                {
-                    Shutdown();
-                    return;
-                }
-            }
-            
-            // If no valid license found, show activation window
-            if (!result.IsValid && result.Status != LicenseStatus.GracePeriod)
-            {
-                System.Diagnostics.Debug.WriteLine("DEBUG: Showing activation window...");
-                var activationWindow = new ActivationWindow();
-                var dialogResult = activationWindow.ShowDialog();
-                System.Diagnostics.Debug.WriteLine($"DEBUG: Activation window closed. DialogResult={dialogResult}, ActivationSuccessful={activationWindow.ActivationSuccessful}");
-                
-                // User cancelled or closed window without activating
-                if (dialogResult != true && !activationWindow.ActivationSuccessful)
-                {
-                    System.Diagnostics.Debug.WriteLine("DEBUG: User cancelled activation - shutting down");
-                    Shutdown();
-                    return;
-                }
-                
-                // If activation window reports success, trust it and continue
-                // The license was already validated and stored by the LicenseManager
-                if (activationWindow.ActivationSuccessful)
-                {
-                    // Refresh the license status in the wrapper (starts timers)
-                    result = Licensing.RefreshLicenseStatus();
-                    
-                    // Log success with details
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: License activated successfully!");
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   LicenseId: {result.License?.LicenseId}");
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   IsValid: {result.IsValid}");
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Status: {result.Status}");
-                }
-                else
-                {
-                    // Should not reach here, but just in case
-                    System.Diagnostics.Debug.WriteLine("DEBUG: ActivationSuccessful=false - showing error");
+                case StartupResult.LicenseRevoked:
+                    LicenseManager.Deactivate();
                     MessageBox.Show(
-                        "License activation could not be completed.\n\n" +
-                        "Please try again or contact support.",
-                        "Activation Failed",
+                        "Your license has been revoked.\n\nPlease contact support for assistance.",
+                        "License Revoked",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                     Shutdown();
                     return;
-                }
+
+                case StartupResult.LicenseExpired:
+                    MessageBox.Show(
+                        "Your license has expired and the grace period has ended.\n\n" +
+                        "Please renew your subscription to continue using Fathom OS.",
+                        "License Expired",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+
+                    // Show license activation window for renewal
+                    var renewWindow = new LicenseActivationWindow();
+                    if (renewWindow.ShowDialog() != true || !renewWindow.IsActivated)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    // Refresh startup state after renewal
+                    startupFlow = startupService.RefreshStartupState();
+                    if (!startupFlow.CanProceed)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    break;
+
+                case StartupResult.LicenseInvalid:
+                    MessageBox.Show(
+                        $"License validation failed:\n\n{startupFlow.ErrorMessage}\n\nPlease activate a valid license.",
+                        "Invalid License",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+
+                    // Show license activation window
+                    var reactivateWindow = new LicenseActivationWindow();
+                    if (reactivateWindow.ShowDialog() != true || !reactivateWindow.IsActivated)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    startupFlow = startupService.RefreshStartupState();
+                    if (!startupFlow.CanProceed)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    break;
+
+                case StartupResult.NeedsLicenseActivation:
+                    System.Diagnostics.Debug.WriteLine("DEBUG: First launch - showing license activation window...");
+                    var activationWindow = new LicenseActivationWindow();
+                    var activationResult = activationWindow.ShowDialog();
+
+                    if (activationResult != true || !activationWindow.IsActivated)
+                    {
+                        System.Diagnostics.Debug.WriteLine("DEBUG: User cancelled license activation - shutting down");
+                        Shutdown();
+                        return;
+                    }
+
+                    // Refresh license status and startup flow
+                    Licensing.RefreshLicenseStatus();
+                    startupFlow = startupService.RefreshStartupState();
+                    System.Diagnostics.Debug.WriteLine("DEBUG: License activated successfully!");
+
+                    // Fall through to account creation
+                    goto case StartupResult.NeedsAccountCreation;
+
+                case StartupResult.NeedsAccountCreation:
+                    System.Diagnostics.Debug.WriteLine("DEBUG: No local users - showing account creation window...");
+                    var createAccountWindow = new CreateAccountWindow(userService, startupFlow.LicenseResult?.License);
+                    var createResult = createAccountWindow.ShowDialog();
+
+                    if (createResult != true || createAccountWindow.CreatedUser == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("DEBUG: User cancelled account creation - shutting down");
+                        Shutdown();
+                        return;
+                    }
+
+                    // Auto-login with newly created account
+                    CurrentLocalUser = createAccountWindow.CreatedUser;
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Admin account created and logged in: {CurrentLocalUser.Username}");
+                    break;
+
+                case StartupResult.LicenseInGracePeriod:
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: License in grace period - {startupFlow.GraceDaysRemaining} days remaining");
+                    MessageBox.Show(
+                        $"Your Fathom OS license has expired!\n\n" +
+                        $"You have {startupFlow.GraceDaysRemaining} days remaining before the software stops working.\n\n" +
+                        $"Please renew your subscription immediately.",
+                        "License Expiring - Action Required",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    // Fall through to login
+                    goto case StartupResult.ReadyForLogin;
+
+                case StartupResult.ReadyForLogin:
+                    System.Diagnostics.Debug.WriteLine("DEBUG: Showing local login window...");
+                    var settingsService = Services.GetService(typeof(ISettingsService)) as ISettingsService;
+                    var loginWindow = new LocalLoginWindow(userService, settingsService);
+                    var loginResult = loginWindow.ShowDialog();
+
+                    if (loginResult != true || loginWindow.AuthenticatedUser == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("DEBUG: Login cancelled or failed - shutting down");
+                        Shutdown();
+                        return;
+                    }
+
+                    CurrentLocalUser = loginWindow.AuthenticatedUser;
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Local login successful for: {CurrentLocalUser.Username}");
+                    break;
             }
-            
-            // Show warning if in grace period
-            if (result.Status == LicenseStatus.GracePeriod)
-            {
-                System.Diagnostics.Debug.WriteLine("DEBUG: License in grace period - showing warning");
-                MessageBox.Show(
-                    $"Your Fathom OS license has expired!\n\n" +
-                    $"You have {result.GraceDaysRemaining} days remaining before the software stops working.\n\n" +
-                    $"Please renew your subscription immediately.",
-                    "License Expiring - Action Required",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
-            
+
             // ============================================================================
             // SYNC WITH SERVER - Notify server about this license (fire and forget)
-            // This ensures offline licenses get registered on the server
-            // NOTE: We do NOT call ForceServerCheckAsync here to avoid race conditions
-            // The Dashboard's periodic check will handle server validation later
             // ============================================================================
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    // Small delay to ensure UI is fully loaded first
                     await Task.Delay(2000);
-                    
-                    // Sync offline license to server if pending
                     var synced = await LicenseManager.SyncOfflineLicenseAsync();
-                    
-                    if (synced)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Offline license synced with server successfully");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("No offline sync needed or sync endpoint not available");
-                    }
-                    
-                    // DO NOT call ForceServerCheckAsync here!
-                    // It can cause race conditions where newly synced licenses appear as NotFound
-                    // The Dashboard's periodic check (every 5 min) will handle validation later
+                    System.Diagnostics.Debug.WriteLine(synced
+                        ? "Offline license synced with server successfully"
+                        : "No offline sync needed or sync endpoint not available");
                 }
                 catch (Exception ex)
                 {
-                    // Don't block startup - just log the error
                     System.Diagnostics.Debug.WriteLine($"Server sync failed (will retry later): {ex.Message}");
                 }
             });
-            
+
             // ============================================================================
-            // FINAL LICENSE CHECK - Ensure we have a valid license before proceeding
-            // This is a safety net to prevent any edge cases from bypassing license check
+            // FINAL LICENSE CHECK
             // ============================================================================
             var finalCheck = LicenseManager.GetStatusInfo();
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Final license check:");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   IsLicensed: {finalCheck.IsLicensed}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   Status: {finalCheck.Status}");
-            System.Diagnostics.Debug.WriteLine($"DEBUG:   Edition: {finalCheck.Edition}");
-            
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Final license check - IsLicensed: {finalCheck.IsLicensed}, Status: {finalCheck.Status}");
+
             if (!finalCheck.IsLicensed && finalCheck.Status != LicenseStatus.GracePeriod)
             {
-                System.Diagnostics.Debug.WriteLine("DEBUG: FINAL CHECK FAILED - showing error and shutting down");
                 MessageBox.Show(
                     "A valid license is required to use Fathom OS.\n\n" +
                     "Please restart the application and activate your license.",
@@ -420,32 +433,34 @@ public partial class App : Application
                 Shutdown();
                 return;
             }
-            
-            System.Diagnostics.Debug.WriteLine("DEBUG: Final check PASSED - proceeding to login");
 
-            // ============================================================================
-            // USER AUTHENTICATION - Show login dialog after license validation
-            // ============================================================================
-            System.Diagnostics.Debug.WriteLine("DEBUG: Showing login dialog...");
-            var authService = Services.GetRequiredService<IAuthenticationService>();
+            System.Diagnostics.Debug.WriteLine("DEBUG: Final check PASSED - proceeding to dashboard");
 
-            // Show login dialog and wait for result
-            var loginResult = await authService.ShowLoginDialogAsync();
-
-            if (!loginResult)
+            // Ensure we have a logged-in user (either local or from auth service)
+            if (CurrentLocalUser == null)
             {
-                System.Diagnostics.Debug.WriteLine("DEBUG: Login cancelled or failed - shutting down");
-                MessageBox.Show(
-                    "Login is required to use Fathom OS.\n\n" +
-                    "The application will now close.",
-                    "Login Required",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                Shutdown();
-                return;
+                // Fallback to existing authentication service if local user not set
+                var authService = Services.GetRequiredService<IAuthenticationService>();
+                if (!authService.IsAuthenticated)
+                {
+                    var authResult = await authService.ShowLoginDialogAsync();
+                    if (!authResult)
+                    {
+                        MessageBox.Show(
+                            "Login is required to use Fathom OS.\n\nThe application will now close.",
+                            "Login Required",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                        Shutdown();
+                        return;
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Auth service login: {authService.CurrentUser?.Username}");
             }
-
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Login successful for user: {authService.CurrentUser?.Username}");
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Local user login: {CurrentLocalUser.Username}");
+            }
 
             // Handle command-line arguments (file open)
             if (e.Args.Length > 0)
@@ -551,6 +566,12 @@ public partial class App : Application
             new AuthenticationService(
                 sp.GetRequiredService<IEventAggregator>(),
                 sp.GetRequiredService<ISettingsService>()));
+
+        // ============================================================================
+        // LOCAL USER SERVICE
+        // SQLite-based local user management for offline authentication
+        // ============================================================================
+        services.AddSingleton<ILocalUserService, LocalUserService>();
 
         // ============================================================================
         // MODULE MANAGEMENT

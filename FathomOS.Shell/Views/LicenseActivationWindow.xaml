@@ -1,0 +1,410 @@
+<Window x:Class="FathomOS.Shell.Views.LicenseActivationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FathomOS - License Activation"
+        Height="720" Width="650"
+        MinHeight="600" MinWidth="550"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        Background="#0D1117">
+
+    <Window.Resources>
+        <!-- Text Box Style -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#E6EDF3"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="CaretBrush" Value="#58A6FF"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="#58A6FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#238636"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2EA043"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#196C2E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#21262D"/>
+                                <Setter Property="Foreground" Value="#484F58"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#30363D"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#161B22"/>
+                                <Setter Property="Foreground" Value="#484F58"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tab Control Style -->
+        <Style x:Key="ModernTabControl" TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Tab Item Style -->
+        <Style x:Key="ModernTabItem" TargetType="TabItem">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderThickness="0,0,0,2" BorderBrush="Transparent"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#58A6FF"/>
+                                <Setter Property="Foreground" Value="#E6EDF3"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#21262D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Scrollable Main Content -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid x:Name="MainContent" Margin="40">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header with Logo -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,30">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Border Background="#161B22" CornerRadius="12" Padding="12" Margin="0,0,15,0">
+                            <TextBlock Text="&#x1F30A;" FontSize="32" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Welcome to FathomOS" FontSize="26" FontWeight="SemiBold" Foreground="#E6EDF3"/>
+                            <TextBlock Text="Activate your license to get started" FontSize="14" Foreground="#8B949E" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Hardware ID Section -->
+                <Border Grid.Row="1" Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,24">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="&#x1F511;" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Your Hardware ID" FontWeight="SemiBold" Foreground="#C9D1D9" FontSize="14"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="HardwareIdTextBox"
+                                     Style="{StaticResource ModernTextBox}"
+                                     IsReadOnly="True"
+                                     Background="#0D1117"/>
+                            <Button Grid.Column="1" Content="Copy"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="80" Margin="10,0,0,0"
+                                    Click="CopyHardwareId_Click"
+                                    ToolTip="Copy Hardware ID to clipboard"/>
+                            <Button Grid.Column="2" Content="Full"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="80" Margin="8,0,0,0"
+                                    Click="CopyFullFingerprints_Click"
+                                    ToolTip="Copy full fingerprints for offline license"/>
+                        </Grid>
+                        <TextBlock Text="Share this ID when requesting an offline license"
+                                   Foreground="#484F58" FontSize="12" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Activation Options TabControl -->
+                <TabControl Grid.Row="2" Style="{StaticResource ModernTabControl}" Margin="0,0,0,20">
+                    <!-- Tab 1: License File -->
+                    <TabItem Header="Load License File" Style="{StaticResource ModernTabItem}">
+                        <Border Background="#161B22" CornerRadius="0,8,8,8" Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="Load your license file (.lic or .json) to activate offline."
+                                           Foreground="#8B949E" FontSize="14" Margin="0,0,0,16" TextWrapping="Wrap"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="FilePathTextBox"
+                                             Style="{StaticResource ModernTextBox}"
+                                             IsReadOnly="True"
+                                             Background="#0D1117"
+                                             Text="No file selected..."/>
+                                    <Button Grid.Column="1" Content="Browse..."
+                                            Style="{StaticResource SecondaryButton}"
+                                            Width="100" Margin="10,0,0,0"
+                                            Click="BrowseLicenseFile_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </TabItem>
+
+                    <!-- Tab 2: License Key -->
+                    <TabItem Header="Enter License Key" Style="{StaticResource ModernTabItem}">
+                        <Border Background="#161B22" CornerRadius="0,8,8,8" Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="Paste your license key (Base64 encoded) below."
+                                           Foreground="#8B949E" FontSize="14" Margin="0,0,0,16" TextWrapping="Wrap"/>
+
+                                <TextBox x:Name="LicenseKeyTextBox"
+                                         Style="{StaticResource ModernTextBox}"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         Height="120"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Background="#0D1117"/>
+
+                                <TextBlock Text="The license key is the full content of your .lic file"
+                                           Foreground="#484F58" FontSize="12" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </TabItem>
+                </TabControl>
+
+                <!-- License Preview (shown after validation) -->
+                <Border x:Name="LicensePreviewPanel" Grid.Row="3" Background="#161B22" CornerRadius="8"
+                        Padding="20" Margin="0,0,0,20" Visibility="Collapsed">
+                    <StackPanel>
+                        <!-- Valid License Header -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="#238636" CornerRadius="12" Padding="6,4" Margin="0,0,10,0">
+                                <TextBlock Text="Valid" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
+                            </Border>
+                            <TextBlock Text="License Validated Successfully" Foreground="#3FB950" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- License Details Grid -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Client Name -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Licensed To:" Foreground="#8B949E" FontSize="13" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" x:Name="ClientNameText" Foreground="#E6EDF3" FontSize="13" FontWeight="Medium" Margin="0,0,0,8"/>
+
+                            <!-- Edition -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Edition:" Foreground="#8B949E" FontSize="13" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" x:Name="EditionText" Foreground="#58A6FF" FontSize="13" FontWeight="Medium" Margin="0,0,0,8"/>
+
+                            <!-- Expiry -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Valid Until:" Foreground="#8B949E" FontSize="13" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ExpiryText" Foreground="#E6EDF3" FontSize="13" Margin="0,0,0,8"/>
+
+                            <!-- License ID -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="License ID:" Foreground="#8B949E" FontSize="13" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="3" Grid.Column="2" x:Name="LicenseIdText" Foreground="#8B949E" FontSize="12" FontFamily="Consolas" Margin="0,0,0,8"/>
+
+                            <!-- Modules -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Modules:" Foreground="#8B949E" FontSize="13" VerticalAlignment="Top"/>
+                            <ItemsControl Grid.Row="4" Grid.Column="2" x:Name="ModulesList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#21262D" CornerRadius="4" Padding="8,4" Margin="0,0,6,6">
+                                            <TextBlock Text="{Binding}" Foreground="#C9D1D9" FontSize="12"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status and Error Messages -->
+                <Border x:Name="StatusBorder" Grid.Row="4" Background="#21262D" CornerRadius="6"
+                        Padding="16,12" Visibility="Collapsed" VerticalAlignment="Top">
+                    <TextBlock x:Name="StatusText" TextWrapping="Wrap" FontSize="13"/>
+                </Border>
+
+                <!-- Action Buttons -->
+                <Grid Grid.Row="5" Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Version Info -->
+                    <TextBlock Text="FathomOS v1.0" Foreground="#484F58" FontSize="11" VerticalAlignment="Center"/>
+
+                    <!-- Validate Button -->
+                    <Button x:Name="ValidateButton" Grid.Column="1" Content="Validate License"
+                            Style="{StaticResource SecondaryButton}"
+                            Width="130" Margin="0,0,10,0"
+                            Click="Validate_Click"/>
+
+                    <!-- Activate Button -->
+                    <Button x:Name="ActivateButton" Grid.Column="2" Content="Activate"
+                            Style="{StaticResource PrimaryButton}"
+                            Width="120" Margin="0,0,10,0"
+                            IsEnabled="False"
+                            Click="Activate_Click"/>
+
+                    <!-- Cancel Button -->
+                    <Button Grid.Column="3" Content="Cancel"
+                            Style="{StaticResource SecondaryButton}"
+                            Width="90"
+                            Click="Cancel_Click"/>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Success Overlay -->
+        <Grid x:Name="SuccessOverlay" Visibility="Collapsed" Background="#CC0D1117">
+            <Border Background="#161B22" CornerRadius="12" Padding="50"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="450" MaxWidth="500">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="40" Opacity="0.6" ShadowDepth="0"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Success Icon -->
+                    <Border Background="#238636" Width="80" Height="80" CornerRadius="40"
+                            HorizontalAlignment="Center" Margin="0,0,0,25">
+                        <TextBlock Text="&#x2713;" FontSize="40" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+
+                    <TextBlock Text="License Activated!" FontSize="24" FontWeight="SemiBold"
+                               Foreground="#3FB950" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+                    <TextBlock x:Name="SuccessMessage" Text="Your FathomOS license has been activated successfully."
+                               FontSize="14" Foreground="#C9D1D9" TextAlignment="Center"
+                               TextWrapping="Wrap" Margin="0,0,0,25"/>
+
+                    <!-- License Details in Success -->
+                    <Border Background="#0D1117" CornerRadius="8" Padding="20" Margin="0,0,0,25">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Edition:" Foreground="#8B949E" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" x:Name="SuccessEditionText" Foreground="#58A6FF" FontWeight="SemiBold"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Customer:" Foreground="#8B949E" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" x:Name="SuccessCustomerText" Foreground="#E6EDF3"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Expires:" Foreground="#8B949E"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" x:Name="SuccessExpiryText" Foreground="#E6EDF3"/>
+                        </Grid>
+                    </Border>
+
+                    <Button x:Name="ContinueButton" Content="Continue to Setup"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="Continue_Click"
+                            HorizontalAlignment="Center" MinWidth="200"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

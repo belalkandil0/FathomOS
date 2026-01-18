@@ -1,0 +1,197 @@
+<Window x:Class="LicenseGeneratorUI.Views.ServerConnectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Server Connection (Optional)"
+        Height="520" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0D1117">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#0D1117"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#161B22"/>
+        <SolidColorBrush x:Key="ElevatedBrush" Color="#21262D"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#30363D"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#3FB950"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#D29922"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#F85149"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#6E7681"/>
+
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource ElevatedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ModernPasswordBox" TargetType="PasswordBox">
+            <Setter Property="Background" Value="{StaticResource ElevatedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#238636"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#1A1E22"/>
+                                <Setter Property="Foreground" Value="#6E7681"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2EA043"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#21262D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="checkBorder" Width="18" Height="18" Background="{StaticResource ElevatedBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="checkMark" Text="*" FontSize="12" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="checkBorder" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="checkMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Server Connection (Optional)" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Info box -->
+                <Border Background="#1F2937" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,24">
+                    <StackPanel>
+                        <TextBlock Text="Connect to a license server for:" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                        <TextBlock Text="* Storing license records in cloud" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="8,0,0,4"/>
+                        <TextBlock Text="* Certificate verification portal" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="8,0,0,4"/>
+                        <TextBlock Text="* License tracking and analytics" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Server URL -->
+                <TextBlock Text="Server URL" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <TextBox x:Name="ServerUrlInput" Style="{StaticResource ModernTextBox}"
+                         Text="https://s7fathom-license-server.onrender.com"/>
+
+                <!-- API Key -->
+                <TextBlock Text="API Key" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,16,0,6"/>
+                <PasswordBox x:Name="ApiKeyInput" Style="{StaticResource ModernPasswordBox}"/>
+
+                <!-- Test Connection -->
+                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                    <Button x:Name="TestButton" Content="Test Connection" Style="{StaticResource SecondaryButton}" Padding="16,10" Click="TestConnection_Click"/>
+                    <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <Ellipse x:Name="ConnectionDot" Width="8" Height="8" Fill="{StaticResource TextMutedBrush}" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="ConnectionStatus" Text="Not tested" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Auto sync option -->
+                <CheckBox x:Name="AutoSyncCheckbox" Style="{StaticResource ModernCheckBox}" Margin="0,24,0,0">
+                    <TextBlock Text="Sync licenses to server automatically" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </CheckBox>
+
+                <!-- Error message -->
+                <Border x:Name="ErrorBorder" Background="#2D1B1B" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1"
+                        CornerRadius="6" Padding="14" Margin="0,20,0,0" Visibility="Collapsed">
+                    <TextBlock x:Name="ErrorText" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" FontSize="13"/>
+                </Border>
+
+                <!-- Success message -->
+                <Border x:Name="SuccessBorder" Background="#1A2E1A" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1"
+                        CornerRadius="6" Padding="14" Margin="0,20,0,0" Visibility="Collapsed">
+                    <TextBlock x:Name="SuccessText" Foreground="{StaticResource SuccessBrush}" TextWrapping="Wrap" FontSize="13"/>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <Grid Grid.Row="2" Margin="0,24,0,0">
+            <Button Content="Skip - Work Offline" Style="{StaticResource SecondaryButton}" Padding="20,12"
+                    HorizontalAlignment="Left" Click="Skip_Click"/>
+            <Button x:Name="ConnectButton" Content="Connect" Style="{StaticResource PrimaryButton}" Padding="28,12"
+                    HorizontalAlignment="Right" Click="Connect_Click"/>
+        </Grid>
+    </Grid>
+</Window>
