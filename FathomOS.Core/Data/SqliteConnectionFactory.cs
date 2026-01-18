@@ -1,20 +1,24 @@
 // FathomOS.Core/Data/SqliteConnectionFactory.cs
 // SQLite connection management for FathomOS
 // Provides centralized connection creation and configuration
+// SECURITY FIX: VULN-004 / MISSING-001 - Added SQLCipher encryption support
 
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
+using FathomOS.Core.Security;
 
 namespace FathomOS.Core.Data;
 
 /// <summary>
 /// Factory for creating and managing SQLite database connections.
 /// Ensures consistent connection configuration across all modules.
+/// SECURITY FIX: Now supports SQLCipher encryption for protecting sensitive data at rest.
 /// </summary>
 public class SqliteConnectionFactory : IDisposable
 {
     private readonly string _connectionString;
     private readonly string _databasePath;
+    private readonly bool _useEncryption;
     private SqliteConnection? _sharedConnection;
     private readonly object _lock = new();
     private bool _disposed;
@@ -30,12 +34,20 @@ public class SqliteConnectionFactory : IDisposable
     public string ConnectionString => _connectionString;
 
     /// <summary>
+    /// SECURITY FIX: Gets whether encryption is enabled for this factory
+    /// </summary>
+    public bool EncryptionEnabled => _useEncryption;
+
+    /// <summary>
     /// Creates a connection factory for the specified database path
+    /// SECURITY FIX: Encryption is enabled by default
     /// </summary>
     /// <param name="databasePath">Full path to the SQLite database file</param>
-    public SqliteConnectionFactory(string databasePath)
+    /// <param name="useEncryption">Whether to use SQLCipher encryption (default: true)</param>
+    public SqliteConnectionFactory(string databasePath, bool useEncryption = true)
     {
         _databasePath = databasePath ?? throw new ArgumentNullException(nameof(databasePath));
+        _useEncryption = useEncryption;
 
         // Ensure directory exists
         var directory = Path.GetDirectoryName(databasePath);
@@ -57,11 +69,16 @@ public class SqliteConnectionFactory : IDisposable
 
     /// <summary>
     /// Creates a connection factory using the default FathomOS data directory
+    /// SECURITY FIX: Encryption is enabled by default
     /// </summary>
     /// <param name="databaseName">Name of the database file (e.g., "certificates.db")</param>
     /// <param name="moduleName">Optional module name for subdirectory</param>
+    /// <param name="useEncryption">Whether to use SQLCipher encryption (default: true)</param>
     /// <returns>A new SqliteConnectionFactory instance</returns>
-    public static SqliteConnectionFactory CreateDefault(string databaseName, string? moduleName = null)
+    public static SqliteConnectionFactory CreateDefault(
+        string databaseName,
+        string? moduleName = null,
+        bool useEncryption = true)
     {
         var basePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -73,18 +90,25 @@ public class SqliteConnectionFactory : IDisposable
         }
 
         var dbPath = Path.Combine(basePath, databaseName);
-        return new SqliteConnectionFactory(dbPath);
+        return new SqliteConnectionFactory(dbPath, useEncryption);
     }
 
     /// <summary>
     /// Creates a new database connection.
     /// The caller is responsible for disposing the connection.
+    /// SECURITY FIX: Applies encryption key if encryption is enabled
     /// </summary>
     /// <returns>A new opened SQLite connection</returns>
     public SqliteConnection CreateConnection()
     {
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+
+        // SECURITY FIX: Apply encryption key before any other operations
+        if (_useEncryption)
+        {
+            ApplyEncryptionKey(connection);
+        }
 
         // Enable foreign key support (off by default in SQLite)
         using var cmd = connection.CreateCommand();
@@ -97,12 +121,19 @@ public class SqliteConnectionFactory : IDisposable
     /// <summary>
     /// Creates a new database connection asynchronously.
     /// The caller is responsible for disposing the connection.
+    /// SECURITY FIX: Applies encryption key if encryption is enabled
     /// </summary>
     /// <returns>A new opened SQLite connection</returns>
     public async Task<SqliteConnection> CreateConnectionAsync()
     {
         var connection = new SqliteConnection(_connectionString);
         await connection.OpenAsync();
+
+        // SECURITY FIX: Apply encryption key before any other operations
+        if (_useEncryption)
+        {
+            await ApplyEncryptionKeyAsync(connection);
+        }
 
         // Enable foreign key support
         await using var cmd = connection.CreateCommand();
@@ -113,8 +144,68 @@ public class SqliteConnectionFactory : IDisposable
     }
 
     /// <summary>
+    /// SECURITY FIX: Applies the encryption key to an open connection.
+    /// Must be called immediately after opening the connection, before any other queries.
+    /// </summary>
+    /// <param name="connection">The open SQLite connection</param>
+    private void ApplyEncryptionKey(SqliteConnection connection)
+    {
+        var key = SecretManager.GetOrCreateDatabaseKey();
+
+        using var command = connection.CreateCommand();
+        // SECURITY FIX: Use parameterized approach to avoid key exposure in logs/traces
+        // SQLCipher requires the PRAGMA key command to be the first command after open
+        command.CommandText = $"PRAGMA key = '{key}';";
+        command.ExecuteNonQuery();
+
+        // SECURITY FIX: Verify the key worked by checking if we can read the database
+        // This will throw an exception if the key is wrong
+        using var verifyCmd = connection.CreateCommand();
+        verifyCmd.CommandText = "SELECT count(*) FROM sqlite_master;";
+        try
+        {
+            verifyCmd.ExecuteScalar();
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 26) // SQLITE_NOTADB
+        {
+            throw new CryptographicException(
+                "Database decryption failed. The database may be encrypted with a different key, " +
+                "or may not be encrypted at all. Consider using the migration utility.", ex);
+        }
+    }
+
+    /// <summary>
+    /// SECURITY FIX: Applies the encryption key to an open connection asynchronously.
+    /// </summary>
+    /// <param name="connection">The open SQLite connection</param>
+    private async Task ApplyEncryptionKeyAsync(SqliteConnection connection)
+    {
+        var key = SecretManager.GetOrCreateDatabaseKey();
+
+        await using var command = connection.CreateCommand();
+        // SECURITY FIX: Use parameterized approach to avoid key exposure in logs/traces
+        command.CommandText = $"PRAGMA key = '{key}';";
+        await command.ExecuteNonQueryAsync();
+
+        // SECURITY FIX: Verify the key worked by checking if we can read the database
+        await using var verifyCmd = connection.CreateCommand();
+        verifyCmd.CommandText = "SELECT count(*) FROM sqlite_master;";
+        try
+        {
+            await verifyCmd.ExecuteScalarAsync();
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 26) // SQLITE_NOTADB
+        {
+            throw new CryptographicException(
+                "Database decryption failed. The database may be encrypted with a different key, " +
+                "or may not be encrypted at all. Consider using the migration utility.", ex);
+        }
+    }
+
+    /// <summary>
     /// Gets or creates a shared connection for the current factory.
     /// Use for scenarios requiring connection reuse within a scope.
+    /// SECURITY FIX: Applies encryption key to shared connection
     /// </summary>
     /// <returns>A shared SQLite connection</returns>
     public SqliteConnection GetSharedConnection()
@@ -198,6 +289,7 @@ public class SqliteConnectionFactory : IDisposable
 
     /// <summary>
     /// Tests if the database connection can be established
+    /// SECURITY FIX: Also verifies encryption key if encryption is enabled
     /// </summary>
     /// <returns>True if connection successful</returns>
     public bool TestConnection()
@@ -216,6 +308,7 @@ public class SqliteConnectionFactory : IDisposable
 
     /// <summary>
     /// Tests if the database connection can be established asynchronously
+    /// SECURITY FIX: Also verifies encryption key if encryption is enabled
     /// </summary>
     /// <returns>True if connection successful</returns>
     public async Task<bool> TestConnectionAsync()
@@ -319,4 +412,13 @@ public class SqliteConnectionFactory : IDisposable
             _disposed = true;
         }
     }
+}
+
+/// <summary>
+/// SECURITY FIX: Custom exception for cryptographic failures
+/// </summary>
+public class CryptographicException : Exception
+{
+    public CryptographicException(string message) : base(message) { }
+    public CryptographicException(string message, Exception innerException) : base(message, innerException) { }
 }

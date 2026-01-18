@@ -63,7 +63,7 @@ public partial class ColumnMappingDialog : MetroWindow
             _headers = SplitLine(lines[0], delimiter);
             
             // Parse data rows (skip header, take up to 20)
-            int headerRows = (int)HeaderRowsUpDown.Value;
+            int headerRows = (int)(HeaderRowsUpDown.Value ?? 1);
             _dataRows = lines.Skip(headerRows)
                              .Take(20)
                              .Select(l => SplitLine(l, delimiter))
@@ -445,7 +445,7 @@ public partial class ColumnMappingDialog : MetroWindow
         ResultMapping = new UsblColumnMapping
         {
             Delimiter = GetSelectedDelimiter(),
-            HeaderRows = (int)HeaderRowsUpDown.Value,
+            HeaderRows = (int)(HeaderRowsUpDown.Value ?? 1),
             HasDateTimeSplit = DateTimeSplitCheck.IsChecked == true,
             DateColumn = GetSelectedIndex(DateColumnCombo),
             TimeColumn = GetSelectedIndex(DateColumnCombo) + 1, // NaviPac: next column

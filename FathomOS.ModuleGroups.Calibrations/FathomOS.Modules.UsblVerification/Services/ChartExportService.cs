@@ -16,7 +16,7 @@ public class ChartExportService
     public void ExportToPng(PlotModel model, string filePath, int width = 1200, int height = 800)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
-        
+
         var exporter = new PngExporter { Width = width, Height = height };
         using var stream = File.Create(filePath);
         exporter.Export(model, stream);
@@ -28,7 +28,7 @@ public class ChartExportService
     public void ExportToSvg(PlotModel model, string filePath, int width = 1200, int height = 800)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
-        
+
         using var stream = File.Create(filePath);
         var exporter = new OxyPlot.SvgExporter { Width = width, Height = height };
         exporter.Export(model, stream);
@@ -40,9 +40,11 @@ public class ChartExportService
     public void ExportToPdf(PlotModel model, string filePath, int width = 800, int height = 600)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
-        
+
         using var stream = File.Create(filePath);
+        #pragma warning disable CS0618 // PdfExporter is deprecated but OxyPlot.SkiaSharp.PdfExporter not available
         var exporter = new PdfExporter { Width = width, Height = height };
+        #pragma warning restore CS0618
         exporter.Export(model, stream);
     }
 

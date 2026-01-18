@@ -61,6 +61,10 @@ public class ConnectionSettings : INotifyPropertyChanged
     private int _autoSaveIntervalMinutes = 5;
     private bool _enableAutoSave = true;
     
+    // Security Settings (v4.0)
+    private TlsConfiguration? _tlsConfiguration;
+    private RateLimitConfiguration? _rateLimitConfiguration;
+
     // UI Settings
     private bool _darkTheme = true;
     private double _windowWidth = 1400;
@@ -255,11 +259,35 @@ public class ConnectionSettings : INotifyPropertyChanged
     /// Gets the list of allowed source IPs as an array.
     /// </summary>
     [JsonIgnore]
-    public string[] AllowedSourceIpList => 
-        string.IsNullOrWhiteSpace(AllowedSourceIps) 
-            ? Array.Empty<string>() 
+    public string[] AllowedSourceIpList =>
+        string.IsNullOrWhiteSpace(AllowedSourceIps)
+            ? Array.Empty<string>()
             : AllowedSourceIps.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    
+
+    // ========================================================================
+    // Security Settings (v4.0 - VULN-005, MISSING-007)
+    // ========================================================================
+
+    /// <summary>
+    /// TLS encryption configuration for TCP connections.
+    /// When enabled, provides secure communication between NaviPac and this module.
+    /// </summary>
+    public TlsConfiguration? TlsConfiguration
+    {
+        get => _tlsConfiguration;
+        set => SetProperty(ref _tlsConfiguration, value);
+    }
+
+    /// <summary>
+    /// Rate limiting configuration for connection security.
+    /// Limits connections per IP to prevent DoS attacks.
+    /// </summary>
+    public RateLimitConfiguration? RateLimitConfiguration
+    {
+        get => _rateLimitConfiguration;
+        set => SetProperty(ref _rateLimitConfiguration, value);
+    }
+
     // ========================================================================
     // NaviPac File Monitoring Settings
     // ========================================================================

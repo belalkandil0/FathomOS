@@ -3,6 +3,7 @@
 
 using System.Net.Http.Json;
 using System.Text.Json;
+using LicensingSystem.Client.Security;
 using LicensingSystem.Shared;
 
 namespace LicensingSystem.Client;
@@ -24,7 +25,10 @@ public class LicenseClient : IDisposable
         _storage = new LicenseStorage(productName);
         _hwFingerprint = new HardwareFingerprint();
 
-        _httpClient = new HttpClient
+        // SECURITY FIX: Use PinnedHttpClientHandler for certificate pinning (VULN-009 / MISSING-002)
+        // This prevents MITM attacks by validating server certificate thumbprints
+        var handler = new PinnedHttpClientHandler();
+        _httpClient = new HttpClient(handler)
         {
             Timeout = TimeSpan.FromSeconds(30)
         };

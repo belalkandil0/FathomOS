@@ -2,6 +2,14 @@
 // Fathom OS - Survey Electronic Logbook Module
 // File: Services/FirewallService.cs
 // Purpose: Windows Firewall rule management for NaviPac UDP/TCP connections
+// Version: 2.0 - Updated with GUID-based rule naming (BUG-007)
+// ============================================================================
+//
+// SECURITY NOTES:
+// - Firewall rule names now include application GUID to prevent collisions
+// - Format: FathomOS_{GUID}_{RuleType}_{Port}
+// - Supports multiple instances of the application without conflicts
+//
 // ============================================================================
 
 using System.Diagnostics;
@@ -11,16 +19,28 @@ namespace FathomOS.Modules.SurveyLogbook.Services;
 
 /// <summary>
 /// Service for managing Windows Firewall rules.
-/// 
+///
 /// IMPORTANT NOTES:
 /// - TCP (outbound): Usually does NOT require firewall rules as Windows allows outbound by default
 /// - UDP (inbound): REQUIRES firewall rule to allow incoming datagrams on the listening port
-/// 
+///
 /// This service uses netsh commands which require elevated (Administrator) permissions.
+///
+/// RULE NAMING (v2.0):
+/// - Rules are now named with application GUID to prevent collisions
+/// - Format: FathomOS_{GUID}_{Protocol}_{Port}
+/// - Example: FathomOS_a1b2c3d4_UDP_8123
 /// </summary>
 public static class FirewallService
 {
-    private const string RULE_NAME_PREFIX = "FathomOS_SurveyLogbook_";
+    // Application GUID for unique rule identification
+    // This prevents collisions when multiple FathomOS instances or applications use the same port
+    private const string APPLICATION_GUID = "F47H0M05-5URV-L0GB-00K1-M0DUL3SVC01";
+
+    private const string RULE_NAME_PREFIX = "FathomOS_";
+
+    // Legacy prefix for migration purposes
+    private const string LEGACY_RULE_NAME_PREFIX = "FathomOS_SurveyLogbook_";
     
     /// <summary>
     /// Gets whether the current process is running with administrator privileges.
@@ -323,18 +343,25 @@ public static class FirewallService
             
             var lines = result.Output.Split('\n');
             FirewallRuleInfo? currentRule = null;
-            
+
             foreach (var line in lines)
             {
                 var trimmedLine = line.Trim();
-                
+
                 if (trimmedLine.StartsWith("Rule Name:", StringComparison.OrdinalIgnoreCase))
                 {
                     var ruleName = trimmedLine.Substring("Rule Name:".Length).Trim();
-                    
-                    if (ruleName.StartsWith(RULE_NAME_PREFIX))
+
+                    // Check for both new GUID-based rules and legacy rules
+                    if (ruleName.StartsWith(RULE_NAME_PREFIX) ||
+                        ruleName.StartsWith(LEGACY_RULE_NAME_PREFIX))
                     {
-                        currentRule = new FirewallRuleInfo { Name = ruleName };
+                        currentRule = new FirewallRuleInfo
+                        {
+                            Name = ruleName,
+                            IsLegacyRule = ruleName.StartsWith(LEGACY_RULE_NAME_PREFIX) &&
+                                          !ruleName.Contains(APPLICATION_GUID)
+                        };
                         rules.Add(currentRule);
                     }
                     else
@@ -369,11 +396,143 @@ public static class FirewallService
         return rules;
     }
     
+    /// <summary>
+    /// Migrates legacy firewall rules to the new GUID-based naming scheme.
+    /// </summary>
+    /// <param name="port">Port number.</param>
+    /// <param name="protocol">Protocol (TCP or UDP).</param>
+    /// <returns>Result of the migration operation.</returns>
+    public static async Task<FirewallResult> MigrateLegacyRuleAsync(int port, NaviPacProtocol protocol)
+    {
+        if (!IsRunningAsAdministrator)
+        {
+            return new FirewallResult
+            {
+                Success = false,
+                Message = "Administrator privileges required to migrate firewall rules.",
+                RequiresElevation = true
+            };
+        }
+
+        try
+        {
+            var legacyRuleName = GetLegacyRuleName(port, protocol);
+            var newRuleName = GetRuleName(port, protocol);
+
+            // Check if legacy rule exists
+            var legacyResult = await RunNetshCommandAsync($"advfirewall firewall show rule name=\"{legacyRuleName}\"");
+            if (legacyResult.ExitCode != 0 || !legacyResult.Output.Contains(legacyRuleName))
+            {
+                return new FirewallResult
+                {
+                    Success = true,
+                    Message = "No legacy rule found to migrate."
+                };
+            }
+
+            // Check if new rule already exists
+            if (await RuleExistsAsync(port, protocol))
+            {
+                // Delete legacy rule since new one exists
+                await RunNetshCommandAsync($"advfirewall firewall delete rule name=\"{legacyRuleName}\"");
+                return new FirewallResult
+                {
+                    Success = true,
+                    Message = $"Legacy rule '{legacyRuleName}' removed. New rule '{newRuleName}' already exists."
+                };
+            }
+
+            // Create new rule with GUID-based name
+            var createResult = await CreateRuleAsync(port, protocol);
+            if (!createResult.Success)
+            {
+                return createResult;
+            }
+
+            // Delete legacy rule
+            await RunNetshCommandAsync($"advfirewall firewall delete rule name=\"{legacyRuleName}\"");
+
+            return new FirewallResult
+            {
+                Success = true,
+                Message = $"Migrated rule from '{legacyRuleName}' to '{newRuleName}'."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new FirewallResult
+            {
+                Success = false,
+                Message = $"Error migrating firewall rule: {ex.Message}",
+                Exception = ex
+            };
+        }
+    }
+
+    /// <summary>
+    /// Cleans up all FathomOS firewall rules (both legacy and current).
+    /// </summary>
+    /// <returns>Result of the cleanup operation.</returns>
+    public static async Task<FirewallResult> CleanupAllRulesAsync()
+    {
+        if (!IsRunningAsAdministrator)
+        {
+            return new FirewallResult
+            {
+                Success = false,
+                Message = "Administrator privileges required to cleanup firewall rules.",
+                RequiresElevation = true
+            };
+        }
+
+        try
+        {
+            var rules = await GetExistingRulesAsync();
+            var deletedCount = 0;
+
+            foreach (var rule in rules)
+            {
+                var result = await RunNetshCommandAsync($"advfirewall firewall delete rule name=\"{rule.Name}\"");
+                if (result.ExitCode == 0)
+                {
+                    deletedCount++;
+                }
+            }
+
+            return new FirewallResult
+            {
+                Success = true,
+                Message = $"Cleaned up {deletedCount} FathomOS firewall rules."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new FirewallResult
+            {
+                Success = false,
+                Message = $"Error cleaning up firewall rules: {ex.Message}",
+                Exception = ex
+            };
+        }
+    }
+
     #region Private Methods
-    
+
+    /// <summary>
+    /// Gets the new GUID-based rule name.
+    /// Format: FathomOS_{GUID}_{Protocol}_{Port}
+    /// </summary>
     private static string GetRuleName(int port, NaviPacProtocol protocol)
     {
-        return $"{RULE_NAME_PREFIX}{protocol}_{port}";
+        return $"{RULE_NAME_PREFIX}{APPLICATION_GUID}_{protocol}_{port}";
+    }
+
+    /// <summary>
+    /// Gets the legacy rule name for migration purposes.
+    /// </summary>
+    private static string GetLegacyRuleName(int port, NaviPacProtocol protocol)
+    {
+        return $"{LEGACY_RULE_NAME_PREFIX}{protocol}_{port}";
     }
     
     private static async Task<NetshResult> RunNetshCommandAsync(string arguments)
@@ -472,6 +631,31 @@ public class FirewallRuleInfo
     public int Port { get; set; }
     public string Protocol { get; set; } = string.Empty;
     public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Indicates if this is a legacy rule (pre-GUID naming).
+    /// </summary>
+    public bool IsLegacyRule { get; set; }
+
+    /// <summary>
+    /// Gets the application GUID from the rule name, if present.
+    /// </summary>
+    public string? ApplicationGuid
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(Name) || IsLegacyRule)
+                return null;
+
+            // Parse GUID from format: FathomOS_{GUID}_{Protocol}_{Port}
+            var parts = Name.Split('_');
+            if (parts.Length >= 2)
+            {
+                return parts[1];
+            }
+            return null;
+        }
+    }
 }
 
 #endregion

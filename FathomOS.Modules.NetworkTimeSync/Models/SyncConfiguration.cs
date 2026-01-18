@@ -2,13 +2,18 @@ namespace FathomOS.Modules.NetworkTimeSync.Models;
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using FathomOS.Modules.NetworkTimeSync.Enums;
+using FathomOS.Modules.NetworkTimeSync.Services;
 
 /// <summary>
 /// Configuration settings for time synchronization.
 /// </summary>
 public class SyncConfiguration
 {
+    // SECURITY FIX (MISSING-005): Backing field for secure secret storage
+    private string _agentSecret = string.Empty;
+    private bool _secretLoadedFromSecureStorage = false;
     /// <summary>
     /// Time source type for synchronization.
     /// </summary>
@@ -92,8 +97,77 @@ public class SyncConfiguration
 
     /// <summary>
     /// Shared secret for agent authentication.
+    /// SECURITY FIX (VULN-001): Default is empty - must be configured per installation.
+    /// SECURITY FIX (MISSING-005): Secret is stored securely using DPAPI, not in config files.
+    /// Generate a unique secret using GenerateSecureSecret() and share securely with agents.
     /// </summary>
-    public string AgentSecret { get; set; } = "FathomOSTimeSync2024";
+    [JsonIgnore] // SECURITY FIX: Never serialize the secret to JSON config files
+    public string AgentSecret
+    {
+        get
+        {
+            // SECURITY FIX (MISSING-005): Try to get from secure storage first
+            if (string.IsNullOrEmpty(_agentSecret) && !_secretLoadedFromSecureStorage)
+            {
+                _secretLoadedFromSecureStorage = true;
+                _agentSecret = SecureConfigurationManager.GetSecret() ?? string.Empty;
+            }
+            return _agentSecret;
+        }
+        set
+        {
+            _agentSecret = value;
+            // SECURITY FIX: When setting a new secret, also store it securely
+            if (!string.IsNullOrEmpty(value) && value.Length >= SecureConfigurationManager.MinimumSecretLength)
+            {
+                try
+                {
+                    SecureConfigurationManager.StoreSecret(value);
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail - fallback to in-memory only
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[SyncConfig] Warning: Could not store secret securely: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates a cryptographically secure random secret for agent authentication.
+    /// </summary>
+    public static string GenerateSecureSecret()
+    {
+        var randomBytes = new byte[32];
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    /// <summary>
+    /// Validates that the agent secret is configured and meets security requirements.
+    /// SECURITY FIX (MISSING-005): Also checks secure storage.
+    /// </summary>
+    public bool IsSecretConfigured()
+    {
+        // SECURITY FIX: Check secure storage first
+        if (SecureConfigurationManager.IsSecretConfigured())
+        {
+            return true;
+        }
+
+        // Fallback to in-memory check
+        return !string.IsNullOrEmpty(AgentSecret) &&
+               AgentSecret.Length >= SecureConfigurationManager.MinimumSecretLength &&
+               AgentSecret != "FathomOSTimeSync2024"; // Reject known weak default
+    }
+
+    /// <summary>
+    /// SECURITY FIX (MISSING-005): Indicates whether secure storage is available and configured.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsSecureStorageConfigured => SecureConfigurationManager.IsSecretConfigured();
 
     /// <summary>
     /// Target timezone for synchronization (e.g., "UTC", "Pacific Standard Time").

@@ -7,16 +7,19 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using FathomOS.TimeSyncAgent.Models;
 
 namespace FathomOS.TimeSyncAgent.Services;
 
 /// <summary>
 /// TCP listener service that handles incoming time sync commands.
+/// Includes rate limiting for protection against brute-force and DoS attacks.
 /// </summary>
 public class TcpListenerService : BackgroundService
 {
     private readonly AgentConfiguration _config;
     private readonly TimeService _timeService;
+    private readonly RateLimiter _rateLimiter;
     private readonly ILogger<TcpListenerService> _logger;
     private TcpListener? _listener;
 
@@ -35,10 +38,12 @@ public class TcpListenerService : BackgroundService
     public TcpListenerService(
         IOptions<AgentConfiguration> config,
         TimeService timeService,
+        RateLimiter rateLimiter,
         ILogger<TcpListenerService> logger)
     {
         _config = config.Value;
         _timeService = timeService;
+        _rateLimiter = rateLimiter;
         _logger = logger;
     }
 
@@ -57,14 +62,26 @@ public class TcpListenerService : BackgroundService
                 try
                 {
                     var client = await _listener.AcceptTcpClientAsync(stoppingToken);
-                    
+                    var clientEndpoint = client.Client.RemoteEndPoint?.ToString() ?? "unknown";
+
+                    // Check rate limit before processing
+                    var (rateLimitResult, retryAfter) = _rateLimiter.CheckRateLimit(clientEndpoint);
+
+                    if (rateLimitResult != RateLimiter.RateLimitResult.Allowed &&
+                        rateLimitResult != RateLimiter.RateLimitResult.Disabled)
+                    {
+                        // Rate limit exceeded - reject connection with appropriate response
+                        await RejectConnectionAsync(client, rateLimitResult, retryAfter);
+                        continue;
+                    }
+
                     // Track connection
                     lock (_statsLock)
                     {
                         _totalConnections++;
                         _lastConnectionTime = DateTime.Now;
                     }
-                    
+
                     _ = HandleClientAsync(client, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -138,9 +155,16 @@ public class TcpListenerService : BackgroundService
             if (!ValidateAuth(request))
             {
                 _logger.LogWarning("Authentication failed from {Endpoint}", clientEndpoint);
+
+                // Record failed attempt for rate limiting
+                _rateLimiter.RecordFailedAttempt(clientEndpoint);
+
                 await SendErrorAsync(writer, "Authentication failed", "AuthFailed");
                 return;
             }
+
+            // Record successful authentication
+            _rateLimiter.RecordSuccessfulAuth(clientEndpoint);
 
             // Process command
             var response = ProcessCommand(request);
@@ -256,7 +280,7 @@ public class TcpListenerService : BackgroundService
     private AgentResponse HandleGetInfo()
     {
         var info = _timeService.GetComputerInfo();
-        
+
         // Add connection statistics
         int totalConns;
         DateTime? lastConn;
@@ -265,21 +289,32 @@ public class TcpListenerService : BackgroundService
             totalConns = _totalConnections;
             lastConn = _lastConnectionTime;
         }
-        
-        // Create extended response with connection stats
+
+        // Get rate limiter statistics
+        var rateLimiterStats = _rateLimiter.GetStats();
+
+        // Create extended response with connection stats and rate limiter info
         var extendedInfo = new
         {
             info.Hostname,
             info.OsVersion,
             info.TimeZone,
             info.UtcOffset,
-            AgentVersion = "1.0.2",
+            AgentVersion = "1.0.3",
             StartTime = _serviceStartTime.ToString("o"),
             TotalConnections = totalConns,
             LastConnectionTime = lastConn?.ToString("o"),
-            Port = _config.Port
+            Port = _config.Port,
+            RateLimiting = new
+            {
+                rateLimiterStats.IsEnabled,
+                rateLimiterStats.TotalTrackedIps,
+                rateLimiterStats.TotalBlockedIps,
+                rateLimiterStats.TotalFailedAttemptIps,
+                rateLimiterStats.RecentTotalRequests
+            }
         };
-        
+
         return new AgentResponse
         {
             Status = "Success",
@@ -339,6 +374,54 @@ public class TcpListenerService : BackgroundService
         var response = CreateErrorResponse(message, status);
         var json = JsonSerializer.Serialize(response, JsonOptions);
         await writer.WriteLineAsync(json);
+    }
+
+    /// <summary>
+    /// Rejects a connection due to rate limiting.
+    /// </summary>
+    private async Task RejectConnectionAsync(TcpClient client, RateLimiter.RateLimitResult result, int? retryAfter)
+    {
+        var clientEndpoint = client.Client.RemoteEndPoint?.ToString() ?? "unknown";
+
+        try
+        {
+            var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+            using var stream = client.GetStream();
+            using var writer = new StreamWriter(stream, utf8NoBom) { AutoFlush = true };
+
+            var (message, status) = result switch
+            {
+                RateLimiter.RateLimitResult.IpRateLimitExceeded =>
+                    ("Too many requests from your IP address. Please try again later.", "RateLimited"),
+                RateLimiter.RateLimitResult.TotalRateLimitExceeded =>
+                    ("Server is busy. Please try again later.", "RateLimited"),
+                RateLimiter.RateLimitResult.BlockedByBackoff =>
+                    ($"Too many failed attempts. Blocked for {retryAfter} seconds.", "Blocked"),
+                _ =>
+                    ("Request rejected.", "Rejected")
+            };
+
+            var response = new AgentResponse
+            {
+                Status = status,
+                Error = message,
+                Timestamp = DateTime.UtcNow.Ticks,
+                Payload = retryAfter?.ToString()
+            };
+
+            var json = JsonSerializer.Serialize(response, JsonOptions);
+            await writer.WriteLineAsync(json);
+
+            _logger.LogDebug("Rejected connection from {Endpoint}: {Result}", clientEndpoint, result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error sending rejection response to {Endpoint}", clientEndpoint);
+        }
+        finally
+        {
+            client.Close();
+        }
     }
 }
 

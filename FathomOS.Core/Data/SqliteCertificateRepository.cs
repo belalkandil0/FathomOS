@@ -307,11 +307,13 @@ public class SqliteCertificateRepository : ICertificateRepository
         {
             await using var command = connection.CreateCommand();
             command.Transaction = transaction;
+            // BUG FIX: Reset SyncAttempts to 0 when marking as synced
             command.CommandText = @"
                 UPDATE Certificates
                 SET SyncStatus = 'synced',
                     SyncedAt = @syncedAt,
                     SyncError = NULL,
+                    SyncAttempts = 0,
                     UpdatedAt = @updatedAt
                 WHERE CertificateId = @id;";
             command.Parameters.AddWithValue("@id", id);
@@ -344,11 +346,13 @@ public class SqliteCertificateRepository : ICertificateRepository
             {
                 await using var command = connection.CreateCommand();
                 command.Transaction = transaction;
+                // BUG FIX: Reset SyncAttempts to 0 when marking as synced
                 command.CommandText = @"
                     UPDATE Certificates
                     SET SyncStatus = 'synced',
                         SyncedAt = @syncedAt,
                         SyncError = NULL,
+                        SyncAttempts = 0,
                         UpdatedAt = @updatedAt
                     WHERE CertificateId = @id;";
                 command.Parameters.AddWithValue("@id", id);

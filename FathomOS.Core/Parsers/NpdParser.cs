@@ -55,6 +55,9 @@ public class NpdParser
         var columnIndices = DetectColumnIndices(headerColumns, mapping);
         result.DetectedMapping = columnIndices;
 
+        // BUG-006 FIX: Validate detected indices before parsing
+        ValidateDetectedIndices(columnIndices, headerColumns.Length, mapping);
+
         // Parse data lines
         int recordNumber = 1;
         for (int i = 1; i < lines.Length; i++)
@@ -152,9 +155,83 @@ public class NpdParser
     }
 
     /// <summary>
+    /// Validates the detected column indices against the header configuration.
+    /// BUG-006 FIX: Early validation of configuration before parsing data.
+    /// </summary>
+    /// <remarks>
+    /// Unit test considerations:
+    /// - Test with no Time column detected when HasDateTimeSplit=true
+    /// - Test with missing required columns (Easting/Northing)
+    /// - Test with valid configuration
+    /// - Test with manual index overrides that exceed header count
+    /// </remarks>
+    /// <exception cref="FormatException">Thrown when configuration is invalid</exception>
+    private void ValidateDetectedIndices(DetectedColumnIndices indices, int headerColumnCount, ColumnMapping mapping)
+    {
+        // Validate that required columns were detected
+        if (!indices.IsValid)
+        {
+            var missing = new List<string>();
+            if (indices.TimeIndex < 0) missing.Add("Time");
+            if (indices.EastingIndex < 0) missing.Add("Easting");
+            if (indices.NorthingIndex < 0) missing.Add("Northing");
+
+            throw new FormatException(
+                $"Failed to detect required columns from header: {string.Join(", ", missing)}. " +
+                $"Detected indices: {indices}. " +
+                $"Check column patterns in mapping configuration or use manual column indices.");
+        }
+
+        // Validate HasDateTimeSplit configuration
+        if (indices.HasDateTimeSplit)
+        {
+            // When HasDateTimeSplit is true, the Time column in header represents
+            // where the date will be in the data, and time will be at TimeIndex+1
+            // This is valid configuration-wise, but we should warn if Time is the last header column
+            // because that would mean no room for other data columns after the date/time split
+            if (indices.TimeIndex >= 0)
+            {
+                _parseWarnings.Add(
+                    $"HasDateTimeSplit is enabled. Header 'Time' column at index {indices.TimeIndex} " +
+                    $"will map to Date at index {indices.TimeIndex} and Time at index {indices.TimeIndex + 1} in data rows. " +
+                    $"All column indices after Time will be offset by +1 in the data.");
+            }
+        }
+
+        // Validate that manual index overrides don't exceed header column count
+        ValidateManualIndexOverride(mapping.TimeColumnIndex, headerColumnCount, "Time");
+        ValidateManualIndexOverride(mapping.EastingColumnIndex, headerColumnCount, "Easting");
+        ValidateManualIndexOverride(mapping.NorthingColumnIndex, headerColumnCount, "Northing");
+        ValidateManualIndexOverride(mapping.DepthColumnIndex, headerColumnCount, "Depth");
+        ValidateManualIndexOverride(mapping.AltitudeColumnIndex, headerColumnCount, "Altitude");
+        ValidateManualIndexOverride(mapping.HeadingColumnIndex, headerColumnCount, "Heading");
+    }
+
+    /// <summary>
+    /// Validates that a manual column index override is within bounds.
+    /// </summary>
+    private void ValidateManualIndexOverride(int manualIndex, int headerColumnCount, string columnName)
+    {
+        if (manualIndex >= 0 && manualIndex >= headerColumnCount)
+        {
+            throw new FormatException(
+                $"Manual {columnName} column index {manualIndex} exceeds header column count ({headerColumnCount}). " +
+                $"Column indices are 0-based, so valid range is 0 to {headerColumnCount - 1}.");
+        }
+    }
+
+    /// <summary>
     /// Parse a single data line
     /// </summary>
-    private SurveyPoint? ParseDataLine(string line, DetectedColumnIndices indices, 
+    /// <remarks>
+    /// Unit test considerations:
+    /// - Test with HasDateTimeSplit=true and insufficient columns (should throw)
+    /// - Test with HasDateTimeSplit=true and exactly minimum required columns
+    /// - Test with HasDateTimeSplit=false and standard column count
+    /// - Test column count mismatch between header and data
+    /// - Test with TimeIndex at various positions (0, middle, end)
+    /// </remarks>
+    private SurveyPoint? ParseDataLine(string line, DetectedColumnIndices indices,
         ColumnMapping mapping, int recordNumber, int lineNumber)
     {
         var values = ParseCsvLine(line);
@@ -163,6 +240,9 @@ public class NpdParser
         // If HasDateTimeSplit is true, the "Time" column in header becomes "Date,Time" in data
         // So we need to offset all column indices by +1 for columns AFTER the time column
         int offset = indices.HasDateTimeSplit ? 1 : 0;
+
+        // BUG-006 FIX: Validate column count based on HasDateTimeSplit configuration
+        ValidateColumnCount(values, indices, lineNumber);
 
         var point = new SurveyPoint
         {
@@ -241,6 +321,131 @@ public class NpdParser
         }
 
         return point;
+    }
+
+    /// <summary>
+    /// Validates that the data line has the expected number of columns based on configuration.
+    /// BUG-006 FIX: Proper validation for date/time split configuration.
+    /// </summary>
+    /// <remarks>
+    /// Unit test considerations:
+    /// - Test with empty values array
+    /// - Test with HasDateTimeSplit=true but TimeIndex+1 out of bounds
+    /// - Test with various column indices exceeding values length
+    /// - Test that offset is correctly applied for columns after TimeIndex
+    /// </remarks>
+    /// <exception cref="FormatException">Thrown when column count doesn't match expected format</exception>
+    private void ValidateColumnCount(string[] values, DetectedColumnIndices indices, int lineNumber)
+    {
+        if (values == null || values.Length == 0)
+        {
+            throw new FormatException($"Line {lineNumber}: Data line is empty or contains no columns");
+        }
+
+        int offset = indices.HasDateTimeSplit ? 1 : 0;
+
+        // Calculate the minimum required column count based on detected indices
+        int minRequiredColumns = CalculateMinimumRequiredColumns(indices);
+
+        if (values.Length < minRequiredColumns)
+        {
+            string splitInfo = indices.HasDateTimeSplit
+                ? " (HasDateTimeSplit=true adds +1 offset for columns after Time)"
+                : "";
+            throw new FormatException(
+                $"Line {lineNumber}: Insufficient columns. Found {values.Length} columns but expected at least {minRequiredColumns}{splitInfo}. " +
+                $"Column indices: {indices}");
+        }
+
+        // Validate HasDateTimeSplit configuration: if true, ensure Time column exists and has room for date+time
+        if (indices.HasDateTimeSplit && indices.TimeIndex >= 0)
+        {
+            // When HasDateTimeSplit is true, we need at least TimeIndex+2 columns for date and time
+            int requiredForDateTime = indices.TimeIndex + 2;
+            if (values.Length < requiredForDateTime)
+            {
+                throw new FormatException(
+                    $"Line {lineNumber}: HasDateTimeSplit is enabled but insufficient columns for date/time split. " +
+                    $"Time column is at index {indices.TimeIndex}, which requires at least {requiredForDateTime} columns " +
+                    $"(for date at index {indices.TimeIndex} and time at index {indices.TimeIndex + 1}), but found only {values.Length} columns. " +
+                    $"Verify the HasDateTimeSplit configuration matches the actual data format.");
+            }
+
+            // Validate that both date and time values are present (not just whitespace)
+            string dateValue = values[indices.TimeIndex].Trim();
+            string timeValue = values[indices.TimeIndex + 1].Trim();
+
+            if (string.IsNullOrEmpty(dateValue) && string.IsNullOrEmpty(timeValue))
+            {
+                _parseWarnings.Add($"Line {lineNumber}: Both date and time columns are empty at indices {indices.TimeIndex} and {indices.TimeIndex + 1}");
+            }
+        }
+
+        // Validate that each configured column index (with offset applied) is within bounds
+        ValidateColumnIndexWithOffset(values.Length, indices.EastingIndex, indices.TimeIndex, offset, "Easting", lineNumber);
+        ValidateColumnIndexWithOffset(values.Length, indices.NorthingIndex, indices.TimeIndex, offset, "Northing", lineNumber);
+        ValidateColumnIndexWithOffset(values.Length, indices.DepthIndex, indices.TimeIndex, offset, "Depth", lineNumber);
+        ValidateColumnIndexWithOffset(values.Length, indices.AltitudeIndex, indices.TimeIndex, offset, "Altitude", lineNumber);
+        ValidateColumnIndexWithOffset(values.Length, indices.HeadingIndex, indices.TimeIndex, offset, "Heading", lineNumber);
+    }
+
+    /// <summary>
+    /// Calculates the minimum number of columns required based on detected indices and HasDateTimeSplit setting.
+    /// </summary>
+    private int CalculateMinimumRequiredColumns(DetectedColumnIndices indices)
+    {
+        int offset = indices.HasDateTimeSplit ? 1 : 0;
+        int maxIndex = 0;
+
+        // Find the maximum index considering the offset for columns after Time
+        if (indices.TimeIndex >= 0)
+        {
+            // Time column itself, plus 1 if HasDateTimeSplit (for the separate time value)
+            maxIndex = Math.Max(maxIndex, indices.TimeIndex + (indices.HasDateTimeSplit ? 1 : 0));
+        }
+
+        // For other columns, apply offset if they come after the Time column
+        maxIndex = Math.Max(maxIndex, GetActualIndex(indices.EastingIndex, indices.TimeIndex, offset));
+        maxIndex = Math.Max(maxIndex, GetActualIndex(indices.NorthingIndex, indices.TimeIndex, offset));
+        maxIndex = Math.Max(maxIndex, GetActualIndex(indices.DepthIndex, indices.TimeIndex, offset));
+        maxIndex = Math.Max(maxIndex, GetActualIndex(indices.AltitudeIndex, indices.TimeIndex, offset));
+        maxIndex = Math.Max(maxIndex, GetActualIndex(indices.HeadingIndex, indices.TimeIndex, offset));
+
+        // +1 because indices are 0-based but we need count
+        return maxIndex + 1;
+    }
+
+    /// <summary>
+    /// Gets the actual column index in the data, applying offset for columns after the Time column.
+    /// </summary>
+    private int GetActualIndex(int headerIndex, int timeIndex, int offset)
+    {
+        if (headerIndex < 0)
+            return -1;
+
+        return headerIndex > timeIndex ? headerIndex + offset : headerIndex;
+    }
+
+    /// <summary>
+    /// Validates that a specific column index (with offset applied) is within bounds.
+    /// </summary>
+    private void ValidateColumnIndexWithOffset(int columnCount, int headerIndex, int timeIndex, int offset, string columnName, int lineNumber)
+    {
+        if (headerIndex < 0)
+            return; // Column not configured, skip validation
+
+        int actualIndex = headerIndex > timeIndex ? headerIndex + offset : headerIndex;
+
+        if (actualIndex >= columnCount)
+        {
+            string offsetInfo = (headerIndex > timeIndex && offset > 0)
+                ? $" (header index {headerIndex} + offset {offset} for date/time split)"
+                : $" (header index {headerIndex})";
+            throw new FormatException(
+                $"Line {lineNumber}: {columnName} column index {actualIndex}{offsetInfo} is out of bounds. " +
+                $"Data line has only {columnCount} columns. " +
+                $"Check that the column mapping configuration matches the data format.");
+        }
     }
 
     /// <summary>

@@ -20,28 +20,28 @@ namespace FathomOS.Modules.UsblVerification.ViewModels;
 public class MainViewModel : ViewModelBase
 {
     #region Private Fields
+
+    private readonly UsblCalculationService _calculationService = new();
+    private readonly UnitConversionService _unitConversionService = new();
+    private readonly DataValidationService _validationService = new();
+    private readonly ProjectService _projectService = new();
+    private readonly ChartExportService _chartExportService = new();
+    private readonly BatchImportService _batchImportService = new();
+    private readonly QualityDashboardService _qualityService = new();
+    private readonly CertificateService _certificateService = new();
+    private readonly ReportTemplateService _templateService = new();
+    private readonly AdvancedStatisticsService _advancedStatsService = new();
+    private readonly AdvancedChartService _advancedChartService = new();
+    private readonly SmoothingService _smoothingService = new();
+    private readonly HistoricalDatabaseService _historyService = new();
+    private readonly DigitalSignatureService _signatureService = new();
+    private readonly RecentProjectsService _recentProjectsService = new();
     
-    private readonly UsblCalculationService _calculationService;
-    private readonly UnitConversionService _unitConversionService;
-    private readonly DataValidationService _validationService;
-    private readonly ProjectService _projectService;
-    private readonly ChartExportService _chartExportService;
-    private readonly BatchImportService _batchImportService;
-    private readonly QualityDashboardService _qualityService;
-    private readonly CertificateService _certificateService;
-    private readonly ReportTemplateService _templateService;
-    private readonly AdvancedStatisticsService _advancedStatsService;
-    private readonly AdvancedChartService _advancedChartService;
-    private readonly SmoothingService _smoothingService;
-    private readonly HistoricalDatabaseService _historyService;
-    private readonly DigitalSignatureService _signatureService;
-    private readonly RecentProjectsService _recentProjectsService;
-    
-    private UsblVerificationProject _project;
-    private VerificationResults _results;
-    private PlotModel _spinPlotModel;
-    private PlotModel _transitPlotModel;
-    private PlotModel _livePreviewPlotModel;
+    private UsblVerificationProject _project = new();
+    private VerificationResults _results = new();
+    private PlotModel _spinPlotModel = new();
+    private PlotModel _transitPlotModel = new();
+    private PlotModel _livePreviewPlotModel = new();
     
     private int _currentStep = 1;
     private bool _isDarkTheme = true;
@@ -75,13 +75,13 @@ public class MainViewModel : ViewModelBase
     
     // Quality metrics
     private ObservableCollection<QualityMetrics> _qualityMetrics = new();
-    private QualityMetrics _overallQuality;
-    
+    private QualityMetrics _overallQuality = new() { DatasetName = "Overall" };
+
     // Point selection
     private SelectedPointInfo _selectedPoint = new();
-    
+
     // Report template
-    private ReportTemplate _selectedTemplate;
+    private ReportTemplate? _selectedTemplate;
     private ObservableCollection<ReportTemplate> _availableTemplates = new();
     
     // File collections for Step 1 UI
@@ -121,26 +121,8 @@ public class MainViewModel : ViewModelBase
     
     public MainViewModel()
     {
-        _project = new UsblVerificationProject();
-        _results = new VerificationResults();
-        _calculationService = new UsblCalculationService();
-        _unitConversionService = new UnitConversionService();
-        _validationService = new DataValidationService();
-        _projectService = new ProjectService();
-        _chartExportService = new ChartExportService();
-        _batchImportService = new BatchImportService();
-        _qualityService = new QualityDashboardService();
-        _certificateService = new CertificateService();
-        _templateService = new ReportTemplateService();
-        _advancedStatsService = new AdvancedStatisticsService();
-        _advancedChartService = new AdvancedChartService();
-        _smoothingService = new SmoothingService();
-        _historyService = new HistoricalDatabaseService();
-        _signatureService = new DigitalSignatureService();
-        _recentProjectsService = new RecentProjectsService();
-        
-        _overallQuality = new QualityMetrics { DatasetName = "Overall" };
-        
+        // Services are initialized via field initializers
+        // Initialize commands and plot models
         InitializeCommands();
         InitializePlotModels();
         LoadTemplates();
@@ -784,7 +766,7 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _availableTemplates, value);
     }
     
-    public ReportTemplate SelectedTemplate
+    public ReportTemplate? SelectedTemplate
     {
         get => _selectedTemplate;
         set => SetProperty(ref _selectedTemplate, value);
@@ -815,89 +797,89 @@ public class MainViewModel : ViewModelBase
     #endregion
     
     #region Commands
-    
+
     // Navigation
-    public ICommand NextStepCommand { get; private set; }
-    public ICommand PreviousStepCommand { get; private set; }
-    public ICommand GoToStepCommand { get; private set; }
-    
+    public ICommand NextStepCommand { get; private set; } = null!;
+    public ICommand PreviousStepCommand { get; private set; } = null!;
+    public ICommand GoToStepCommand { get; private set; } = null!;
+
     // Project
-    public ICommand NewProjectCommand { get; private set; }
-    public ICommand LoadProjectCommand { get; private set; }
-    public ICommand SaveProjectCommand { get; private set; }
-    
+    public ICommand NewProjectCommand { get; private set; } = null!;
+    public ICommand LoadProjectCommand { get; private set; } = null!;
+    public ICommand SaveProjectCommand { get; private set; } = null!;
+
     // Data Loading
-    public ICommand LoadSpin000Command { get; private set; }
-    public ICommand LoadSpin090Command { get; private set; }
-    public ICommand LoadSpin180Command { get; private set; }
-    public ICommand LoadSpin270Command { get; private set; }
-    public ICommand LoadTransit1Command { get; private set; }
-    public ICommand LoadTransit2Command { get; private set; }
-    public ICommand BatchImportSpinCommand { get; private set; }
-    public ICommand BatchImportTransitCommand { get; private set; }
-    
+    public ICommand LoadSpin000Command { get; private set; } = null!;
+    public ICommand LoadSpin090Command { get; private set; } = null!;
+    public ICommand LoadSpin180Command { get; private set; } = null!;
+    public ICommand LoadSpin270Command { get; private set; } = null!;
+    public ICommand LoadTransit1Command { get; private set; } = null!;
+    public ICommand LoadTransit2Command { get; private set; } = null!;
+    public ICommand BatchImportSpinCommand { get; private set; } = null!;
+    public ICommand BatchImportTransitCommand { get; private set; } = null!;
+
     // New Step 1 Commands
-    public ICommand LoadSpinFilesCommand { get; private set; }
-    public ICommand LoadTransitFilesCommand { get; private set; }
-    public ICommand RemoveSpinFileCommand { get; private set; }
-    public ICommand RemoveTransitFileCommand { get; private set; }
-    public ICommand RefreshPreviewCommand { get; private set; }
-    
+    public ICommand LoadSpinFilesCommand { get; private set; } = null!;
+    public ICommand LoadTransitFilesCommand { get; private set; } = null!;
+    public ICommand RemoveSpinFileCommand { get; private set; } = null!;
+    public ICommand RemoveTransitFileCommand { get; private set; } = null!;
+    public ICommand RefreshPreviewCommand { get; private set; } = null!;
+
     // Validation
-    public ICommand ValidateSpinDataCommand { get; private set; }
-    public ICommand ValidateTransitDataCommand { get; private set; }
-    public ICommand ValidateAllDataCommand { get; private set; }
-    
+    public ICommand ValidateSpinDataCommand { get; private set; } = null!;
+    public ICommand ValidateTransitDataCommand { get; private set; } = null!;
+    public ICommand ValidateAllDataCommand { get; private set; } = null!;
+
     // Processing
-    public ICommand ProcessCommand { get; private set; }
-    public ICommand ProcessSpinDataCommand { get; private set; }
-    public ICommand ProcessTransitDataCommand { get; private set; }
-    
+    public ICommand ProcessCommand { get; private set; } = null!;
+    public ICommand ProcessSpinDataCommand { get; private set; } = null!;
+    public ICommand ProcessTransitDataCommand { get; private set; } = null!;
+
     // Export
-    public ICommand ExportExcelCommand { get; private set; }
-    public ICommand ExportPdfCommand { get; private set; }
-    public ICommand ExportDxfCommand { get; private set; }
-    public ICommand ExportDxfPlanViewCommand { get; private set; }
-    public ICommand ExportChartCommand { get; private set; }
-    public ICommand ExportSummaryCommand { get; private set; }
-    public ICommand ExportCertificateCommand { get; private set; }
-    
+    public ICommand ExportExcelCommand { get; private set; } = null!;
+    public ICommand ExportPdfCommand { get; private set; } = null!;
+    public ICommand ExportDxfCommand { get; private set; } = null!;
+    public ICommand ExportDxfPlanViewCommand { get; private set; } = null!;
+    public ICommand ExportChartCommand { get; private set; } = null!;
+    public ICommand ExportSummaryCommand { get; private set; } = null!;
+    public ICommand ExportCertificateCommand { get; private set; } = null!;
+
     // Point Selection
-    public ICommand SelectPointCommand { get; private set; }
-    public ICommand ExcludeSelectedPointCommand { get; private set; }
-    public ICommand ClearSelectionCommand { get; private set; }
-    
+    public ICommand SelectPointCommand { get; private set; } = null!;
+    public ICommand ExcludeSelectedPointCommand { get; private set; } = null!;
+    public ICommand ClearSelectionCommand { get; private set; } = null!;
+
     // Templates
-    public ICommand OpenTemplateEditorCommand { get; private set; }
-    public ICommand SaveTemplateCommand { get; private set; }
-    public ICommand ImportLogoCommand { get; private set; }
-    public ICommand ImportSignatureCommand { get; private set; }
-    
+    public ICommand OpenTemplateEditorCommand { get; private set; } = null!;
+    public ICommand SaveTemplateCommand { get; private set; } = null!;
+    public ICommand ImportLogoCommand { get; private set; } = null!;
+    public ICommand ImportSignatureCommand { get; private set; } = null!;
+
     // UI
-    public ICommand ToggleThemeCommand { get; private set; }
-    public ICommand ShowHelpCommand { get; private set; }
-    
+    public ICommand ToggleThemeCommand { get; private set; } = null!;
+    public ICommand ShowHelpCommand { get; private set; } = null!;
+
     // Advanced Analytics
-    public ICommand GenerateAllAnalyticsCommand { get; private set; }
-    public ICommand RunMonteCarloCommand { get; private set; }
-    public ICommand ApplySmoothingCommand { get; private set; }
-    public ICommand ResetSmoothingCommand { get; private set; }
-    
+    public ICommand GenerateAllAnalyticsCommand { get; private set; } = null!;
+    public ICommand RunMonteCarloCommand { get; private set; } = null!;
+    public ICommand ApplySmoothingCommand { get; private set; } = null!;
+    public ICommand ResetSmoothingCommand { get; private set; } = null!;
+
     // History
-    public ICommand SaveToHistoryCommand { get; private set; }
-    public ICommand LoadHistoryCommand { get; private set; }
-    public ICommand ExportHistoryCommand { get; private set; }
-    public ICommand ImportHistoryCommand { get; private set; }
-    
+    public ICommand SaveToHistoryCommand { get; private set; } = null!;
+    public ICommand LoadHistoryCommand { get; private set; } = null!;
+    public ICommand ExportHistoryCommand { get; private set; } = null!;
+    public ICommand ImportHistoryCommand { get; private set; } = null!;
+
     // Recent Projects
-    public ICommand ClearRecentProjectsCommand { get; private set; }
-    
+    public ICommand ClearRecentProjectsCommand { get; private set; } = null!;
+
     // 3D Visualization Commands
-    public ICommand Generate3DViewCommand { get; private set; }
-    public ICommand Reset3DViewCommand { get; private set; }
-    
+    public ICommand Generate3DViewCommand { get; private set; } = null!;
+    public ICommand Reset3DViewCommand { get; private set; } = null!;
+
     // Advanced Charts Command
-    public ICommand RefreshAdvancedChartsCommand { get; private set; }
+    public ICommand RefreshAdvancedChartsCommand { get; private set; } = null!;
     
     private void InitializeCommands()
     {
@@ -3875,9 +3857,9 @@ public class MainViewModel : ViewModelBase
     }
     
     // Commands for outlier filtering
-    public ICommand ExcludeOutlierCommand { get; private set; }
-    public ICommand ExcludeAllOutliersCommand { get; private set; }
-    public ICommand RestoreExcludedCommand { get; private set; }
+    public ICommand ExcludeOutlierCommand { get; private set; } = null!;
+    public ICommand ExcludeAllOutliersCommand { get; private set; } = null!;
+    public ICommand RestoreExcludedCommand { get; private set; } = null!;
     
     #endregion
     

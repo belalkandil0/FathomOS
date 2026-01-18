@@ -15,7 +15,7 @@ public class HistoricalDatabaseService
 {
     private readonly string _databasePath;
     private readonly string _indexPath;
-    private VerificationIndex _index;
+    private VerificationIndex _index = new();
     
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

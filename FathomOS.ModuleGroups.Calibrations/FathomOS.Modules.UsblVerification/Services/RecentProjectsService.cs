@@ -13,7 +13,7 @@ namespace FathomOS.Modules.UsblVerification.Services;
 public class RecentProjectsService
 {
     private readonly string _configPath;
-    private RecentProjectsConfig _config;
+    private RecentProjectsConfig _config = new();
     private const int MaxRecentProjects = 20;
     private const int MaxRecentFiles = 50;
     

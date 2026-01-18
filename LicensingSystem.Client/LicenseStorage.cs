@@ -340,32 +340,56 @@ public class LicenseStorage
     }
 
     /// <summary>
-    /// Detects if the system clock has been rolled back
+    /// Detects if the system clock has been rolled back.
+    /// SECURITY FIX (BUG-003): Enhanced to handle timezone changes and use multiple time references.
     /// </summary>
     public bool DetectClockTampering()
     {
-        var lastRun = GetLastRunTime();
-        if (lastRun == DateTime.MinValue)
-            return false;
+        var currentTimeUtc = DateTime.UtcNow;
 
-        // If current time is significantly before last run time, clock was rolled back
-        var timeDiff = DateTime.UtcNow - lastRun;
-        
-        // Clock rolled back more than 1 hour is suspicious
-        if (timeDiff.TotalHours < -1)
+        // Check 1: Against last run time
+        var lastRun = GetLastRunTime();
+        if (lastRun != DateTime.MinValue)
         {
-            return true;
+            // Ensure comparison is in UTC
+            var lastRunUtc = lastRun.Kind == DateTimeKind.Utc ? lastRun : lastRun.ToUniversalTime();
+            var timeDiff = currentTimeUtc - lastRunUtc;
+
+            // Clock rolled back more than 1 hour is suspicious
+            if (timeDiff.TotalHours < -1)
+            {
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Clock tampering detected - current time before last run time by {Math.Abs(timeDiff.TotalHours):F1} hours");
+                return true;
+            }
         }
-        
-        // Also check against last online check time
+
+        // Check 2: Against last online check time
         var lastOnline = GetLastOnlineCheck();
         if (lastOnline != DateTime.MinValue)
         {
-            var onlineDiff = DateTime.UtcNow - lastOnline;
-            
+            var lastOnlineUtc = lastOnline.Kind == DateTimeKind.Utc ? lastOnline : lastOnline.ToUniversalTime();
+            var onlineDiff = currentTimeUtc - lastOnlineUtc;
+
             // If current time is before last online check, clock was rolled back
             if (onlineDiff.TotalHours < -1)
             {
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Clock tampering detected - current time before last online check by {Math.Abs(onlineDiff.TotalHours):F1} hours");
+                return true;
+            }
+        }
+
+        // Check 3: Against last known server time (most reliable)
+        var lastServerTime = GetLastServerTime();
+        if (lastServerTime != DateTime.MinValue)
+        {
+            var lastServerTimeUtc = lastServerTime.Kind == DateTimeKind.Utc ? lastServerTime : lastServerTime.ToUniversalTime();
+            var serverDiff = currentTimeUtc - lastServerTimeUtc;
+
+            // Server time should always be in the past - if current time is significantly before, suspicious
+            // Allow small negative diff (-30 min) for network latency and processing time
+            if (serverDiff.TotalMinutes < -30)
+            {
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Clock tampering detected - current time before last server time by {Math.Abs(serverDiff.TotalMinutes):F0} minutes");
                 return true;
             }
         }
@@ -395,41 +419,157 @@ public class LicenseStorage
     }
 
     /// <summary>
-    /// Saves the server time for clock comparison
+    /// Saves the server time for clock comparison.
+    /// SECURITY FIX (BUG-003): Stores in multiple locations for tamper resistance.
     /// </summary>
     private void SaveServerTime(DateTime serverTime)
     {
+        var serverTimeUtc = serverTime.Kind == DateTimeKind.Utc ? serverTime : serverTime.ToUniversalTime();
+        var data = serverTimeUtc.ToBinary().ToString();
+        var checksum = ComputeChecksum(data);
+        var combinedData = $"{data}|{checksum}";
+
+        // Store in file (primary)
         try
         {
             var filePath = Path.Combine(_appDataPath, "timeref.dat");
-            var data = serverTime.ToBinary().ToString();
-            var encrypted = Protect(data);
+            var encrypted = Protect(combinedData);
             File.WriteAllText(filePath, Convert.ToBase64String(encrypted));
+        }
+        catch { }
+
+        // Store in registry (backup) - BUG FIX: Added redundant storage
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(_registryPath);
+            var encrypted = Protect(combinedData);
+            key?.SetValue("TimeRef", Convert.ToBase64String(encrypted));
+        }
+        catch { }
+
+        // Store in alternative file location (second backup)
+        try
+        {
+            var altPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "FathomOS", "timeref.bak");
+            Directory.CreateDirectory(Path.GetDirectoryName(altPath)!);
+            var encrypted = Protect(combinedData);
+            File.WriteAllText(altPath, Convert.ToBase64String(encrypted));
         }
         catch { }
     }
 
     /// <summary>
-    /// Gets the last known server time
+    /// Gets the last known server time.
+    /// SECURITY FIX (BUG-003): Tries multiple storage locations and validates integrity.
     /// </summary>
     public DateTime GetLastServerTime()
     {
+        // Try file first
+        var result = TryLoadServerTimeFromFile(Path.Combine(_appDataPath, "timeref.dat"));
+        if (result != DateTime.MinValue)
+            return result;
+
+        // Try registry backup
+        result = TryLoadServerTimeFromRegistry();
+        if (result != DateTime.MinValue)
+        {
+            // Restore to primary file
+            SaveServerTime(result);
+            return result;
+        }
+
+        // Try alternative file location
+        result = TryLoadServerTimeFromFile(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "FathomOS", "timeref.bak"));
+        if (result != DateTime.MinValue)
+        {
+            // Restore to primary locations
+            SaveServerTime(result);
+            return result;
+        }
+
+        return DateTime.MinValue;
+    }
+
+    /// <summary>
+    /// Tries to load server time from a file with integrity verification.
+    /// </summary>
+    private DateTime TryLoadServerTimeFromFile(string filePath)
+    {
         try
         {
-            var filePath = Path.Combine(_appDataPath, "timeref.dat");
             if (!File.Exists(filePath))
                 return DateTime.MinValue;
 
             var base64 = File.ReadAllText(filePath);
             var encrypted = Convert.FromBase64String(base64);
-            var data = Unprotect(encrypted);
-            
-            if (long.TryParse(data, out var binary))
-            {
-                return DateTime.FromBinary(binary);
-            }
+            var combinedData = Unprotect(encrypted);
+
+            return ParseAndValidateServerTime(combinedData);
         }
         catch { }
+        return DateTime.MinValue;
+    }
+
+    /// <summary>
+    /// Tries to load server time from registry with integrity verification.
+    /// </summary>
+    private DateTime TryLoadServerTimeFromRegistry()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(_registryPath);
+            var base64 = key?.GetValue("TimeRef")?.ToString();
+
+            if (string.IsNullOrEmpty(base64))
+                return DateTime.MinValue;
+
+            var encrypted = Convert.FromBase64String(base64);
+            var combinedData = Unprotect(encrypted);
+
+            return ParseAndValidateServerTime(combinedData);
+        }
+        catch { }
+        return DateTime.MinValue;
+    }
+
+    /// <summary>
+    /// Parses and validates server time data with checksum verification.
+    /// </summary>
+    private DateTime ParseAndValidateServerTime(string combinedData)
+    {
+        if (string.IsNullOrEmpty(combinedData))
+            return DateTime.MinValue;
+
+        var parts = combinedData.Split('|');
+        if (parts.Length != 2)
+        {
+            // Legacy format without checksum - try to parse anyway
+            if (long.TryParse(combinedData, out var legacyBinary))
+            {
+                return DateTime.FromBinary(legacyBinary);
+            }
+            return DateTime.MinValue;
+        }
+
+        var data = parts[0];
+        var storedChecksum = parts[1];
+
+        // Verify checksum
+        if (ComputeChecksum(data) != storedChecksum)
+        {
+            System.Diagnostics.Debug.WriteLine("DEBUG: Time reference checksum mismatch - possible tampering!");
+            return DateTime.MinValue;
+        }
+
+        if (long.TryParse(data, out var binary))
+        {
+            return DateTime.FromBinary(binary);
+        }
+
         return DateTime.MinValue;
     }
 

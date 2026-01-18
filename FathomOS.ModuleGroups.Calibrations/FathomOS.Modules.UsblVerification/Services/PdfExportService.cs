@@ -1,11 +1,8 @@
 using System;
-using System.IO;
-using System.Linq;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using FathomOS.Modules.UsblVerification.Models;
-using SkiaSharp;
 
 namespace FathomOS.Modules.UsblVerification.Services;
 
@@ -333,53 +330,8 @@ public class PdfExportService
             col.Item().Text("Note: For detailed position plots, please export charts as PNG from the application.")
                 .FontSize(9).FontColor(Colors.Grey.Darken1);
             
-            // Create simple visual indicator
-            col.Item().PaddingTop(10).Height(150).Canvas((object canvasObj, QuestPDF.Infrastructure.Size size) =>
-            {
-                var canvas = (SKCanvas)canvasObj;
-                
-                using var bgPaint = new SKPaint { Color = SKColors.WhiteSmoke };
-                canvas.DrawRect(0, 0, (float)size.Width, (float)size.Height, bgPaint);
-                
-                float cx = (float)size.Width / 4;
-                float cy = (float)size.Height / 2;
-                float radius = Math.Min(cx, cy) - 20;
-                
-                // Spin circle
-                using var circlePaint = new SKPaint 
-                { 
-                    Color = SKColors.Red, 
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 2
-                };
-                canvas.DrawCircle(cx, cy, radius, circlePaint);
-                
-                // Center marker
-                using var centerPaint = new SKPaint 
-                { 
-                    Color = SKColors.Black,
-                    StrokeWidth = 2
-                };
-                canvas.DrawLine(cx - 10, cy, cx + 10, cy, centerPaint);
-                canvas.DrawLine(cx, cy - 10, cx, cy + 10, centerPaint);
-                
-                // Label
-                using var textPaint = new SKPaint 
-                { 
-                    Color = SKColors.Black,
-                    TextSize = 12,
-                    IsAntialias = true
-                };
-                canvas.DrawText("Spin Tolerance Circle", cx - 50, cy + radius + 15, textPaint);
-                
-                // Transit
-                float tx = (float)size.Width * 3 / 4;
-                canvas.DrawCircle(tx, cy, radius, circlePaint);
-                canvas.DrawLine(tx - 10, cy, tx + 10, cy, centerPaint);
-                canvas.DrawLine(tx, cy - 10, tx, cy + 10, centerPaint);
-                canvas.DrawText("Transit Tolerance Circle", tx - 55, cy + radius + 15, textPaint);
-            });
+            // Create simple visual indicator using SVG (non-deprecated API)
+            col.Item().PaddingTop(10).Height(150).Svg(GenerateToleranceCirclesSvg());
         });
     }
     
@@ -391,7 +343,7 @@ public class PdfExportService
             {
                 text.Span("Fathom OS - USBL Verification Module").FontSize(8).FontColor(Colors.Grey.Darken1);
             });
-            
+
             row.RelativeItem().AlignRight().Text(text =>
             {
                 text.Span("Page ").FontSize(8);
@@ -400,5 +352,35 @@ public class PdfExportService
                 text.TotalPages().FontSize(8);
             });
         });
+    }
+
+    /// <summary>
+    /// Generate SVG content for tolerance circles visualization
+    /// </summary>
+    private string GenerateToleranceCirclesSvg()
+    {
+        const int width = 600;
+        const int height = 150;
+        const int cx1 = 150;  // Spin circle center X
+        const int cx2 = 450;  // Transit circle center X
+        const int cy = 75;    // Center Y
+        const int radius = 50;
+
+        return $@"<svg xmlns=""http://www.w3.org/2000/svg"" width=""{width}"" height=""{height}"" viewBox=""0 0 {width} {height}"">
+            <!-- Background -->
+            <rect width=""{width}"" height=""{height}"" fill=""#f5f5f5""/>
+
+            <!-- Spin tolerance circle -->
+            <circle cx=""{cx1}"" cy=""{cy}"" r=""{radius}"" fill=""none"" stroke=""red"" stroke-width=""2""/>
+            <line x1=""{cx1 - 10}"" y1=""{cy}"" x2=""{cx1 + 10}"" y2=""{cy}"" stroke=""black"" stroke-width=""2""/>
+            <line x1=""{cx1}"" y1=""{cy - 10}"" x2=""{cx1}"" y2=""{cy + 10}"" stroke=""black"" stroke-width=""2""/>
+            <text x=""{cx1}"" y=""{cy + radius + 20}"" text-anchor=""middle"" font-size=""12"" fill=""black"">Spin Tolerance Circle</text>
+
+            <!-- Transit tolerance circle -->
+            <circle cx=""{cx2}"" cy=""{cy}"" r=""{radius}"" fill=""none"" stroke=""red"" stroke-width=""2""/>
+            <line x1=""{cx2 - 10}"" y1=""{cy}"" x2=""{cx2 + 10}"" y2=""{cy}"" stroke=""black"" stroke-width=""2""/>
+            <line x1=""{cx2}"" y1=""{cy - 10}"" x2=""{cx2}"" y2=""{cy + 10}"" stroke=""black"" stroke-width=""2""/>
+            <text x=""{cx2}"" y=""{cy + radius + 20}"" text-anchor=""middle"" font-size=""12"" fill=""black"">Transit Tolerance Circle</text>
+        </svg>";
     }
 }

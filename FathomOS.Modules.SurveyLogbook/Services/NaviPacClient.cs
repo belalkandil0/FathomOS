@@ -2,11 +2,11 @@
 // Fathom OS - Survey Electronic Logbook Module
 // File: Services/NaviPacClient.cs
 // Purpose: Unified TCP/UDP server/listener for real-time NaviPac data acquisition
-// Version: 3.0 - Complete rewrite with TCP Server mode (TcpListener)
+// Version: 4.0 - Added TLS encryption (VULN-005) and rate limiting (MISSING-007)
 // ============================================================================
-// 
+//
 // CRITICAL ARCHITECTURE NOTES:
-// 
+//
 // NaviPac User Defined Output (UDO) configuration:
 // - NaviPac SENDS data TO a specified IP:Port
 // - For TCP: NaviPac CONNECTS TO our server (we must be TcpListener)
@@ -14,6 +14,11 @@
 //
 // This is the OPPOSITE of typical client-server roles!
 // We are the SERVER, NaviPac is the CLIENT.
+//
+// SECURITY FEATURES (v4.0):
+// - Optional TLS encryption for TCP connections (VULN-005)
+// - Token bucket rate limiting per IP address (MISSING-007)
+// - Connection rate limiting and temporary IP blocking
 //
 // ============================================================================
 
@@ -83,18 +88,24 @@ public class NaviPacClient : IDisposable
     #endregion
     
     #region Fields
-    
+
     private readonly ConnectionSettings _settings;
     private readonly object _syncLock = new();
     private readonly ConcurrentQueue<string> _messageQueue = new();
-    
+
     // TCP Server fields
     private TcpListener? _tcpListener;
     private TcpClient? _connectedClient;
-    private NetworkStream? _networkStream;
-    
+    private Stream? _clientStream; // Can be NetworkStream or SslStream
+
     // UDP fields
     private UdpClient? _udpClient;
+
+    // Security: TLS support (VULN-005)
+    private TlsWrapper? _tlsWrapper;
+
+    // Security: Rate limiting (MISSING-007)
+    private RateLimiter? _rateLimiter;
     
     // Common fields
     private CancellationTokenSource? _cancellationTokenSource;
@@ -103,11 +114,13 @@ public class NaviPacClient : IDisposable
     private Task? _processTask;
     private readonly StringBuilder _lineBuffer = new();
     
-    private volatile bool _isListening;
-    private volatile bool _isConnected;
+    // SECURITY FIX: Use Interlocked for thread-safe connection state
+    // Previous implementation had race condition with volatile booleans
+    private volatile int _connectionState; // 0 = disconnected, 1 = listening, 2 = connected
     private volatile bool _isDisposed;
+    #pragma warning disable CS0414 // Field is assigned but never used (reserved for auto-reconnect logic)
     private volatile bool _intentionalDisconnect;
-    private int _reconnectAttempts;
+    #pragma warning restore CS0414
     private DateTime _lastDataReceived;
     
     // Debug log file
@@ -135,7 +148,13 @@ public class NaviPacClient : IDisposable
     
     /// <summary>Raised when raw data is received (for debugging).</summary>
     public event EventHandler<RawDataEventArgs>? RawDataReceived;
-    
+
+    /// <summary>Raised when a rate limit violation occurs.</summary>
+    public event EventHandler<RateLimitViolationEventArgs>? RateLimitViolation;
+
+    /// <summary>Raised when TLS connection is established.</summary>
+    public event EventHandler<TlsConnectedEventArgs>? TlsConnectionEstablished;
+
     #endregion
     
     #region Constructor
@@ -147,13 +166,56 @@ public class NaviPacClient : IDisposable
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _lastDataReceived = DateTime.MinValue;
-        
+
         // Setup debug log path
         var logFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "FathomOS", "SurveyLogbook", "Logs");
         Directory.CreateDirectory(logFolder);
         _debugLogPath = Path.Combine(logFolder, $"NaviPac_Debug_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+        // Initialize security components
+        InitializeSecurity();
+    }
+
+    /// <summary>
+    /// Initializes TLS and rate limiting components based on settings.
+    /// </summary>
+    private void InitializeSecurity()
+    {
+        // Initialize TLS wrapper if enabled
+        if (_settings.TlsConfiguration != null && _settings.TlsConfiguration.EnableTls)
+        {
+            _tlsWrapper = new TlsWrapper(_settings.TlsConfiguration);
+            _tlsWrapper.TlsError += (s, e) => OnError($"TLS Error: {e.Message}", e.Exception);
+            _tlsWrapper.TlsConnected += (s, e) => TlsConnectionEstablished?.Invoke(this, e);
+
+            // Load server certificate if path is specified
+            if (!string.IsNullOrEmpty(_settings.TlsConfiguration.ServerCertificatePath))
+            {
+                try
+                {
+                    _tlsWrapper.LoadServerCertificate();
+                    LogDebug("TLS: Server certificate loaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    LogDebug($"TLS: Failed to load server certificate: {ex.Message}");
+                }
+            }
+        }
+
+        // Initialize rate limiter if enabled
+        if (_settings.RateLimitConfiguration != null && _settings.RateLimitConfiguration.Enabled)
+        {
+            _rateLimiter = new RateLimiter(_settings.RateLimitConfiguration);
+            _rateLimiter.ViolationOccurred += (s, e) =>
+            {
+                LogDebug($"Rate Limit: Violation from {e.IpAddress} - {e.Reason}");
+                RateLimitViolation?.Invoke(this, e);
+            };
+            LogDebug("Rate Limiter: Initialized");
+        }
     }
     
     #endregion
@@ -162,8 +224,19 @@ public class NaviPacClient : IDisposable
     
     /// <summary>
     /// Gets whether the server is currently listening/connected.
+    /// SECURITY FIX: Uses thread-safe Interlocked operation to prevent race condition
     /// </summary>
-    public bool IsConnected => _isConnected || _isListening;
+    public bool IsConnected => Interlocked.CompareExchange(ref _connectionState, 0, 0) != 0;
+
+    /// <summary>
+    /// Gets whether the server is in listening state (TCP server waiting, UDP bound).
+    /// </summary>
+    private bool IsListening => Interlocked.CompareExchange(ref _connectionState, 0, 0) == 1;
+
+    /// <summary>
+    /// Gets whether a client is actively connected and communicating.
+    /// </summary>
+    private bool IsActivelyConnected => Interlocked.CompareExchange(ref _connectionState, 0, 0) == 2;
     
     /// <summary>
     /// Gets whether a NaviPac client is currently connected (TCP only).
@@ -178,15 +251,30 @@ public class NaviPacClient : IDisposable
     /// <summary>
     /// Gets whether data has been received recently.
     /// </summary>
-    public bool IsReceivingData => 
-        _lastDataReceived > DateTime.MinValue && 
+    public bool IsReceivingData =>
+        _lastDataReceived > DateTime.MinValue &&
         (DateTime.Now - _lastDataReceived).TotalSeconds < DATA_TIMEOUT_SECONDS;
-    
+
     /// <summary>
     /// Connection statistics.
     /// </summary>
     public NaviPacStatistics Statistics { get; } = new();
-    
+
+    /// <summary>
+    /// Gets whether TLS is enabled for this connection.
+    /// </summary>
+    public bool IsTlsEnabled => _tlsWrapper?.IsEnabled ?? false;
+
+    /// <summary>
+    /// Gets whether rate limiting is enabled.
+    /// </summary>
+    public bool IsRateLimitingEnabled => _rateLimiter != null;
+
+    /// <summary>
+    /// Gets the rate limiter instance for external configuration.
+    /// </summary>
+    public RateLimiter? RateLimiter => _rateLimiter;
+
     #endregion
     
     #region Public Methods
@@ -199,7 +287,7 @@ public class NaviPacClient : IDisposable
         if (_isDisposed)
             throw new ObjectDisposedException(nameof(NaviPacClient));
         
-        if (_isListening || _isConnected)
+        if (IsConnected)
         {
             Debug.WriteLine("NaviPacClient: Already listening/connected");
             return true;
@@ -242,8 +330,7 @@ public class NaviPacClient : IDisposable
     public void Disconnect()
     {
         _intentionalDisconnect = true;
-        _isListening = false;
-        _isConnected = false;
+        Interlocked.Exchange(ref _connectionState, 0); // Set to disconnected
         
         try
         {
@@ -328,7 +415,7 @@ public class NaviPacClient : IDisposable
         {
             _tcpListener = new TcpListener(IPAddress.Any, _settings.NaviPacPort);
             _tcpListener.Start();
-            _isListening = true;
+            Interlocked.Exchange(ref _connectionState, 1); // Set to listening
             
             OnConnectionStatusChanged(ConnectionState.Listening, 
                 $"TCP server listening on port {_settings.NaviPacPort} - waiting for NaviPac to connect...");
@@ -361,7 +448,7 @@ public class NaviPacClient : IDisposable
             while (!cancellationToken.IsCancellationRequested && _tcpListener != null)
             {
                 LogDebug("Waiting for TCP client connection...");
-                
+
                 TcpClient client;
                 try
                 {
@@ -375,46 +462,94 @@ public class NaviPacClient : IDisposable
                 {
                     break;
                 }
-                
+
                 // Client connected!
                 var remoteEp = client.Client.RemoteEndPoint as IPEndPoint;
                 LogDebug($"TCP client connected from {remoteEp?.Address}:{remoteEp?.Port}");
-                
+
+                // SECURITY: Rate limiting check (MISSING-007)
+                if (_rateLimiter != null && remoteEp != null)
+                {
+                    var rateLimitResult = _rateLimiter.CheckConnection(remoteEp);
+                    if (!rateLimitResult.IsAllowed)
+                    {
+                        LogDebug($"Rate limit: Connection from {remoteEp.Address} rejected - {rateLimitResult.DenialReason}");
+                        Statistics.RecordRejectedConnection();
+                        try
+                        {
+                            client.Close();
+                        }
+                        catch { }
+                        continue; // Wait for next connection
+                    }
+                }
+
                 // Close previous client if any
                 if (_connectedClient != null)
                 {
                     LogDebug("Closing previous TCP client connection");
                     try
                     {
-                        _networkStream?.Close();
+                        _clientStream?.Close();
                         _connectedClient.Close();
                     }
                     catch { }
                 }
-                
+
                 _connectedClient = client;
                 _connectedClient.NoDelay = true;
                 _connectedClient.ReceiveBufferSize = DEFAULT_BUFFER_SIZE;
-                _networkStream = _connectedClient.GetStream();
-                _isConnected = true;
+
+                // SECURITY: TLS handshake if enabled (VULN-005)
+                try
+                {
+                    if (_tlsWrapper != null && _tlsWrapper.IsEnabled)
+                    {
+                        LogDebug($"TLS: Starting handshake with {remoteEp?.Address}");
+                        _clientStream = await _tlsWrapper.WrapServerStreamAsync(_connectedClient, cancellationToken);
+                        LogDebug($"TLS: Handshake completed with {remoteEp?.Address}");
+                    }
+                    else
+                    {
+                        _clientStream = _connectedClient.GetStream();
+                    }
+                }
+                catch (TlsHandshakeException ex)
+                {
+                    LogDebug($"TLS: Handshake failed with {remoteEp?.Address}: {ex.Message}");
+                    OnError($"TLS handshake failed: {ex.Message}", ex);
+                    try
+                    {
+                        client.Close();
+                    }
+                    catch { }
+                    continue; // Wait for next connection
+                }
+
+                Interlocked.Exchange(ref _connectionState, 2); // Set to connected
                 _lastDataReceived = DateTime.Now;
-                
+
                 Statistics.RecordConnection();
-                OnConnectionStatusChanged(ConnectionState.Connected, 
-                    $"NaviPac connected from {remoteEp?.Address}:{remoteEp?.Port}");
-                
+
+                var statusMessage = $"NaviPac connected from {remoteEp?.Address}:{remoteEp?.Port}";
+                if (_tlsWrapper?.IsEnabled == true)
+                {
+                    statusMessage += " (TLS secured)";
+                }
+                OnConnectionStatusChanged(ConnectionState.Connected, statusMessage);
+
                 // Start receiving data from this client
                 _receiveTask = ReceiveTcpDataAsync(cancellationToken);
-                
+
                 // Wait for this client to disconnect before accepting another
                 try
                 {
                     await _receiveTask;
                 }
                 catch { }
-                
-                _isConnected = false;
-                OnConnectionStatusChanged(ConnectionState.Listening, 
+
+                Interlocked.Exchange(ref _connectionState, 1); // Set back to listening
+                OnConnectionStatusChanged(ConnectionState.Listening,
                     "NaviPac disconnected - waiting for reconnection...");
             }
         }
@@ -424,24 +559,24 @@ public class NaviPacClient : IDisposable
         }
         finally
         {
-            _isListening = false;
+            Interlocked.Exchange(ref _connectionState, 0); // Set to disconnected
         }
     }
-    
+
     private async Task ReceiveTcpDataAsync(CancellationToken cancellationToken)
     {
         var buffer = new byte[DEFAULT_BUFFER_SIZE];
-        
+
         try
         {
-            while (!cancellationToken.IsCancellationRequested && 
-                   _connectedClient?.Connected == true && 
-                   _networkStream != null)
+            while (!cancellationToken.IsCancellationRequested &&
+                   _connectedClient?.Connected == true &&
+                   _clientStream != null)
             {
                 int bytesRead;
                 try
                 {
-                    bytesRead = await _networkStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                    bytesRead = await _clientStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
                 }
                 catch (IOException ex) when (ex.InnerException is SocketException)
                 {
@@ -452,26 +587,27 @@ public class NaviPacClient : IDisposable
                 {
                     break;
                 }
-                
+
                 if (bytesRead == 0)
                 {
                     LogDebug("TCP connection closed by remote");
                     break;
                 }
-                
+
                 _lastDataReceived = DateTime.Now;
                 Statistics.RecordBytesReceived(bytesRead);
-                
+
                 var data = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                 LogDebug($"TCP received {bytesRead} bytes: {data.Replace("\r", "\\r").Replace("\n", "\\n")}");
-                
-                RawDataReceived?.Invoke(this, new RawDataEventArgs 
-                { 
-                    Data = data, 
+
+                var protocol = _tlsWrapper?.IsEnabled == true ? "TCP/TLS" : "TCP";
+                RawDataReceived?.Invoke(this, new RawDataEventArgs
+                {
+                    Data = data,
                     Timestamp = DateTime.Now,
-                    Protocol = "TCP"
+                    Protocol = protocol
                 });
-                
+
                 ProcessRawData(data);
             }
         }
@@ -545,12 +681,11 @@ public class NaviPacClient : IDisposable
                 }
             }
             
-            _isListening = true;
-            _isConnected = true;
+            Interlocked.Exchange(ref _connectionState, 2); // Set to connected (UDP is listening + connected)
             _lastDataReceived = DateTime.Now;
-            
+
             Statistics.RecordConnection();
-            
+
             var statusMsg = $"UDP listener started on {bindAddress}:{_settings.NaviPacPort}";
             if (_settings.EnableMulticast && !string.IsNullOrWhiteSpace(_settings.MulticastGroup))
                 statusMsg += $" (multicast: {_settings.MulticastGroup})";
@@ -615,6 +750,18 @@ public class NaviPacClient : IDisposable
                     break;
                 }
                 
+                // SECURITY: Rate limiting check (MISSING-007)
+                if (_rateLimiter != null)
+                {
+                    var rateLimitResult = _rateLimiter.CheckConnection(result.RemoteEndPoint);
+                    if (!rateLimitResult.IsAllowed)
+                    {
+                        LogDebug($"Rate limit: UDP packet from {result.RemoteEndPoint.Address} rejected - {rateLimitResult.DenialReason}");
+                        Statistics.RecordRejectedConnection();
+                        continue;
+                    }
+                }
+
                 // Source IP filtering
                 if (allowedIps != null)
                 {
@@ -651,14 +798,13 @@ public class NaviPacClient : IDisposable
         }
         finally
         {
-            _isListening = false;
-            _isConnected = false;
+            Interlocked.Exchange(ref _connectionState, 0); // Set to disconnected
             LogDebug("UDP receive loop ended");
         }
     }
-    
+
     #endregion
-    
+
     #region Data Processing
     
     private void ProcessRawData(string data)
@@ -1163,9 +1309,9 @@ public class NaviPacClient : IDisposable
     {
         try
         {
-            _networkStream?.Close();
-            _networkStream?.Dispose();
-            _networkStream = null;
+            _clientStream?.Close();
+            _clientStream?.Dispose();
+            _clientStream = null;
         }
         catch { }
         
@@ -1360,17 +1506,20 @@ public class NaviPacStatistics
     private long _messagesReceived;
     private long _packetsReceived;
     private int _connectionCount;
+    private int _rejectedConnections;
     private readonly ConcurrentDictionary<string, int> _sourceAddresses = new();
-    
+
     public long BytesReceived => _bytesReceived;
     public long MessagesReceived => _messagesReceived;
     public long PacketsReceived => _packetsReceived;
     public int ConnectionCount => _connectionCount;
+    public int RejectedConnections => _rejectedConnections;
     public IReadOnlyDictionary<string, int> SourceAddresses => _sourceAddresses;
-    
+
     public void RecordBytesReceived(int bytes) => Interlocked.Add(ref _bytesReceived, bytes);
     public void RecordMessage() => Interlocked.Increment(ref _messagesReceived);
     public void RecordConnection() => Interlocked.Increment(ref _connectionCount);
+    public void RecordRejectedConnection() => Interlocked.Increment(ref _rejectedConnections);
     
     public void RecordPacket(IPEndPoint? endpoint)
     {
@@ -1388,6 +1537,7 @@ public class NaviPacStatistics
         _messagesReceived = 0;
         _packetsReceived = 0;
         _connectionCount = 0;
+        _rejectedConnections = 0;
         _sourceAddresses.Clear();
     }
 }

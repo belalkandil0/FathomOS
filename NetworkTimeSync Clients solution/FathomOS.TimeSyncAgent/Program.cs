@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using FathomOS.TimeSyncAgent.Models;
 using FathomOS.TimeSyncAgent.Services;
 
 namespace FathomOS.TimeSyncAgent;
@@ -31,9 +32,12 @@ public class Program
         // Add configuration
         builder.Services.Configure<AgentConfiguration>(
             builder.Configuration.GetSection("AgentSettings"));
-        
+        builder.Services.Configure<RateLimitSettings>(
+            builder.Configuration.GetSection("RateLimitSettings"));
+
         // Register services
         builder.Services.AddSingleton<TimeService>();
+        builder.Services.AddSingleton<RateLimiter>();
         builder.Services.AddHostedService<TcpListenerService>();
         
         // Configure as Windows Service
@@ -104,25 +108,36 @@ Options:
 
 Configuration:
   Edit appsettings.json to change port and shared secret.
+  IMPORTANT: You MUST configure a unique SharedSecret before use.
+  Generate a secure secret using: openssl rand -base64 32
 
 Default Port: 7700
-Default Secret: FathomOSTimeSync2024
+Default Secret: (none - must be configured)
 ");
     }
 
     private static void TestAgent()
     {
         Console.WriteLine("Testing agent configuration...");
-        
+
         var config = LoadConfiguration();
         Console.WriteLine($"  Port: {config.Port}");
         Console.WriteLine($"  Secret: {(string.IsNullOrEmpty(config.SharedSecret) ? "(not set)" : "****")}");
-        
+
+        var rateLimitSettings = LoadRateLimitSettings();
+        Console.WriteLine($"  Rate Limiting: {(rateLimitSettings.Enabled ? "Enabled" : "Disabled")}");
+        if (rateLimitSettings.Enabled)
+        {
+            Console.WriteLine($"    Max requests/min/IP: {rateLimitSettings.MaxRequestsPerMinutePerIp}");
+            Console.WriteLine($"    Max total requests/min: {rateLimitSettings.MaxTotalRequestsPerMinute}");
+            Console.WriteLine($"    Failed attempts before backoff: {rateLimitSettings.FailedAttemptsBeforeBackoff}");
+        }
+
         var timeService = new TimeService();
         var timeInfo = timeService.GetTimeInfo();
         Console.WriteLine($"  Current UTC: {timeInfo.UtcTime:O}");
         Console.WriteLine($"  Timezone: {timeInfo.TimeZoneId}");
-        
+
         Console.WriteLine("\nAgent configuration OK.");
     }
 
@@ -153,34 +168,41 @@ Default Secret: FathomOSTimeSync2024
     private static void RunConsoleMode()
     {
         Console.WriteLine("Running in console mode. Press Ctrl+C to exit.");
-        
+
         var config = LoadConfiguration();
+        var rateLimitSettings = LoadRateLimitSettings();
         var timeService = new TimeService();
+        var rateLimiter = new RateLimiter(
+            Microsoft.Extensions.Options.Options.Create(rateLimitSettings),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<RateLimiter>.Instance);
         var listener = new TcpListenerService(
             Microsoft.Extensions.Options.Options.Create(config),
             timeService,
+            rateLimiter,
             Microsoft.Extensions.Logging.Abstractions.NullLogger<TcpListenerService>.Instance);
 
         var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (s, e) => { e.Cancel = true; cts.Cancel(); };
 
         listener.StartAsync(cts.Token).Wait();
-        
+
         Console.WriteLine($"Listening on port {config.Port}...");
-        
+        Console.WriteLine($"Rate limiting: {(rateLimitSettings.Enabled ? "Enabled" : "Disabled")}");
+
         while (!cts.Token.IsCancellationRequested)
         {
             Thread.Sleep(1000);
         }
 
         listener.StopAsync(CancellationToken.None).Wait();
+        rateLimiter.Dispose();
         Console.WriteLine("Agent stopped.");
     }
 
     private static AgentConfiguration LoadConfiguration()
     {
         var config = new AgentConfiguration();
-        
+
         var configPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
         if (File.Exists(configPath))
         {
@@ -198,8 +220,53 @@ Default Secret: FathomOSTimeSync2024
             }
             catch { }
         }
-        
+
         return config;
+    }
+
+    private static RateLimitSettings LoadRateLimitSettings()
+    {
+        var settings = new RateLimitSettings();
+
+        var configPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        if (File.Exists(configPath))
+        {
+            try
+            {
+                var json = File.ReadAllText(configPath);
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("RateLimitSettings", out var rateLimitSection))
+                {
+                    if (rateLimitSection.TryGetProperty("Enabled", out var enabled))
+                        settings.Enabled = enabled.GetBoolean();
+                    if (rateLimitSection.TryGetProperty("MaxRequestsPerMinutePerIp", out var maxPerIp))
+                        settings.MaxRequestsPerMinutePerIp = maxPerIp.GetInt32();
+                    if (rateLimitSection.TryGetProperty("MaxTotalRequestsPerMinute", out var maxTotal))
+                        settings.MaxTotalRequestsPerMinute = maxTotal.GetInt32();
+                    if (rateLimitSection.TryGetProperty("FailedAttemptsBeforeBackoff", out var failedAttempts))
+                        settings.FailedAttemptsBeforeBackoff = failedAttempts.GetInt32();
+                    if (rateLimitSection.TryGetProperty("InitialBackoffSeconds", out var initialBackoff))
+                        settings.InitialBackoffSeconds = initialBackoff.GetInt32();
+                    if (rateLimitSection.TryGetProperty("MaxBackoffSeconds", out var maxBackoff))
+                        settings.MaxBackoffSeconds = maxBackoff.GetInt32();
+                    if (rateLimitSection.TryGetProperty("BackoffMultiplier", out var multiplier))
+                        settings.BackoffMultiplier = multiplier.GetDouble();
+                    if (rateLimitSection.TryGetProperty("TrackingWindowMinutes", out var window))
+                        settings.TrackingWindowMinutes = window.GetInt32();
+                    if (rateLimitSection.TryGetProperty("FailedAttemptResetMinutes", out var resetMinutes))
+                        settings.FailedAttemptResetMinutes = resetMinutes.GetInt32();
+                    if (rateLimitSection.TryGetProperty("WhitelistedIps", out var whitelist))
+                        settings.WhitelistedIps = whitelist.GetString() ?? settings.WhitelistedIps;
+                    if (rateLimitSection.TryGetProperty("LogViolations", out var logViolations))
+                        settings.LogViolations = logViolations.GetBoolean();
+                    if (rateLimitSection.TryGetProperty("CleanupIntervalMinutes", out var cleanup))
+                        settings.CleanupIntervalMinutes = cleanup.GetInt32();
+                }
+            }
+            catch { }
+        }
+
+        return settings;
     }
 }
 
@@ -209,8 +276,36 @@ Default Secret: FathomOSTimeSync2024
 public class AgentConfiguration
 {
     public int Port { get; set; } = 7700;
-    public string SharedSecret { get; set; } = "FathomOSTimeSync2024";
+
+    /// <summary>
+    /// Shared secret for authentication.
+    /// SECURITY FIX (VULN-001): Default is empty - must be configured per installation.
+    /// </summary>
+    public string SharedSecret { get; set; } = string.Empty;
+
     public int ConnectionTimeoutMs { get; set; } = 30000;
-    public bool AllowTimeSet { get; set; } = true;
-    public bool AllowNtpSync { get; set; } = true;
+
+    /// <summary>
+    /// Whether to allow remote time setting commands.
+    /// SECURITY FIX (MISSING-005 / Task 4.4): Default is FALSE for secure-by-default.
+    /// Must be explicitly enabled by administrator after verifying security requirements.
+    /// </summary>
+    public bool AllowTimeSet { get; set; } = false;
+
+    /// <summary>
+    /// Whether to allow remote NTP sync commands.
+    /// SECURITY FIX (MISSING-005 / Task 4.4): Default is FALSE for secure-by-default.
+    /// Must be explicitly enabled by administrator after verifying security requirements.
+    /// </summary>
+    public bool AllowNtpSync { get; set; } = false;
+
+    /// <summary>
+    /// Validates that the configuration is secure.
+    /// </summary>
+    public bool IsSecretConfigured()
+    {
+        return !string.IsNullOrEmpty(SharedSecret) &&
+               SharedSecret.Length >= 16 &&
+               SharedSecret != "FathomOSTimeSync2024"; // Reject known weak default
+    }
 }

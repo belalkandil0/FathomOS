@@ -11,23 +11,22 @@ public class SetupMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<SetupMiddleware> _logger;
 
-    // Paths that are always allowed, even during setup mode
-    private static readonly string[] AllowedPaths = new[]
+    // Exact paths that are always allowed
+    private static readonly string[] ExactAllowedPaths = new[]
     {
-        // Root and status endpoints
         "/",
         "/health",
         "/db-status",
-
-        // Setup endpoints
         "/setup",
         "/setup.html",
-        "/api/setup",
-        "/api/setup/status",
-        "/api/setup/ui-complete",      // Desktop UI setup endpoint (localhost only)
-        "/api/setup/validate-token",
-        "/api/setup/complete",
-        "/api/setup/password-requirements",
+        "/favicon.ico"
+    };
+
+    // Path prefixes that are always allowed (will match any path starting with these)
+    private static readonly string[] AllowedPathPrefixes = new[]
+    {
+        // Setup endpoints
+        "/api/setup",                  // All setup endpoints
         "/api/admin/auth/setup",       // Initial admin setup endpoint
 
         // License endpoints (needed for Desktop UI and clients)
@@ -38,8 +37,7 @@ public class SetupMiddleware
 
         // Swagger and static files
         "/swagger",
-        "/portal",
-        "/favicon.ico"
+        "/portal"
     };
 
     // Static file extensions that should be served
@@ -126,10 +124,19 @@ public class SetupMiddleware
 
     private static bool IsAllowedPath(string path)
     {
-        // Check if path starts with any allowed path
-        foreach (var allowedPath in AllowedPaths)
+        // Check exact path matches first
+        foreach (var exactPath in ExactAllowedPaths)
         {
-            if (path.StartsWith(allowedPath, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(path, exactPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        // Check if path starts with any allowed prefix
+        foreach (var prefix in AllowedPathPrefixes)
+        {
+            if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

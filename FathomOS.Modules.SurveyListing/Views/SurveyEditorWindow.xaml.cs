@@ -90,7 +90,9 @@ public partial class SurveyEditorWindow : MetroWindow
     private bool _snapPerpendicular = false;
     private double _snapRadius = 15.0;
     private double _gridSnapSize = 10.0;
+    #pragma warning disable CS0414 // Field is assigned but never used (reserved for future use)
     private Point? _lastSnapPoint = null;  // For snap indicator
+    #pragma warning restore CS0414
     
     // Measure tool
     private List<Point> _measurePoints = new();
@@ -104,9 +106,13 @@ public partial class SurveyEditorWindow : MetroWindow
     private double _blockSize = 15;
     
     // MEASURE interval tool (AutoCAD-style)
+    #pragma warning disable CS0414 // Fields are assigned but never used (reserved for future measure interval feature)
     private double _measureIntervalDistance = 1.0;  // Distance between points
+    #pragma warning restore CS0414
     private List<EditablePoint> _measureIntervalPoints = new();
+    #pragma warning disable CS0414
     private Polyline? _selectedPolylineForMeasure = null;
+    #pragma warning restore CS0414
     
     // Point size scaling constants
     private const double MIN_POINT_SIZE = 3.0;   // Minimum point size in pixels
@@ -132,7 +138,9 @@ public partial class SurveyEditorWindow : MetroWindow
     
     // Geometry caching
     private Dictionary<string, Geometry>? _geometryCache;
+    #pragma warning disable CS0414 // Field is assigned but never used (reserved for cache invalidation)
     private int _geometryCacheVersion = 0;
+    #pragma warning restore CS0414
     
     // Level of detail (LOD) for point rendering - configurable
     private int _maxPointsToDraw = 100000; // Increased from 10,000 - modern GPUs handle this easily

@@ -22,9 +22,14 @@
     <!-- Data Processing -->
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    
-    <!-- Certificate Storage -->
+
+    <!-- SECURITY FIX: VULN-004 - Certificate Storage with SQLCipher encryption -->
+    <!-- SQLitePCLRaw.bundle_e_sqlcipher provides SQLCipher support for Microsoft.Data.Sqlite -->
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.6" />
+
+    <!-- SECURITY FIX: DPAPI support for key management -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     
     <!-- Export Libraries -->
     <PackageReference Include="ClosedXML" Version="0.102.1" />

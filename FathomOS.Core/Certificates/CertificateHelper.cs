@@ -196,13 +196,14 @@ public static class CertificateHelper
     }
 
     /// <summary>
-    /// Computes MD5 hash of a file (for file verification in certificates)
+    /// Computes SHA-256 hash of a file (for file verification in certificates)
+    /// SECURITY FIX: Upgraded from MD5 (cryptographically broken) to SHA-256
     /// </summary>
     public static string ComputeFileHash(string filePath)
     {
-        using var md5 = MD5.Create();
+        using var sha256 = SHA256.Create();
         using var stream = File.OpenRead(filePath);
-        var hash = md5.ComputeHash(stream);
+        var hash = sha256.ComputeHash(stream);
         return Convert.ToHexString(hash);
     }
 

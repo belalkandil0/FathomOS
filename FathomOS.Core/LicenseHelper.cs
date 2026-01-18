@@ -15,17 +15,18 @@ public static class LicenseHelper
     /// Delegate that checks if the current module is licensed.
     /// In module-based licensing, if the module is licensed, ALL its features are available.
     /// </summary>
-    public static Func<string, bool> IsModuleLicensed { get; set; } = (_) => true;
+    public static Func<string, bool> IsModuleLicensed { get; set; } = (_) =>
+        throw new InvalidOperationException("License system not initialized");
     
     /// <summary>
     /// Delegate that checks if a specific feature is enabled (for backwards compatibility)
     /// </summary>
-    public static Func<string, bool> IsFeatureEnabled { get; set; } = (_) => true;
+    public static Func<string, bool> IsFeatureEnabled { get; set; } = (_) => false;
     
     /// <summary>
     /// Delegate that gets the current tier name
     /// </summary>
-    public static Func<string?> GetCurrentTier { get; set; } = () => "Professional";
+    public static Func<string?> GetCurrentTier { get; set; } = () => null;
     
     /// <summary>
     /// Delegate that shows a feature locked message

@@ -1,5 +1,6 @@
 // LicensingSystem.Client/HardwareFingerprint.cs
 // Generates hardware fingerprints with fuzzy matching support
+// SECURITY FIX: Uses constant-time comparison to prevent timing attacks (Task 4.5)
 
 using System.Management;
 using System.Security.Cryptography;
@@ -53,10 +54,11 @@ public class HardwareFingerprint
             combined = string.Join("|", _components.Values.Take(3));
         }
         
-        // BUG FIX: If still empty, generate a fallback based on machine name
+        // SECURITY FIX: Fail closed if no hardware identifiers available
+        // Fallback to spoofable values (machine name/username) was a security vulnerability
         if (string.IsNullOrEmpty(combined))
         {
-            combined = $"FALLBACK:{Environment.MachineName}:{Environment.UserName}";
+            throw new InvalidOperationException("Unable to collect hardware fingerprint. At least one hardware identifier is required.");
         }
         
         return ComputeHash(combined);
@@ -78,12 +80,59 @@ public class HardwareFingerprint
 
     /// <summary>
     /// Checks how many fingerprints match the stored ones
+    /// SECURITY FIX: Uses constant-time comparison to prevent timing attacks (Task 4.5)
     /// </summary>
     public static int CountMatches(List<string> storedFingerprints, List<string> currentFingerprints)
     {
-        return storedFingerprints.Count(stored => 
-            currentFingerprints.Any(current => 
-                string.Equals(stored, current, StringComparison.OrdinalIgnoreCase)));
+        // SECURITY FIX: Use constant-time comparison via FixedTimeEquals to prevent timing attacks
+        // Timing attacks could allow an attacker to determine hardware fingerprint values
+        // by measuring the time taken to compare strings
+        int matchCount = 0;
+
+        foreach (var stored in storedFingerprints)
+        {
+            foreach (var current in currentFingerprints)
+            {
+                // SECURITY FIX: Convert to bytes for constant-time comparison
+                // Both fingerprints should be uppercase hex strings of equal length
+                if (ConstantTimeCompare(stored, current))
+                {
+                    matchCount++;
+                    break; // Found a match for this stored fingerprint, move to next
+                }
+            }
+        }
+
+        return matchCount;
+    }
+
+    /// <summary>
+    /// SECURITY FIX: Performs constant-time string comparison to prevent timing attacks.
+    /// Uses CryptographicOperations.FixedTimeEquals for secure comparison.
+    /// </summary>
+    /// <param name="a">First string to compare</param>
+    /// <param name="b">Second string to compare</param>
+    /// <returns>True if strings are equal, false otherwise</returns>
+    private static bool ConstantTimeCompare(string a, string b)
+    {
+        if (a == null || b == null)
+            return a == b;
+
+        // Normalize to uppercase for case-insensitive comparison
+        var aUpper = a.ToUpperInvariant();
+        var bUpper = b.ToUpperInvariant();
+
+        // If lengths differ, pad the shorter one to prevent length-based timing leaks
+        // However, for fingerprints we expect them to be the same length
+        if (aUpper.Length != bUpper.Length)
+            return false;
+
+        // SECURITY FIX: Use CryptographicOperations.FixedTimeEquals for constant-time comparison
+        // This prevents timing side-channel attacks that could leak fingerprint values
+        var aBytes = Encoding.UTF8.GetBytes(aUpper);
+        var bBytes = Encoding.UTF8.GetBytes(bUpper);
+
+        return CryptographicOperations.FixedTimeEquals(aBytes, bBytes);
     }
 
     /// <summary>

@@ -53,7 +53,7 @@
     <ProjectReference Include="@(DiscoveredModules)" />
   </ItemGroup>
 
-  <!-- 
+  <!--
     ============================================================================
     AUTOMATIC MODULE DEPLOYMENT (Post-Build)
     ============================================================================
@@ -61,9 +61,44 @@
     ============================================================================
   -->
   <Target Name="DeployDiscoveredModules" AfterTargets="Build">
-    <Exec 
+    <Exec
       Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)deploy-modules.ps1&quot; -OutputPath &quot;$(OutputPath.TrimEnd('\'))&quot; -SolutionDir &quot;$(SolutionDir.TrimEnd('\'))&quot;"
       WorkingDirectory="$(ProjectDir)"
+      IgnoreExitCode="true"
+      ContinueOnError="true" />
+  </Target>
+
+  <!--
+    ============================================================================
+    CODE OBFUSCATION (Release Builds Only)
+    ============================================================================
+    Applies ConfuserEx obfuscation to protect intellectual property.
+
+    Features enabled:
+    - Symbol renaming (methods, fields, properties)
+    - String encryption for sensitive strings
+    - Control flow obfuscation
+    - Anti-tamper and anti-debug protections
+
+    To run manually: .\build\PostBuild-Obfuscate.ps1 -Configuration Release
+
+    Set RunObfuscation=true to enable automatic obfuscation:
+      dotnet build -c Release -p:RunObfuscation=true
+    ============================================================================
+  -->
+  <PropertyGroup>
+    <!-- Set to true to enable automatic obfuscation on Release builds -->
+    <!-- Default is false to avoid slowing down regular builds -->
+    <RunObfuscation Condition="'$(RunObfuscation)' == ''">false</RunObfuscation>
+  </PropertyGroup>
+
+  <Target Name="ObfuscateReleaseBuild"
+          AfterTargets="DeployDiscoveredModules"
+          Condition="'$(Configuration)' == 'Release' AND '$(RunObfuscation)' == 'true'">
+    <Message Importance="high" Text="Running code obfuscation..." />
+    <Exec
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)build\PostBuild-Obfuscate.ps1&quot; -Configuration $(Configuration) -SolutionDir &quot;$(SolutionDir.TrimEnd('\'))&quot;"
+      WorkingDirectory="$(SolutionDir)"
       IgnoreExitCode="true"
       ContinueOnError="true" />
   </Target>

@@ -236,8 +236,14 @@ public class TrayViewModel : INotifyPropertyChanged, IDisposable
             using var writer = new StreamWriter(stream, utf8NoBom) { AutoFlush = true };
 
             // Send GetInfo command
+            // SECURITY FIX (VULN-001): Load secret from configuration instead of hardcoding
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var secret = "FathomOSTimeSync2024";
+            var secret = GetConfiguredSecret();
+            if (string.IsNullOrEmpty(secret))
+            {
+                // Cannot authenticate without configured secret
+                return;
+            }
             var authData = $"{secret}:{timestamp}";
             var authHash = Convert.ToHexString(
                 System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(authData))).ToLowerInvariant();
@@ -302,16 +308,46 @@ public class TrayViewModel : INotifyPropertyChanged, IDisposable
             var ip = host.AddressList
                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                 .Where(a => !a.ToString().StartsWith("169.254"))
-                .FirstOrDefault(a => a.ToString().StartsWith("192.168") || 
+                .FirstOrDefault(a => a.ToString().StartsWith("192.168") ||
                                      a.ToString().StartsWith("10.") ||
                                      a.ToString().StartsWith("172."));
-            
+
             IpAddress = ip?.ToString() ?? "Unknown";
         }
         catch
         {
             IpAddress = "Unknown";
         }
+    }
+
+    /// <summary>
+    /// Gets the configured shared secret from appsettings.json.
+    /// SECURITY FIX (VULN-001): Secret must be configured - no hardcoded defaults.
+    /// </summary>
+    private string GetConfiguredSecret()
+    {
+        try
+        {
+            var appSettingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            if (File.Exists(appSettingsPath))
+            {
+                var json = File.ReadAllText(appSettingsPath);
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("TimeSyncAgent", out var agent) &&
+                    agent.TryGetProperty("SharedSecret", out var secret))
+                {
+                    var secretValue = secret.GetString();
+                    // Reject known weak default
+                    if (secretValue == "FathomOSTimeSync2024")
+                    {
+                        return string.Empty;
+                    }
+                    return secretValue ?? string.Empty;
+                }
+            }
+        }
+        catch { }
+        return string.Empty;
     }
 
     public void StartService()

@@ -22,6 +22,8 @@
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <!-- For GPS serial communication -->
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <!-- SECURITY FIX (MISSING-005): For DPAPI secure configuration storage -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
   <!-- Module metadata and assets -->
