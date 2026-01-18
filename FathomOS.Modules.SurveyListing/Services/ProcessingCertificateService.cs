@@ -422,7 +422,7 @@ public class ProcessingCertificateService
         try
         {
             // Try to get the server URL from app configuration
-            return "https://fathom-os-license-server.onrender.com";
+            return "https://s7fathom-license-server.onrender.com";
         }
         catch
         {

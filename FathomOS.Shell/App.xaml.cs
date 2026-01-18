@@ -169,7 +169,7 @@ public partial class App : Application
             // INITIALIZE LICENSE INTEGRATION (v3.4.7 simplified wrapper)
             // ============================================================================
             Licensing = new FathomOSLicenseIntegration(
-                "https://fathom-os-license-server.onrender.com",
+                "https://s7fathom-license-server.onrender.com",
                 LicenseConstants.ProductName  // "FathomOS" - must match license server
             );
             

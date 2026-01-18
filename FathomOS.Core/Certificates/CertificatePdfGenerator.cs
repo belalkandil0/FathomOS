@@ -155,7 +155,7 @@ public class CertificatePdfGenerator
         html.AppendLine("            <div class=\"qr-container\">");
         
         // Generate QR code URL for verification
-        var verificationUrl = $"https://fathom-os-license-server.onrender.com/verify.html?id={Uri.EscapeDataString(certificate.CertificateId)}";
+        var verificationUrl = $"https://s7fathom-license-server.onrender.com/verify.html?id={Uri.EscapeDataString(certificate.CertificateId)}";
         var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={Uri.EscapeDataString(verificationUrl)}";
         
         html.AppendLine($"                <img src=\"{qrCodeUrl}\" alt=\"QR Code\" class=\"qr-code\" width=\"120\" height=\"120\">");
@@ -174,7 +174,7 @@ public class CertificatePdfGenerator
         html.AppendLine("            <div class=\"verification-content\">");
         html.AppendLine($"                <div class=\"detail-row\"><span class=\"label\">Certificate ID:</span><span class=\"value mono\">{EscapeHtml(certificate.CertificateId)}</span></div>");
         html.AppendLine($"                <div class=\"detail-row\"><span class=\"label\">Issued:</span><span class=\"value\">{certificate.IssuedAt:dd MMM yyyy HH:mm:ss} UTC</span></div>");
-        var verifyLink = $"https://fathom-os-license-server.onrender.com/verify.html?id={Uri.EscapeDataString(certificate.CertificateId)}";
+        var verifyLink = $"https://s7fathom-license-server.onrender.com/verify.html?id={Uri.EscapeDataString(certificate.CertificateId)}";
         html.AppendLine($"                <div class=\"detail-row\"><span class=\"label\">Verify online:</span><span class=\"value\"><a href=\"{verifyLink}\">{verifyLink}</a></span></div>");
         html.AppendLine("            </div>");
         html.AppendLine("        </div>");

@@ -1,6 +1,6 @@
 # FathomOS Documentation
 
-**Version:** 1.0.47
+**Version:** 1.0.48
 **Last Updated:** January 18, 2026
 
 ## Recent Updates (v1.0.47)

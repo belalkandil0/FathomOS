@@ -237,7 +237,7 @@ public partial class SettingsWindow : Window
                 : Color.FromRgb(158, 158, 158)); // Gray
 
             TxtServerStatusTitle.Text = isConnected ? "Connected" : "Disconnected";
-            TxtServerUrl.Text = "fathom-os-license-server.onrender.com";
+            TxtServerUrl.Text = "s7fathom-license-server.onrender.com";
         }
         catch (Exception ex)
         {
@@ -264,7 +264,7 @@ public partial class SettingsWindow : Window
                 {
                     using var client = new System.Net.Http.HttpClient();
                     client.Timeout = TimeSpan.FromSeconds(5);
-                    var response = client.GetAsync("https://fathom-os-license-server.onrender.com/health").Result;
+                    var response = client.GetAsync("https://s7fathom-license-server.onrender.com/health").Result;
                     return response.IsSuccessStatusCode;
                 }
                 catch

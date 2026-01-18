@@ -46,7 +46,7 @@ public class SettingsService
     public string ServerUrl
     {
         get => string.IsNullOrEmpty(_settings.ServerUrl)
-            ? "https://fathom-os-license-server.onrender.com"
+            ? "https://s7fathom-license-server.onrender.com"
             : _settings.ServerUrl;
         set => _settings.ServerUrl = value;
     }
@@ -224,7 +224,7 @@ public class AppSettings
     public int GracePeriodDays { get; set; } = 14;
     public string KeyStoragePath { get; set; } = string.Empty;
     public string LastLicenseDirectory { get; set; } = string.Empty;
-    public string ServerUrl { get; set; } = "https://fathom-os-license-server.onrender.com";
+    public string ServerUrl { get; set; } = "https://s7fathom-license-server.onrender.com";
     public string? PrivateKey { get; set; }
     public string? PublicKey { get; set; }
     public string DefaultEdition { get; set; } = "Professional";

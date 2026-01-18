@@ -152,7 +152,7 @@
                 <!-- Server URL -->
                 <TextBlock Text="Server URL" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                 <TextBox x:Name="ServerUrlInput" Style="{StaticResource ModernTextBox}"
-                         Text="https://fathom-os-license-server.onrender.com"/>
+                         Text="https://s7fathom-license-server.onrender.com"/>
 
                 <!-- API Key -->
                 <TextBlock Text="API Key" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,16,0,6"/>

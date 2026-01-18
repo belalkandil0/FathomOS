@@ -135,7 +135,7 @@ public partial class DashboardWindow : Window
             {
                 using var httpClient = new System.Net.Http.HttpClient();
                 httpClient.Timeout = TimeSpan.FromSeconds(5);
-                var response = await httpClient.GetAsync("https://fathom-os-license-server.onrender.com/api/health");
+                var response = await httpClient.GetAsync("https://s7fathom-license-server.onrender.com/api/health");
                 isConnected = response.IsSuccessStatusCode;
             }
             catch

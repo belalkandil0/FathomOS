@@ -490,7 +490,7 @@
                                             <TextBlock x:Name="TxtServerStatusTitle" Text="Connected"
                                                        FontSize="14" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextBrush}"/>
-                                            <TextBlock x:Name="TxtServerUrl" Text="fathom-os-license-server.onrender.com"
+                                            <TextBlock x:Name="TxtServerUrl" Text="s7fathom-license-server.onrender.com"
                                                        FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"
                                                        Opacity="0.7" Margin="0,2,0,0"/>
                                         </StackPanel>

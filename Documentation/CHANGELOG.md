@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.48] - 2026-01-18
+
+### Changed
+- Updated all server URL references from `fathom-os-license-server` to `s7fathom-license-server`
+- Rebuilt License Manager with correct server endpoint
+- Server version updated to 3.5.1
+
+---
+
 ## [1.0.47] - 2026-01-18
 
 ### Added
