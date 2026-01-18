@@ -14,7 +14,12 @@ public class SetupMiddleware
     // Paths that are always allowed, even during setup mode
     private static readonly string[] AllowedPaths = new[]
     {
+        // Root and status endpoints
+        "/",
         "/health",
+        "/db-status",
+
+        // Setup endpoints
         "/setup",
         "/setup.html",
         "/api/setup",
@@ -23,8 +28,17 @@ public class SetupMiddleware
         "/api/setup/validate-token",
         "/api/setup/complete",
         "/api/setup/password-requirements",
-        "/api/license/time",           // Allow time check for Desktop UI connectivity
+        "/api/admin/auth/setup",       // Initial admin setup endpoint
+
+        // License endpoints (needed for Desktop UI and clients)
+        "/api/license",                // All license endpoints
+
+        // Module endpoints (read-only, needed for UI)
+        "/api/admin/modules",          // Module list for license creation
+
+        // Swagger and static files
         "/swagger",
+        "/portal",
         "/favicon.ico"
     };
 
