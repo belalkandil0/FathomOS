@@ -178,8 +178,27 @@ public partial class MainWindow : Window
         try
         {
             var response = await _httpClient.GetAsync($"{_serverUrl}/api/license/time");
+
+            // Check if server returned 503 with setup_required
+            if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                if (content.Contains("setup_required"))
+                {
+                    _isConnected = false;
+                    UpdateServerStatus();
+
+                    // Show setup dialog on UI thread
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        ShowSetupRequiredDialog();
+                    });
+                    return;
+                }
+            }
+
             _isConnected = response.IsSuccessStatusCode;
-            
+
             // If connected, fetch server info
             if (_isConnected)
             {
@@ -192,10 +211,28 @@ public partial class MainWindow : Window
         }
 
         UpdateServerStatus();
-        
+
         if (_isConnected)
         {
             await LoadLicensesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Show the setup required dialog when server needs first-time configuration
+    /// </summary>
+    private void ShowSetupRequiredDialog()
+    {
+        var setupWindow = new SetupRequiredWindow(_serverUrl, _httpClient);
+        setupWindow.Owner = this;
+
+        if (setupWindow.ShowDialog() == true)
+        {
+            // Setup completed successfully, try to connect again
+            _ = Dispatcher.InvokeAsync(async () =>
+            {
+                await ConnectToServerAsync();
+            });
         }
     }
 

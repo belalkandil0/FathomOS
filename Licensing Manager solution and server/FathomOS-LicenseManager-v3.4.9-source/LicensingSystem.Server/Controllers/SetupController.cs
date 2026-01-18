@@ -161,6 +161,95 @@ public class SetupController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Complete setup from Desktop UI (localhost only, no token required)
+    /// POST /api/setup/ui-complete
+    /// This endpoint allows the Desktop UI Manager to complete setup without a token
+    /// when running on the same machine as the server (localhost)
+    /// </summary>
+    [HttpPost("ui-complete")]
+    public async Task<ActionResult<SetupCompleteResponse>> UiComplete(
+        [FromBody] SetupCompleteRequest request)
+    {
+        // Get raw client IP without considering X-Forwarded-For (for security)
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        // Security: Only allow from localhost
+        if (!IsLocalhost(clientIp))
+        {
+            await _auditService.LogAsync("SETUP_UI_BLOCKED", "Setup", null, null,
+                request.Email, clientIp, "UI setup attempted from non-localhost address", false);
+
+            _logger.LogWarning("Setup UI endpoint called from non-localhost: {ClientIp}", clientIp);
+
+            return StatusCode(403, new
+            {
+                success = false,
+                message = "This endpoint is only available from localhost connections."
+            });
+        }
+
+        // Check if setup is still required
+        var status = await _setupService.GetSetupStatusAsync();
+        if (!status.SetupRequired)
+        {
+            return BadRequest(new SetupCompleteResponse
+            {
+                Success = false,
+                Message = "Setup has already been completed."
+            });
+        }
+
+        // Validate required fields (same as Complete endpoint)
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new { success = false, message = "Email is required." });
+        if (string.IsNullOrWhiteSpace(request.Username))
+            return BadRequest(new { success = false, message = "Username is required." });
+        if (string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { success = false, message = "Password is required." });
+
+        try
+        {
+            // Complete setup without token requirement (localhost bypass)
+            var result = await _setupService.CompleteSetupAsync(new SetupCompletionRequest
+            {
+                SetupToken = null,  // No token required for localhost
+                Email = request.Email,
+                Username = request.Username,
+                Password = request.Password,
+                DisplayName = request.DisplayName ?? request.Username,
+                EnableTwoFactor = request.EnableTwoFactor
+            }, "localhost-ui");
+
+            if (!result.Success)
+            {
+                return BadRequest(new SetupCompleteResponse
+                {
+                    Success = false,
+                    Message = result.ErrorMessage
+                });
+            }
+
+            await _auditService.LogAsync("SETUP_UI_COMPLETED", "Setup",
+                result.AdminUserId?.ToString(), null, request.Email, clientIp,
+                "Setup completed via Desktop UI (localhost)", true);
+
+            _logger.LogInformation("Setup completed via Desktop UI for admin: {Username}", request.Username);
+
+            return Ok(new SetupCompleteResponse
+            {
+                Success = true,
+                Message = "Setup completed successfully! You can now use the Desktop UI.",
+                RedirectUrl = null  // Desktop UI handles its own navigation
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error completing UI setup");
+            return StatusCode(500, new { success = false, message = "Error completing setup." });
+        }
+    }
+
     private string GetClientIp()
     {
         var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -169,6 +258,29 @@ public class SetupController : ControllerBase
             return forwardedFor.Split(',')[0].Trim();
         }
         return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+
+    /// <summary>
+    /// Check if the given IP address is localhost
+    /// </summary>
+    private static bool IsLocalhost(string ipAddress)
+    {
+        if (string.IsNullOrEmpty(ipAddress))
+            return false;
+
+        // IPv4 localhost
+        if (ipAddress == "127.0.0.1" || ipAddress.StartsWith("127."))
+            return true;
+
+        // IPv6 localhost
+        if (ipAddress == "::1")
+            return true;
+
+        // IPv4-mapped IPv6 localhost
+        if (ipAddress == "::ffff:127.0.0.1" || ipAddress.StartsWith("::ffff:127."))
+            return true;
+
+        return false;
     }
 }
 

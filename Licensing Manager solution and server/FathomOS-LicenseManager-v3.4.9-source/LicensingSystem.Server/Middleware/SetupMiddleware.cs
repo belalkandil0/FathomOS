@@ -18,6 +18,12 @@ public class SetupMiddleware
         "/setup",
         "/setup.html",
         "/api/setup",
+        "/api/setup/status",
+        "/api/setup/ui-complete",      // Desktop UI setup endpoint (localhost only)
+        "/api/setup/validate-token",
+        "/api/setup/complete",
+        "/api/setup/password-requirements",
+        "/api/license/time",           // Allow time check for Desktop UI connectivity
         "/swagger",
         "/favicon.ico"
     };

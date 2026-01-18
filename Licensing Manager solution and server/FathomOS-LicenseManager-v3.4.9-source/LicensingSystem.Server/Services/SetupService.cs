@@ -203,7 +203,7 @@ public class SetupService : ISetupService
             };
         }
 
-        // Validate setup token (unless bypassed by environment setup)
+        // Validate setup token (unless bypassed by environment setup, file setup, or localhost UI setup)
         if (!string.IsNullOrEmpty(request.SetupToken))
         {
             var tokenValidation = await ValidateSetupTokenAsync(request.SetupToken, ipAddress);
@@ -215,6 +215,21 @@ public class SetupService : ISetupService
                     ErrorMessage = tokenValidation.ErrorMessage
                 };
             }
+        }
+        else if (!IsLocalhostOrInternalSetup(ipAddress))
+        {
+            // Token is required for non-localhost/non-internal requests
+            _logger.LogWarning("Setup attempted without token from non-localhost: {IpAddress}", ipAddress);
+            return new SetupCompletionResult
+            {
+                Success = false,
+                ErrorMessage = "Setup token is required for remote setup."
+            };
+        }
+        // If token is null and it's localhost or internal setup source, allow setup without token
+        else
+        {
+            _logger.LogInformation("Setup proceeding without token for localhost/internal source: {IpAddress}", ipAddress);
         }
 
         // Validate password strength
@@ -280,7 +295,7 @@ public class SetupService : ISetupService
         config.IsSetupCompleted = true;
         config.SetupCompletedAt = DateTime.UtcNow;
         config.SetupCompletedByIp = ipAddress;
-        config.SetupMethod = string.IsNullOrEmpty(request.SetupToken) ? "Environment" : "Token";
+        config.SetupMethod = DetermineSetupMethod(request.SetupToken, ipAddress);
         config.SetupTokenHash = null; // Clear the token after successful setup
         config.SetupTokenExpiresAt = null;
 
@@ -427,6 +442,55 @@ public class SetupService : ISetupService
         var hash = Convert.ToBase64String(pbkdf2.GetBytes(32));
 
         return (hash, salt);
+    }
+
+    // ==================== Localhost/Internal Setup Helpers ====================
+
+    /// <summary>
+    /// Check if the IP address is localhost or an internal setup source
+    /// </summary>
+    private static bool IsLocalhostOrInternalSetup(string ipAddress)
+    {
+        if (string.IsNullOrEmpty(ipAddress))
+            return false;
+
+        // Internal setup sources (file-based, environment)
+        if (ipAddress == "localhost" ||
+            ipAddress == "file-based-setup" ||
+            ipAddress == "localhost-ui" ||
+            ipAddress == "environment")
+            return true;
+
+        // IPv4 localhost
+        if (ipAddress == "127.0.0.1" || ipAddress.StartsWith("127."))
+            return true;
+
+        // IPv6 localhost
+        if (ipAddress == "::1")
+            return true;
+
+        // IPv4-mapped IPv6 localhost
+        if (ipAddress == "::ffff:127.0.0.1" || ipAddress.StartsWith("::ffff:127."))
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determine the setup method based on token and IP address
+    /// </summary>
+    private static string DetermineSetupMethod(string? setupToken, string ipAddress)
+    {
+        if (!string.IsNullOrEmpty(setupToken))
+            return "Token";
+
+        return ipAddress switch
+        {
+            "file-based-setup" => "File",
+            "localhost-ui" => "DesktopUI",
+            "localhost" or "127.0.0.1" or "::1" => "Environment",
+            _ => "Unknown"
+        };
     }
 }
 

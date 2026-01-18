@@ -105,6 +105,9 @@ builder.Services.AddScoped<ILicenseObfuscationService, LicenseObfuscationService
 // First-time admin setup service
 builder.Services.AddScoped<ISetupService, SetupService>();
 
+// Admin setup file service (for offline/file-based deployments)
+builder.Services.AddScoped<IAdminSetupFileService, AdminSetupFileService>();
+
 // ==================== CORS ====================
 
 // Add CORS for desktop app and customer portal
@@ -251,6 +254,70 @@ catch (Exception ex)
 }
 
 // ==================== First-Time Admin Setup ====================
+
+// Step 1: Check for pre-seeded admin credentials file (for offline deployments)
+Console.WriteLine("Checking for pre-seeded admin credentials file...");
+try
+{
+    using var fileSetupScope = app.Services.CreateScope();
+    var fileSetupService = fileSetupScope.ServiceProvider.GetService<IAdminSetupFileService>();
+    var setupServiceForFile = fileSetupScope.ServiceProvider.GetRequiredService<ISetupService>();
+
+    if (fileSetupService != null)
+    {
+        var credentials = await fileSetupService.ReadSetupFileAsync();
+
+        if (credentials != null && await setupServiceForFile.IsSetupRequiredAsync())
+        {
+            Console.WriteLine("");
+            Console.WriteLine("========================================");
+            Console.WriteLine("   FILE-BASED ADMIN SETUP DETECTED");
+            Console.WriteLine("========================================");
+            Console.WriteLine($"   Found admin-credentials.json");
+            Console.WriteLine($"   Email: {credentials.Email}");
+            Console.WriteLine($"   Username: {credentials.Username}");
+            Console.WriteLine("   Creating admin account from file...");
+
+            var result = await setupServiceForFile.CompleteSetupAsync(new SetupCompletionRequest
+            {
+                Email = credentials.Email,
+                Username = credentials.Username,
+                Password = credentials.Password,
+                DisplayName = credentials.DisplayName ?? credentials.Username
+            }, "file-based-setup");
+
+            if (result.Success)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("[OK] Admin account created from admin-credentials.json");
+                Console.WriteLine("   Securely deleting credentials file...");
+                await fileSetupService.DeleteSetupFileAsync();
+                Console.WriteLine("[OK] Credentials file deleted");
+                Console.WriteLine("========================================");
+                Console.WriteLine("");
+
+                if (credentials.ForcePasswordChange)
+                {
+                    Console.WriteLine("[INFO] ForcePasswordChange is enabled - user should change password on first login");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[WARNING] Failed to create admin from file: {result.ErrorMessage}");
+                Console.WriteLine("   The credentials file will NOT be deleted.");
+                Console.WriteLine("   Fix the issue and restart the server.");
+                Console.WriteLine("========================================");
+            }
+        }
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[WARNING] File-based setup check error: {ex.Message}");
+    // Continue - the existing setup check will handle things
+}
+
+// Step 2: Check existing setup status and offer alternatives
 Console.WriteLine("Checking first-time setup status...");
 try
 {
@@ -282,14 +349,21 @@ try
             Console.WriteLine("");
             Console.WriteLine("   No admin account exists. Complete setup to continue.");
             Console.WriteLine("");
-            Console.WriteLine("   OPTION 1: Use the Setup Wizard");
+            Console.WriteLine("   OPTION 1: Use the Web Setup Wizard");
             Console.WriteLine("   Navigate to: http://localhost:5000/setup");
             Console.WriteLine("");
             Console.WriteLine("   Setup Token (valid for 24 hours):");
             Console.WriteLine($"   {setupToken}");
             Console.WriteLine("");
-            Console.WriteLine("   OPTION 2: Use Environment Variables");
+            Console.WriteLine("   OPTION 2: Use the Desktop UI Manager");
+            Console.WriteLine("   Launch the License Manager UI - it will prompt for setup");
+            Console.WriteLine("   (No token required when running on same machine)");
+            Console.WriteLine("");
+            Console.WriteLine("   OPTION 3: Use Environment Variables");
             Console.WriteLine("   Set ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD and restart");
+            Console.WriteLine("");
+            Console.WriteLine("   OPTION 4: Use admin-credentials.json (for offline deployments)");
+            Console.WriteLine("   Place file in data directory and restart server");
             Console.WriteLine("");
             Console.WriteLine("========================================");
             Console.WriteLine("");
