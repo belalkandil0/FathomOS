@@ -16,8 +16,10 @@ public class KeyStorageService
 
     public KeyStorageService()
     {
+        var localAppData = GetLocalAppDataPath();
+
         _keyStoragePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            localAppData,
             "FathomOSLicenseManager",
             "keys");
 
@@ -25,6 +27,44 @@ public class KeyStorageService
 
         _privateKeyPath = Path.Combine(_keyStoragePath, "private.key.dpapi");
         _publicKeyPath = Path.Combine(_keyStoragePath, "public.pem");
+    }
+
+    /// <summary>
+    /// Get the local app data path with robust fallback logic
+    /// </summary>
+    private static string GetLocalAppDataPath()
+    {
+        // Try LocalApplicationData first
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (!string.IsNullOrEmpty(localAppData))
+        {
+            System.Diagnostics.Debug.WriteLine($"KeyStorageService: Using LocalApplicationData: {localAppData}");
+            return localAppData;
+        }
+
+        // Fallback to UserProfile
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrEmpty(userProfile))
+        {
+            var fallbackPath = Path.Combine(userProfile, ".FathomOS");
+            System.Diagnostics.Debug.WriteLine($"KeyStorageService: Using UserProfile fallback: {fallbackPath}");
+            return fallbackPath;
+        }
+
+        // Ultimate fallback: use application directory
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        if (string.IsNullOrEmpty(baseDir))
+        {
+            baseDir = Directory.GetCurrentDirectory();
+        }
+        if (string.IsNullOrEmpty(baseDir))
+        {
+            baseDir = "."; // Current directory as last resort
+        }
+
+        var appDataPath = Path.Combine(baseDir, "AppData");
+        System.Diagnostics.Debug.WriteLine($"KeyStorageService: Using application directory fallback: {appDataPath}");
+        return appDataPath;
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LicensingSystem.Server.Data;
 using LicensingSystem.Server.Configuration;
+using LicensingSystem.Server.Services;
 using LicensingSystem.Shared;
 using System.Text.Json;
 using System.Security.Cryptography;
@@ -32,12 +33,18 @@ public class CertificateController : ControllerBase
     private readonly LicenseDbContext _db;
     private readonly ILogger<CertificateController> _logger;
     private readonly IConfiguration _config;
+    private readonly IWebhookService? _webhookService;
 
-    public CertificateController(LicenseDbContext db, ILogger<CertificateController> logger, IConfiguration config)
+    public CertificateController(
+        LicenseDbContext db,
+        ILogger<CertificateController> logger,
+        IConfiguration config,
+        IWebhookService? webhookService = null)
     {
         _db = db;
         _logger = logger;
         _config = config;
+        _webhookService = webhookService;
     }
 
     /// <summary>
@@ -383,18 +390,362 @@ public class CertificateController : ControllerBase
             SignatoryName = cert.SignatoryName,
             SignatoryTitle = cert.SignatoryTitle,
             CompanyName = cert.CompanyName,
-            ProcessingData = string.IsNullOrEmpty(cert.ProcessingDataJson) 
-                ? new Dictionary<string, string>() 
+            ProcessingData = string.IsNullOrEmpty(cert.ProcessingDataJson)
+                ? new Dictionary<string, string>()
                 : JsonSerializer.Deserialize<Dictionary<string, string>>(cert.ProcessingDataJson) ?? new(),
-            InputFiles = string.IsNullOrEmpty(cert.InputFilesJson) 
-                ? new List<string>() 
+            InputFiles = string.IsNullOrEmpty(cert.InputFilesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(cert.InputFilesJson) ?? new(),
-            OutputFiles = string.IsNullOrEmpty(cert.OutputFilesJson) 
-                ? new List<string>() 
+            OutputFiles = string.IsNullOrEmpty(cert.OutputFilesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(cert.OutputFilesJson) ?? new(),
             IsSignatureVerified = cert.IsSignatureVerified
         });
     }
+
+    /// <summary>
+    /// Batch verify multiple certificates.
+    /// POST /api/certificates/verify/batch
+    /// Verifies multiple certificate IDs in a single request.
+    /// </summary>
+    [HttpPost("verify/batch")]
+    public async Task<ActionResult<BatchVerificationResponse>> VerifyBatch([FromBody] BatchVerificationRequest request)
+    {
+        if (request == null || !request.CertificateIds.Any())
+        {
+            return BadRequest(new { message = "No certificate IDs provided" });
+        }
+
+        _logger.LogInformation("Batch verification request for {Count} certificates", request.CertificateIds.Count);
+
+        var results = new List<CertificateVerificationResult>();
+
+        foreach (var certId in request.CertificateIds.Distinct().Take(100)) // Limit to 100
+        {
+            var cert = await _db.Certificates
+                .FirstOrDefaultAsync(c => c.CertificateId == certId);
+
+            if (cert == null)
+            {
+                results.Add(new CertificateVerificationResult
+                {
+                    IsValid = false,
+                    CertificateId = certId,
+                    Message = "Certificate not found"
+                });
+                continue;
+            }
+
+            var module = await _db.Modules.FirstOrDefaultAsync(m => m.ModuleId == cert.ModuleId);
+
+            results.Add(new CertificateVerificationResult
+            {
+                IsValid = true,
+                CertificateId = cert.CertificateId,
+                IssuedAt = cert.IssuedAt,
+                CompanyName = cert.CompanyName,
+                ModuleId = cert.ModuleId,
+                ModuleName = module?.DisplayName ?? cert.ModuleId,
+                ProjectName = cert.ProjectName,
+                IsSignatureVerified = cert.IsSignatureVerified,
+                Message = cert.IsSignatureVerified
+                    ? "Certificate is authentic and verified"
+                    : "Certificate is in records (signature not verified)"
+            });
+        }
+
+        return Ok(new BatchVerificationResponse
+        {
+            TotalRequested = request.CertificateIds.Count,
+            Verified = results.Count(r => r.IsValid),
+            NotFound = results.Count(r => !r.IsValid),
+            Results = results
+        });
+    }
+
+    /// <summary>
+    /// Get certificate statistics for a licensee.
+    /// GET /api/certificates/stats/{licenseeCode}
+    /// Returns aggregate statistics about certificates issued.
+    /// </summary>
+    [HttpGet("stats/{licenseeCode}")]
+    public async Task<ActionResult<CertificateStatsResponse>> GetCertificateStats(string licenseeCode)
+    {
+        if (string.IsNullOrEmpty(licenseeCode) || licenseeCode.Length != 2)
+        {
+            return BadRequest(new { message = "Invalid licensee code. Must be 2 uppercase letters." });
+        }
+
+        var certificates = await _db.Certificates
+            .Where(c => c.LicenseeCode == licenseeCode.ToUpperInvariant())
+            .ToListAsync();
+
+        if (!certificates.Any())
+        {
+            return Ok(new CertificateStatsResponse
+            {
+                LicenseeCode = licenseeCode.ToUpperInvariant(),
+                TotalCertificates = 0,
+                Message = "No certificates found for this licensee"
+            });
+        }
+
+        // Group by module
+        var byModule = certificates
+            .GroupBy(c => c.ModuleId)
+            .Select(g => new ModuleCertificateStats
+            {
+                ModuleId = g.Key,
+                Count = g.Count(),
+                FirstIssued = g.Min(c => c.IssuedAt),
+                LastIssued = g.Max(c => c.IssuedAt)
+            })
+            .OrderByDescending(m => m.Count)
+            .ToList();
+
+        // Group by month
+        var byMonth = certificates
+            .GroupBy(c => new { c.IssuedAt.Year, c.IssuedAt.Month })
+            .Select(g => new MonthlyCertificateStats
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Count = g.Count()
+            })
+            .OrderByDescending(m => m.Year)
+            .ThenByDescending(m => m.Month)
+            .Take(12)
+            .ToList();
+
+        return Ok(new CertificateStatsResponse
+        {
+            LicenseeCode = licenseeCode.ToUpperInvariant(),
+            TotalCertificates = certificates.Count,
+            VerifiedCount = certificates.Count(c => c.IsSignatureVerified),
+            FirstCertificateDate = certificates.Min(c => c.IssuedAt),
+            LastCertificateDate = certificates.Max(c => c.IssuedAt),
+            ByModule = byModule,
+            ByMonth = byMonth
+        });
+    }
+
+    /// <summary>
+    /// Search certificates with filtering.
+    /// GET /api/certificates/search
+    /// Supports filtering by date range, module, project, etc.
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<CertificateSearchResponse>> SearchCertificates(
+        [FromQuery] string? licenseeCode,
+        [FromQuery] string? licenseId,
+        [FromQuery] string? moduleId,
+        [FromQuery] string? projectName,
+        [FromQuery] string? companyName,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50)
+    {
+        if (pageSize > 100) pageSize = 100;
+        if (page < 1) page = 1;
+
+        var query = _db.Certificates.AsQueryable();
+
+        if (!string.IsNullOrEmpty(licenseeCode))
+            query = query.Where(c => c.LicenseeCode == licenseeCode.ToUpperInvariant());
+
+        if (!string.IsNullOrEmpty(licenseId))
+            query = query.Where(c => c.LicenseId == licenseId);
+
+        if (!string.IsNullOrEmpty(moduleId))
+            query = query.Where(c => c.ModuleId == moduleId);
+
+        if (!string.IsNullOrEmpty(projectName))
+            query = query.Where(c => c.ProjectName.Contains(projectName));
+
+        if (!string.IsNullOrEmpty(companyName))
+            query = query.Where(c => c.CompanyName.Contains(companyName));
+
+        if (fromDate.HasValue)
+            query = query.Where(c => c.IssuedAt >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(c => c.IssuedAt <= toDate.Value);
+
+        var totalCount = await query.CountAsync();
+
+        var certificates = await query
+            .OrderByDescending(c => c.IssuedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new CertificateListItem
+            {
+                CertificateId = c.CertificateId,
+                ModuleId = c.ModuleId,
+                ProjectName = c.ProjectName,
+                IssuedAt = c.IssuedAt,
+                CompanyName = c.CompanyName,
+                SignatoryName = c.SignatoryName
+            })
+            .ToListAsync();
+
+        return Ok(new CertificateSearchResponse
+        {
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+            Certificates = certificates
+        });
+    }
+
+    /// <summary>
+    /// Re-verify certificate signature.
+    /// POST /api/certificates/reverify/{certificateId}
+    /// Re-validates the signature of a certificate.
+    /// </summary>
+    [HttpPost("reverify/{certificateId}")]
+    public async Task<ActionResult> ReverifyCertificate(string certificateId)
+    {
+        var cert = await _db.Certificates
+            .FirstOrDefaultAsync(c => c.CertificateId == certificateId);
+
+        if (cert == null)
+        {
+            return NotFound(new { message = "Certificate not found" });
+        }
+
+        if (string.IsNullOrEmpty(cert.Signature))
+        {
+            return Ok(new
+            {
+                certificateId = cert.CertificateId,
+                previousStatus = cert.IsSignatureVerified,
+                newStatus = false,
+                message = "Certificate has no signature to verify"
+            });
+        }
+
+        // Rebuild certificate for verification
+        var mockCert = new ProcessingCertificate
+        {
+            CertificateId = cert.CertificateId,
+            LicenseeCode = cert.LicenseeCode,
+            ModuleId = cert.ModuleId,
+            ModuleCertificateCode = cert.ModuleCertificateCode,
+            ModuleVersion = cert.ModuleVersion ?? string.Empty,
+            IssuedAt = cert.IssuedAt,
+            ProjectName = cert.ProjectName,
+            SignatoryName = cert.SignatoryName,
+            CompanyName = cert.CompanyName,
+            Signature = cert.Signature,
+            ProcessingData = string.IsNullOrEmpty(cert.ProcessingDataJson)
+                ? new Dictionary<string, string>()
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(cert.ProcessingDataJson) ?? new()
+        };
+
+        var previousStatus = cert.IsSignatureVerified;
+        var newStatus = VerifyCertificateSignature(mockCert);
+
+        cert.IsSignatureVerified = newStatus;
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Re-verified certificate {CertificateId}: {PreviousStatus} -> {NewStatus}",
+            certificateId, previousStatus, newStatus);
+
+        return Ok(new
+        {
+            certificateId = cert.CertificateId,
+            previousStatus,
+            newStatus,
+            message = newStatus
+                ? "Signature verified successfully"
+                : "Signature verification failed"
+        });
+    }
+
+    /// <summary>
+    /// Get recent certificates for a license.
+    /// GET /api/certificates/recent/{licenseId}
+    /// Returns the most recent certificates for a specific license.
+    /// </summary>
+    [HttpGet("recent/{licenseId}")]
+    public async Task<ActionResult<List<CertificateListItem>>> GetRecentCertificates(
+        string licenseId,
+        [FromQuery] int count = 10)
+    {
+        if (count > 100) count = 100;
+
+        var certificates = await _db.Certificates
+            .Where(c => c.LicenseId == licenseId)
+            .OrderByDescending(c => c.IssuedAt)
+            .Take(count)
+            .Select(c => new CertificateListItem
+            {
+                CertificateId = c.CertificateId,
+                ModuleId = c.ModuleId,
+                ProjectName = c.ProjectName,
+                IssuedAt = c.IssuedAt,
+                CompanyName = c.CompanyName,
+                SignatoryName = c.SignatoryName
+            })
+            .ToListAsync();
+
+        return Ok(certificates);
+    }
+}
+
+// ============================================================================
+// Additional DTOs for Certificate Controller
+// ============================================================================
+
+public class BatchVerificationRequest
+{
+    public List<string> CertificateIds { get; set; } = new();
+}
+
+public class BatchVerificationResponse
+{
+    public int TotalRequested { get; set; }
+    public int Verified { get; set; }
+    public int NotFound { get; set; }
+    public List<CertificateVerificationResult> Results { get; set; } = new();
+}
+
+public class CertificateStatsResponse
+{
+    public string LicenseeCode { get; set; } = string.Empty;
+    public int TotalCertificates { get; set; }
+    public int VerifiedCount { get; set; }
+    public DateTime? FirstCertificateDate { get; set; }
+    public DateTime? LastCertificateDate { get; set; }
+    public string? Message { get; set; }
+    public List<ModuleCertificateStats> ByModule { get; set; } = new();
+    public List<MonthlyCertificateStats> ByMonth { get; set; } = new();
+}
+
+public class ModuleCertificateStats
+{
+    public string ModuleId { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public DateTime FirstIssued { get; set; }
+    public DateTime LastIssued { get; set; }
+}
+
+public class MonthlyCertificateStats
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public int Count { get; set; }
+}
+
+public class CertificateSearchResponse
+{
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public List<CertificateListItem> Certificates { get; set; } = new();
 }
 
 // ============================================================================

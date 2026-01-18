@@ -1,11 +1,16 @@
-# Fathom OS Equipment & Inventory Module
+# Equipment Inventory Module
+
+**Module ID:** EquipmentInventory
+**Version:** 1.0.0
+**Category:** Operations
+**Author:** Fathom OS Team
+
+---
 
 ## Overview
 
-Enterprise-grade equipment and inventory management for offshore/onshore operations.
+Enterprise-grade equipment and inventory management for offshore/onshore operations. This module provides comprehensive tracking of survey equipment with QR code support, manifest generation, and multi-location synchronization.
 
-**Version:** 1.0.0  
-**Platform:** Windows Desktop (WPF .NET 8)  
 **Scale:** 175,000-250,000 equipment items, 100 bases, 150 vessels
 
 ## Key Features

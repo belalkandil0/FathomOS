@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using FathomOS.Core.Certificates;
 using FathomOS.Core.Interfaces;
 using FathomOS.Modules.EquipmentInventory.Views;
 using FathomOS.Modules.EquipmentInventory.Data;
@@ -12,12 +13,10 @@ namespace FathomOS.Modules.EquipmentInventory;
 /// <summary>
 /// Main module entry point implementing the Fathom OS IModule interface.
 /// Equipment &amp; Inventory Management Module for offshore and onshore operations.
-/// 
+///
 /// Certificate System Integration:
 /// - Certificate Code: EI
 /// - Certificate Title: Equipment &amp; Inventory Management Verification Certificate
-/// 
-/// NOTE: Namespace will change from S7Fathom to FathomOS upon integration.
 /// </summary>
 public class EquipmentInventoryModule : IModule
 {
@@ -26,6 +25,9 @@ public class EquipmentInventoryModule : IModule
     private readonly SyncService _syncService;
     private readonly AuthenticationService _localAuthService;
     private readonly IAuthenticationService? _authenticationService;
+    private readonly ICertificationService? _certificationService;
+    private readonly IThemeService? _themeService;
+    private readonly IExportService? _exportService;
 
     // Certificate configuration (matches ModuleInfo.json)
     public const string CertificateCode = "EI";
@@ -50,15 +52,43 @@ public class EquipmentInventoryModule : IModule
         ICertificationService? certificationService = null,
         IEventAggregator? eventAggregator = null,
         IThemeService? themeService = null,
-        IErrorReporter? errorReporter = null)
+        IErrorReporter? errorReporter = null,
+        IExportService? exportService = null)
     {
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _certificationService = certificationService;
+        _themeService = themeService;
+        _exportService = exportService;
         _databaseService = new LocalDatabaseService();
         _localAuthService = new AuthenticationService();
         _syncService = new SyncService(_databaseService, _localAuthService);
 
         // Subscribe to authentication changes from Shell
         _authenticationService.AuthenticationChanged += OnAuthenticationChanged;
+
+        // Subscribe to theme changes
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged += OnThemeChanged;
+        }
+    }
+
+    /// <summary>
+    /// Gets the certification service for external access.
+    /// </summary>
+    public ICertificationService? CertificationService => _certificationService;
+
+    /// <summary>
+    /// Gets the export service from Core.
+    /// </summary>
+    public IExportService? ExportService => _exportService;
+
+    private void OnThemeChanged(object? sender, AppTheme theme)
+    {
+        // Update local theme service to sync with Shell
+        var isDark = theme == AppTheme.Dark;
+        ThemeService.Instance.IsDarkTheme = isDark;
+        System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Theme changed to {theme}");
     }
 
     /// <summary>
@@ -134,24 +164,23 @@ public class EquipmentInventoryModule : IModule
     #region IModule Methods
     
     /// <summary>
-    /// Called when module is loaded. Initialize services and database.
+    /// Called when module is loaded. Lightweight initialization only.
+    /// Heavy database initialization is deferred to Launch() to prevent UI freezing.
     /// </summary>
     public void Initialize()
     {
         try
         {
             System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Initializing v{Version}...");
-            
-            // Initialize local database
-            _databaseService.Initialize();
-            
-            // Load settings
+
+            // Load settings (lightweight)
             var settings = ModuleSettings.Load();
-            
-            // Initialize sync service with settings
+
+            // Configure sync service (lightweight - no DB operations yet)
             _syncService.Configure(settings.ApiBaseUrl);
-            
-            System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Initialization complete");
+
+            // NOTE: Database initialization is deferred to Launch() to prevent UI freezing
+            System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Lightweight initialization complete");
         }
         catch (Exception ex)
         {
@@ -164,8 +193,23 @@ public class EquipmentInventoryModule : IModule
     /// </summary>
     public void Launch(Window? owner = null)
     {
+        // Use async launch to prevent UI freezing
+        LaunchAsync(owner).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Async implementation of Launch to support non-blocking database initialization.
+    /// </summary>
+    private async Task LaunchAsync(Window? owner)
+    {
         try
         {
+            // Initialize database asynchronously BEFORE authentication
+            // This prevents UI freezing during database creation/migrations
+            System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Starting async database initialization...");
+            await _databaseService.InitializeAsync();
+            System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Database initialization complete");
+
             // Check authentication status (prefer centralized auth if available)
             bool isAuthenticated = _authenticationService?.IsAuthenticated ?? _localAuthService.IsAuthenticated;
 
@@ -185,10 +229,9 @@ public class EquipmentInventoryModule : IModule
                 if (!_authenticationService.IsAuthenticated)
                 {
                     // Request login through centralized service (Shell's login dialog)
-                    var loginTask = _authenticationService.ShowLoginDialogAsync(owner);
-                    loginTask.Wait();
+                    var loginResult = await _authenticationService.ShowLoginDialogAsync(owner);
 
-                    if (!loginTask.Result)
+                    if (!loginResult)
                     {
                         System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Authentication cancelled or failed via Shell");
                         return;
@@ -227,7 +270,7 @@ public class EquipmentInventoryModule : IModule
                 "Module Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
-            
+
             System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Launch error: {ex}");
         }
     }
@@ -247,16 +290,22 @@ public class EquipmentInventoryModule : IModule
                 _authenticationService.AuthenticationChanged -= OnAuthenticationChanged;
             }
 
+            // Unsubscribe from theme events
+            if (_themeService != null)
+            {
+                _themeService.ThemeChanged -= OnThemeChanged;
+            }
+
             // Save any pending changes
             _syncService?.SyncAsync().Wait(TimeSpan.FromSeconds(5));
 
             // Close main window
             _mainWindow?.Close();
             _mainWindow = null;
-            
+
             // Dispose services
             _databaseService?.Dispose();
-            
+
             System.Diagnostics.Debug.WriteLine($"[{DisplayName}] Shutdown complete");
         }
         catch (Exception ex)
@@ -410,6 +459,32 @@ public class EquipmentInventoryModule : IModule
             "Senior Technician"
         };
     }
-    
+
+    /// <summary>
+    /// Generate a certificate for equipment/inventory operations.
+    /// </summary>
+    /// <param name="operationType">Type of operation (ManifestCompletion, InventoryAudit, etc.).</param>
+    /// <param name="context">Operation-specific context object.</param>
+    /// <param name="projectName">Project name for certificate.</param>
+    /// <param name="owner">Parent window for dialog.</param>
+    /// <returns>Certificate ID if created, null if cancelled.</returns>
+    public async Task<string?> GenerateCertificateAsync(
+        string operationType,
+        object? context,
+        string projectName,
+        Window? owner = null)
+    {
+        var processingData = GetCertificateProcessingData(operationType, context);
+
+        var request = ModuleCertificateHelper.CreateRequest(
+            ModuleId,
+            CertificateCode,
+            Version.ToString(),
+            projectName,
+            processingData);
+
+        return await ModuleCertificateHelper.GenerateCertificateAsync(_certificationService, request, owner);
+    }
+
     #endregion
 }

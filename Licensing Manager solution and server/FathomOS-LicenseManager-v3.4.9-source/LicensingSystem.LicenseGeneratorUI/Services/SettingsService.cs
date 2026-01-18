@@ -14,7 +14,7 @@ public class SettingsService
     public SettingsService()
     {
         var appDataPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            GetLocalAppDataPath(),
             "FathomOSLicenseManager");
 
         Directory.CreateDirectory(appDataPath);
@@ -23,11 +23,30 @@ public class SettingsService
         _settings = LoadSettings();
     }
 
+    /// <summary>
+    /// Get the local app data path with fallbacks for edge cases
+    /// </summary>
+    private static string GetLocalAppDataPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        if (!string.IsNullOrEmpty(localAppData))
+            return localAppData;
+
+        // Fallback to UserProfile
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrEmpty(userProfile))
+            return Path.Combine(userProfile, ".FathomOS");
+
+        // Ultimate fallback: use application directory
+        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppData");
+    }
+
     // Direct property accessors
     public string ServerUrl
     {
         get => string.IsNullOrEmpty(_settings.ServerUrl)
-            ? "https://s7fathom-license-server.onrender.com"
+            ? "https://fathom-os-license-server.onrender.com"
             : _settings.ServerUrl;
         set => _settings.ServerUrl = value;
     }
@@ -51,7 +70,7 @@ public class SettingsService
             if (string.IsNullOrEmpty(_settings.KeyStoragePath))
             {
                 _settings.KeyStoragePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    GetLocalAppDataPath(),
                     "FathomOSLicenseManager",
                     "keys");
             }
@@ -205,7 +224,7 @@ public class AppSettings
     public int GracePeriodDays { get; set; } = 14;
     public string KeyStoragePath { get; set; } = string.Empty;
     public string LastLicenseDirectory { get; set; } = string.Empty;
-    public string ServerUrl { get; set; } = "https://s7fathom-license-server.onrender.com";
+    public string ServerUrl { get; set; } = "https://fathom-os-license-server.onrender.com";
     public string? PrivateKey { get; set; }
     public string? PublicKey { get; set; }
     public string DefaultEdition { get; set; } = "Professional";

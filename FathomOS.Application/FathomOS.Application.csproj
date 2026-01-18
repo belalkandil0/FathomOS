@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FathomOS.Application</RootNamespace>
+    <AssemblyName>FathomOS.Application</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Application layer for FathomOS - Contains CQRS handlers, application services, DTOs, and pipeline behaviors. This layer orchestrates use cases and implements the mediator pattern.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FathomOS.Domain\FathomOS.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MediatR for CQRS pattern implementation -->
+    <PackageReference Include="MediatR" Version="12.2.0" />
+
+    <!-- FluentValidation for command/query validation -->
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
+
+    <!-- Microsoft.Extensions.DependencyInjection for service registration -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+
+    <!-- Microsoft.Extensions.Logging for logging abstractions -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

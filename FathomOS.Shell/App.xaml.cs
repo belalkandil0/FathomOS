@@ -105,6 +105,19 @@ public partial class App : Application
     /// Get display edition (e.g., "Fathom OS" or "Fathom OS — Brand Edition")
     /// </summary>
     public static string DisplayEdition => Licensing?.GetLicenseDisplayInfo().DisplayEdition ?? "Fathom OS";
+
+    /// <summary>
+    /// Get the licensed client/customer name
+    /// </summary>
+    public static string ClientName
+    {
+        get
+        {
+            if (Licensing == null) return "";
+            var customerName = Licensing.GetLicenseDisplayInfo().CustomerName;
+            return string.IsNullOrEmpty(customerName) ? "" : customerName;
+        }
+    }
     
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
@@ -156,7 +169,7 @@ public partial class App : Application
             // INITIALIZE LICENSE INTEGRATION (v3.4.7 simplified wrapper)
             // ============================================================================
             Licensing = new FathomOSLicenseIntegration(
-                "https://s7fathom-license-server.onrender.com",
+                "https://fathom-os-license-server.onrender.com",
                 LicenseConstants.ProductName  // "FathomOS" - must match license server
             );
             
@@ -515,12 +528,17 @@ public partial class App : Application
         // Event Aggregator - thread-safe pub/sub messaging
         services.AddSingleton<IEventAggregator, EventAggregator>();
 
-        // Theme Service - unified theme management (depends on EventAggregator)
-        services.AddSingleton<IThemeService>(sp =>
-            new ThemeService(sp.GetRequiredService<IEventAggregator>()));
-
-        // Settings Service - persistent JSON-based settings
+        // Settings Service - persistent JSON-based settings (needed by ThemeService)
         services.AddSingleton<ISettingsService, SettingsService>();
+
+        // Theme Service - unified theme management with System theme support
+        services.AddSingleton<IThemeService>(sp =>
+            new ThemeService(
+                sp.GetRequiredService<IEventAggregator>(),
+                sp.GetRequiredService<ISettingsService>()));
+
+        // Notification Service - toast notifications for user feedback
+        services.AddSingleton<INotificationService, NotificationService>();
 
         // Error Reporter - centralized error logging (depends on EventAggregator)
         services.AddSingleton<IErrorReporter>(sp =>

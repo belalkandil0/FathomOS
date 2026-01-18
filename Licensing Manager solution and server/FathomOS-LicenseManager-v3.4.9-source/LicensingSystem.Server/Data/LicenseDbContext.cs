@@ -4,6 +4,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using LicensingSystem.Shared;
+using LicensingSystem.Server.Services;
 
 namespace LicensingSystem.Server.Data;
 
@@ -60,6 +61,9 @@ public class LicenseDbContext : DbContext
 
     // Synced License Records (for tracking offline licenses)
     public DbSet<SyncedLicenseRecord> SyncedLicenses => Set<SyncedLicenseRecord>();
+
+    // Webhook Delivery Records (for tracking webhook notifications)
+    public DbSet<WebhookDeliveryRecord> WebhookDeliveries => Set<WebhookDeliveryRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -379,6 +383,23 @@ public class LicenseDbContext : DbContext
             entity.Property(e => e.Edition).HasMaxLength(64);
             entity.Property(e => e.LicenseJson).HasColumnType("TEXT");
             entity.Property(e => e.RevokedReason).HasMaxLength(512);
+        });
+
+        // WebhookDeliveryRecord configuration (for webhook tracking)
+        modelBuilder.Entity<WebhookDeliveryRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.WebhookId);
+            entity.HasIndex(e => e.AttemptedAt);
+            entity.HasIndex(e => new { e.Success, e.AttemptedAt });
+
+            entity.Property(e => e.WebhookId).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.EndpointName).HasMaxLength(128);
+            entity.Property(e => e.EndpointUrl).HasMaxLength(512).IsRequired();
+            entity.Property(e => e.EventType).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Payload).HasColumnType("TEXT");
+            entity.Property(e => e.ResponseBody).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasMaxLength(1024);
         });
 
         // Seed default data

@@ -2,7 +2,7 @@ namespace FathomOS.Core.Interfaces;
 
 /// <summary>
 /// Defines the application theme options.
-/// FathomOS supports Dark Professional and Light themes.
+/// FathomOS supports Dark Professional, Light, and System-following themes.
 /// Default: Dark (user-approved decision)
 /// </summary>
 public enum AppTheme
@@ -15,7 +15,12 @@ public enum AppTheme
     /// <summary>
     /// Clean Light theme for daytime use
     /// </summary>
-    Light
+    Light,
+
+    /// <summary>
+    /// Follows the Windows system theme setting
+    /// </summary>
+    System
 }
 
 /// <summary>

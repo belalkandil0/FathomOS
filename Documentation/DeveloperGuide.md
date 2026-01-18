@@ -525,9 +525,176 @@ View output in Visual Studio's Output window (Debug category).
 
 ---
 
+## Coding Standards and Conventions
+
+### C# Coding Standards
+
+#### Naming Conventions
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| Namespace | PascalCase | `FathomOS.Modules.SurveyListing` |
+| Class | PascalCase | `SurveyProcessor` |
+| Interface | I + PascalCase | `ISmoothingService` |
+| Method | PascalCase | `ProcessData()` |
+| Property | PascalCase | `IsEnabled` |
+| Private field | _camelCase | `_surveyPoints` |
+| Parameter | camelCase | `surveyPoint` |
+| Local variable | camelCase | `localValue` |
+| Constant | PascalCase | `MaxPoints` |
+
+#### Code Organization
+
+```csharp
+// File: SurveyProcessor.cs
+namespace FathomOS.Core.Services;
+
+/// <summary>
+/// Processes survey data with smoothing and corrections.
+/// </summary>
+public class SurveyProcessor : ISurveyProcessor
+{
+    // 1. Constants
+    private const int MaxBatchSize = 1000;
+
+    // 2. Private fields (readonly first)
+    private readonly ISmoothingService _smoothingService;
+    private readonly ICacheService _cacheService;
+    private bool _isProcessing;
+
+    // 3. Constructors
+    public SurveyProcessor(ISmoothingService smoothingService, ICacheService cacheService)
+    {
+        _smoothingService = smoothingService ?? throw new ArgumentNullException(nameof(smoothingService));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+    }
+
+    // 4. Public properties
+    public bool IsProcessing => _isProcessing;
+
+    // 5. Public methods
+    public async Task<ProcessingResult> ProcessAsync(List<SurveyPoint> points)
+    {
+        // Implementation
+    }
+
+    // 6. Private methods
+    private void ValidateInput(List<SurveyPoint> points)
+    {
+        // Implementation
+    }
+}
+```
+
+#### XML Documentation
+
+Always document public APIs:
+
+```csharp
+/// <summary>
+/// Applies smoothing to survey points using the specified algorithm.
+/// </summary>
+/// <param name="points">The survey points to smooth.</param>
+/// <param name="options">Smoothing options including algorithm and parameters.</param>
+/// <returns>A result containing modified points and statistics.</returns>
+/// <exception cref="ArgumentNullException">Thrown when points is null.</exception>
+/// <exception cref="InvalidOperationException">Thrown when smoothing fails.</exception>
+public SmoothingResult Smooth(List<SurveyPoint> points, SmoothingOptions options)
+{
+    // Implementation
+}
+```
+
+### XAML Standards
+
+#### Layout Guidelines
+
+```xml
+<!-- Use Grid for complex layouts -->
+<Grid>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}">
+        <!-- Content -->
+    </Border>
+
+    <!-- Main content -->
+    <ScrollViewer Grid.Row="1">
+        <!-- Content -->
+    </ScrollViewer>
+
+    <!-- Footer -->
+    <StatusBar Grid.Row="2">
+        <!-- Content -->
+    </StatusBar>
+</Grid>
+```
+
+#### Data Binding
+
+```xml
+<!-- Use proper binding modes -->
+<TextBox Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+<!-- Use converters for type conversion -->
+<TextBlock Visibility="{Binding HasData, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+<!-- Use StringFormat for display -->
+<TextBlock Text="{Binding TotalPoints, StringFormat=N0}"/>
+<TextBlock Text="{Binding Timestamp, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}"/>
+```
+
+### File Organization
+
+```
+FathomOS.Modules.Example/
+├── ExampleModule.cs           # IModule implementation (entry point)
+├── FathomOS.Modules.Example.csproj
+│
+├── Views/                     # XAML views
+│   ├── MainWindow.xaml
+│   ├── MainWindow.xaml.cs
+│   ├── SettingsDialog.xaml
+│   └── Steps/                 # Wizard steps (if applicable)
+│       ├── Step1.xaml
+│       └── Step2.xaml
+│
+├── ViewModels/                # MVVM ViewModels
+│   ├── MainViewModel.cs
+│   ├── SettingsViewModel.cs
+│   ├── ViewModelBase.cs       # Base class with INotifyPropertyChanged
+│   └── RelayCommand.cs        # ICommand implementation
+│
+├── Models/                    # Module-specific data models
+│   └── ExampleData.cs
+│
+├── Services/                  # Module-specific services
+│   ├── ExampleService.cs
+│   └── ThemeService.cs        # Theme switching
+│
+├── Converters/                # Value converters
+│   └── Converters.cs
+│
+├── Assets/                    # Images, icons
+│   └── icon.png
+│
+└── Themes/                    # Theme resource dictionaries
+    ├── LightTheme.xaml
+    ├── DarkTheme.xaml
+    ├── ModernTheme.xaml
+    └── GradientTheme.xaml
+```
+
+---
+
 ## Best Practices
 
-### Naming Conventions
+### Module Naming Conventions
 
 - **Module ID**: PascalCase, no spaces (e.g., "SurveyListing")
 - **Display Name**: Title Case with spaces (e.g., "Survey Listing")

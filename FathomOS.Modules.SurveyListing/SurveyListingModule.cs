@@ -1,7 +1,9 @@
 using System.IO;
 using System.Windows;
 using FathomOS.Core;
+using FathomOS.Core.Certificates;
 using FathomOS.Core.Interfaces;
+using FathomOS.Modules.SurveyListing.Settings;
 using FathomOS.Modules.SurveyListing.Views;
 using MessageBox = System.Windows.MessageBox;
 
@@ -11,6 +13,10 @@ namespace FathomOS.Modules.SurveyListing;
 /// Survey Listing Generator module for Fathom OS.
 /// Generates survey listings from NPD files with route alignment, tide corrections,
 /// and multiple export formats.
+///
+/// Certificate System Integration:
+/// - Certificate Code: SL
+/// - Certificate Title: Survey Listing Processing Certificate
 /// </summary>
 public class SurveyListingModule : IModule
 {
@@ -20,6 +26,14 @@ public class SurveyListingModule : IModule
     private readonly IEventAggregator? _eventAggregator;
     private readonly IThemeService? _themeService;
     private readonly IErrorReporter? _errorReporter;
+    private readonly ISmoothingService? _smoothingService;
+    private readonly IExportService? _exportService;
+    private SurveyListingSettings? _settings;
+
+    // Certificate configuration
+    public const string CertificateCode = "SL";
+    public const string CertificateTitle = "Survey Listing Processing Certificate";
+    public const string CertificateStatement = "This is to certify that the survey listing data documented herein has been processed and verified using FathomOS Survey Listing Generator in accordance with industry standards for hydrographic data processing.";
 
     #region Constructors
 
@@ -38,14 +52,42 @@ public class SurveyListingModule : IModule
         ICertificationService certService,
         IEventAggregator eventAggregator,
         IThemeService themeService,
-        IErrorReporter errorReporter)
+        IErrorReporter errorReporter,
+        ISmoothingService? smoothingService = null,
+        IExportService? exportService = null)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _certService = certService;
         _eventAggregator = eventAggregator;
         _themeService = themeService;
         _errorReporter = errorReporter;
+        _smoothingService = smoothingService;
+        _exportService = exportService;
     }
+
+    #endregion
+
+    #region Public Properties
+
+    /// <summary>
+    /// Gets the certification service for external access (e.g., from ViewModels).
+    /// </summary>
+    public ICertificationService? CertificationService => _certService;
+
+    /// <summary>
+    /// Gets the smoothing service from Core.
+    /// </summary>
+    public ISmoothingService? SmoothingService => _smoothingService;
+
+    /// <summary>
+    /// Gets the export service from Core.
+    /// </summary>
+    public IExportService? ExportService => _exportService;
+
+    /// <summary>
+    /// Gets the module settings.
+    /// </summary>
+    public SurveyListingSettings Settings => _settings ??= SurveyListingSettings.Load();
 
     #endregion
     
@@ -71,14 +113,17 @@ public class SurveyListingModule : IModule
     
     public void Initialize()
     {
-        // Module initialization
-        // Load settings, register services, etc.
+        // Load module settings
+        _settings = SurveyListingSettings.Load();
+
         System.Diagnostics.Debug.WriteLine($"Survey Listing Module {AppInfo.VersionDisplay} initialized");
 
         // Subscribe to theme changes if available
         if (_themeService != null)
         {
             _themeService.ThemeChanged += OnThemeChanged;
+            // Sync settings with Shell theme
+            _settings.UseDarkTheme = _themeService.IsDarkTheme;
         }
     }
 
@@ -116,6 +161,12 @@ public class SurveyListingModule : IModule
     {
         try
         {
+            // Save settings
+            if (_settings != null)
+            {
+                SurveyListingSettings.Save(_settings);
+            }
+
             if (_themeService != null)
             {
                 _themeService.ThemeChanged -= OnThemeChanged;
@@ -128,7 +179,7 @@ public class SurveyListingModule : IModule
             System.Diagnostics.Debug.WriteLine($"Error during Survey Listing shutdown: {ex.Message}");
         }
     }
-    
+
     public bool CanHandleFile(string filePath)
     {
         if (string.IsNullOrEmpty(filePath)) return false;
@@ -171,6 +222,96 @@ public class SurveyListingModule : IModule
             }
         }
     }
-    
+
+    #endregion
+
+    #region Certificate Support
+
+    /// <summary>
+    /// Generate a certificate for survey listing processing results.
+    /// </summary>
+    /// <param name="projectName">Project name.</param>
+    /// <param name="processingData">Processing result data for certificate.</param>
+    /// <param name="owner">Parent window for dialog.</param>
+    /// <returns>Certificate ID if created, null if cancelled.</returns>
+    public async Task<string?> GenerateCertificateAsync(
+        string projectName,
+        Dictionary<string, string> processingData,
+        Window? owner = null)
+    {
+        var request = ModuleCertificateHelper.CreateRequest(
+            ModuleId,
+            CertificateCode,
+            Version.ToString(),
+            projectName,
+            processingData);
+
+        return await ModuleCertificateHelper.GenerateCertificateAsync(_certService, request, owner);
+    }
+
+    /// <summary>
+    /// Get certificate processing data from survey listing results.
+    /// </summary>
+    /// <param name="projectName">Project name.</param>
+    /// <param name="routeFile">Route file path.</param>
+    /// <param name="surveyFiles">Survey data files.</param>
+    /// <param name="outputFile">Output file path.</param>
+    /// <param name="pointCount">Number of points processed.</param>
+    /// <param name="startKp">Start KP value.</param>
+    /// <param name="endKp">End KP value.</param>
+    /// <param name="tideApplied">Whether tide correction was applied.</param>
+    /// <param name="smoothingApplied">Whether smoothing was applied.</param>
+    /// <returns>Dictionary of certificate processing data.</returns>
+    public Dictionary<string, string> GetCertificateProcessingData(
+        string projectName,
+        string? routeFile,
+        IEnumerable<string>? surveyFiles,
+        string? outputFile,
+        int pointCount,
+        double startKp,
+        double endKp,
+        bool tideApplied,
+        bool smoothingApplied)
+    {
+        var data = new Dictionary<string, string>
+        {
+            [ModuleCertificateHelper.DataKeys.ProjectName] = projectName,
+            [ModuleCertificateHelper.DataKeys.ProcessingDate] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm UTC"),
+            [ModuleCertificateHelper.DataKeys.SoftwareVersion] = $"Survey Listing Generator v{Version}",
+            [ModuleCertificateHelper.DataKeys.PointsProcessed] = pointCount.ToString("N0"),
+            [ModuleCertificateHelper.DataKeys.StartKp] = startKp.ToString("F3"),
+            [ModuleCertificateHelper.DataKeys.EndKp] = endKp.ToString("F3"),
+            [ModuleCertificateHelper.DataKeys.RouteLength] = $"{(endKp - startKp):F3} km",
+            [ModuleCertificateHelper.DataKeys.TideCorrection] = tideApplied ? "Applied" : "Not Applied",
+            [ModuleCertificateHelper.DataKeys.SmoothingApplied] = smoothingApplied ? "Applied" : "Not Applied"
+        };
+
+        if (!string.IsNullOrEmpty(routeFile))
+        {
+            data["Route File"] = Path.GetFileName(routeFile);
+        }
+
+        if (surveyFiles != null)
+        {
+            var fileNames = surveyFiles.Select(Path.GetFileName).ToList();
+            data[ModuleCertificateHelper.DataKeys.InputFiles] = string.Join(", ", fileNames);
+        }
+
+        if (!string.IsNullOrEmpty(outputFile))
+        {
+            data[ModuleCertificateHelper.DataKeys.OutputFiles] = Path.GetFileName(outputFile);
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Gets recommended signatory titles for survey listing certificates.
+    /// </summary>
+    public static IEnumerable<string> GetSignatoryTitles()
+    {
+        return ModuleCertificateHelper.StandardSignatoryTitles;
+    }
+
     #endregion
 }

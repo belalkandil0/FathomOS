@@ -1,0 +1,180 @@
+<UserControl x:Class="FathomOS.Shell.Controls.LoadingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent"
+             IsHitTestVisible="True"
+             Visibility="Collapsed"
+             Opacity="0">
+
+    <UserControl.Resources>
+        <!-- Easing Functions -->
+        <QuadraticEase x:Key="EaseOut" EasingMode="EaseOut"/>
+        <QuadraticEase x:Key="EaseInOut" EasingMode="EaseInOut"/>
+
+        <!-- Show Animation -->
+        <Storyboard x:Key="ShowAnimation">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.2"
+                             EasingFunction="{StaticResource EaseOut}"/>
+        </Storyboard>
+
+        <!-- Hide Animation -->
+        <Storyboard x:Key="HideAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="1" To="0" Duration="0:0:0.15"
+                             EasingFunction="{StaticResource EaseOut}"/>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility"
+                                           BeginTime="0:0:0.15">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+
+        <!-- Spinner Rotation -->
+        <Storyboard x:Key="SpinnerAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="SpinnerTransform"
+                             Storyboard.TargetProperty="Angle"
+                             From="0" To="360" Duration="0:0:1"/>
+        </Storyboard>
+
+        <!-- Pulse Animation for Dots -->
+        <Storyboard x:Key="DotPulse" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="Dot1"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1" Duration="0:0:0.4"
+                             AutoReverse="True" BeginTime="0:0:0"/>
+            <DoubleAnimation Storyboard.TargetName="Dot2"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1" Duration="0:0:0.4"
+                             AutoReverse="True" BeginTime="0:0:0.15"/>
+            <DoubleAnimation Storyboard.TargetName="Dot3"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1" Duration="0:0:0.4"
+                             AutoReverse="True" BeginTime="0:0:0.3"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="UserControl.Loaded">
+            <BeginStoryboard Storyboard="{StaticResource SpinnerAnimation}"/>
+            <BeginStoryboard Storyboard="{StaticResource DotPulse}"/>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <!-- Semi-transparent overlay background -->
+    <Grid>
+        <!-- Background Overlay -->
+        <Border x:Name="BackgroundOverlay" Background="#80000000"/>
+
+        <!-- Content Container -->
+        <Border Background="{DynamicResource TileBackgroundBrush}"
+                CornerRadius="16" Padding="32,28"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MinWidth="200" MaxWidth="350">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="#000000"/>
+            </Border.Effect>
+
+            <StackPanel HorizontalAlignment="Center">
+                <!-- Spinner -->
+                <Grid Width="56" Height="56" Margin="0,0,0,20">
+                    <!-- Background Circle -->
+                    <Ellipse Stroke="{DynamicResource ButtonBackgroundBrush}"
+                             StrokeThickness="4" Fill="Transparent"/>
+
+                    <!-- Animated Arc -->
+                    <Path x:Name="SpinnerArc" StrokeThickness="4"
+                          Fill="Transparent"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.Stroke>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#89B4FA" Offset="0"/>
+                                <GradientStop Color="#B4BEFE" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Path.Stroke>
+                        <Path.RenderTransform>
+                            <RotateTransform x:Name="SpinnerTransform" Angle="0"/>
+                        </Path.RenderTransform>
+                        <Path.Data>
+                            <!-- Arc from 0 to 270 degrees -->
+                            <PathGeometry>
+                                <PathFigure StartPoint="28,2" IsClosed="False">
+                                    <ArcSegment Point="2,28" Size="26,26"
+                                                SweepDirection="Clockwise" IsLargeArc="True"/>
+                                </PathFigure>
+                            </PathGeometry>
+                        </Path.Data>
+                    </Path>
+                </Grid>
+
+                <!-- Message -->
+                <TextBlock x:Name="TxtMessage" Text="Loading..."
+                           FontSize="14" FontWeight="Medium"
+                           Foreground="{DynamicResource TextBrush}"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Margin="0,0,0,8"/>
+
+                <!-- Animated Dots -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Ellipse x:Name="Dot1" Width="6" Height="6" Margin="2"
+                             Fill="{DynamicResource AccentBrush}" Opacity="0.3"/>
+                    <Ellipse x:Name="Dot2" Width="6" Height="6" Margin="2"
+                             Fill="{DynamicResource AccentBrush}" Opacity="0.3"/>
+                    <Ellipse x:Name="Dot3" Width="6" Height="6" Margin="2"
+                             Fill="{DynamicResource AccentBrush}" Opacity="0.3"/>
+                </StackPanel>
+
+                <!-- Progress Bar (Optional) -->
+                <Grid x:Name="ProgressContainer" Margin="0,16,0,0" Visibility="Collapsed">
+                    <Grid Height="6">
+                        <!-- Track -->
+                        <Border CornerRadius="3" Background="{DynamicResource ButtonBackgroundBrush}"/>
+
+                        <!-- Progress -->
+                        <Border x:Name="ProgressBar" CornerRadius="3"
+                                HorizontalAlignment="Left" Width="0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#89B4FA" Offset="0"/>
+                                    <GradientStop Color="#B4BEFE" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- Progress Percentage -->
+                <TextBlock x:Name="TxtProgress" Text=""
+                           FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"
+                           HorizontalAlignment="Center" Margin="0,8,0,0"
+                           Visibility="Collapsed"/>
+
+                <!-- Cancel Button (Optional) -->
+                <Button x:Name="BtnCancel" Content="Cancel" Margin="0,16,0,0"
+                        Visibility="Collapsed" Click="Cancel_Click"
+                        Background="{DynamicResource ButtonBackgroundBrush}"
+                        Foreground="{DynamicResource TextBrush}"
+                        BorderThickness="0" Padding="20,8" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

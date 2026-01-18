@@ -9,6 +9,7 @@ using System.Timers;
 using LicensingSystem.Shared;
 using LicensingSystem.Shared.Models;
 using LicensingSystem.Shared.Services;
+using LicensingSystem.Client.Services;
 using Timer = System.Timers.Timer;
 
 namespace LicensingSystem.Client;
@@ -19,15 +20,22 @@ namespace LicensingSystem.Client;
 /// - Offline ECDSA-signed license files (.lic)
 /// - Compact license key strings
 /// - Hardware fingerprint binding
-/// - Grace period handling
+/// - Grace period handling with warnings at 7, 3, 1 days
 /// - Automatic expiration warnings
+/// - Enhanced feature and module checking
+/// - Multi-seat license support
+/// - License usage tracking
+/// - License transfer capabilities
 ///
 /// Usage:
 /// 1. Create instance with server URL (or null for offline-only)
 /// 2. Call InitializeAsync() on startup
 /// 3. Use LoadOfflineLicense() or ActivateLicenseAsync() to activate
 /// 4. Check HasModule() / HasFeature() for feature gating
-/// 5. Call ShutdownAsync() on app exit
+/// 5. Use ValidateWithServerAsync() for online validation
+/// 6. Use ValidateOffline() for offline validation
+/// 7. Use GetEnabledFeatures() to get all features
+/// 8. Call ShutdownAsync() on app exit
 /// </summary>
 /// <example>
 /// // Example usage in WPF App.xaml.cs:
@@ -85,6 +93,11 @@ public class FathomOSLicenseIntegration : IDisposable
     /// Fired when an offline license is loaded
     /// </summary>
     public event EventHandler<OfflineLicenseLoadedEventArgs>? OfflineLicenseLoaded;
+
+    /// <summary>
+    /// Fired when grace period warning should be shown
+    /// </summary>
+    public event EventHandler<GracePeriodWarningEventArgs>? OnGracePeriodWarning;
 
     /// <summary>
     /// Access to the underlying online LicenseManager for backward compatibility.
@@ -273,6 +286,268 @@ public class FathomOSLicenseIntegration : IDisposable
         _heartbeatTimer.Stop();
         _expirationCheckTimer.Stop();
         return Task.CompletedTask;
+    }
+
+    #endregion
+
+    #region Enhanced Validation Methods
+
+    /// <summary>
+    /// Validates the license with the server, optionally forcing online validation.
+    /// Falls back to offline validation if server is unreachable.
+    /// </summary>
+    /// <param name="forceOnline">If true, requires online validation (will fail if offline)</param>
+    /// <returns>License validation result with full details</returns>
+    public async Task<LicenseValidationResult> ValidateWithServerAsync(bool forceOnline = false)
+    {
+        // First check offline license
+        if (_currentOfflineLicense != null)
+        {
+            var offlineResult = ValidateOfflineLicense();
+
+            // If forceOnline is true and we have an online manager, try server validation
+            if (forceOnline && _onlineManager != null)
+            {
+                try
+                {
+                    var onlineResult = await _onlineManager.ForceServerCheckAsync();
+                    if (onlineResult.Status != LicenseStatus.NotFound)
+                    {
+                        // Server responded, trust its result
+                        return onlineResult;
+                    }
+                    // Server didn't recognize license, fall back to offline
+                }
+                catch
+                {
+                    if (forceOnline)
+                    {
+                        return new LicenseValidationResult
+                        {
+                            IsValid = false,
+                            Status = LicenseStatus.Error,
+                            Message = "Online validation required but server is unreachable."
+                        };
+                    }
+                }
+            }
+
+            return ConvertToLicenseValidationResult(offlineResult);
+        }
+
+        // No offline license, try online validation
+        if (_onlineManager != null)
+        {
+            try
+            {
+                var result = await _onlineManager.CheckLicenseAsync(forceRefresh: forceOnline);
+                return result;
+            }
+            catch
+            {
+                if (forceOnline)
+                {
+                    return new LicenseValidationResult
+                    {
+                        IsValid = false,
+                        Status = LicenseStatus.Error,
+                        Message = "Online validation required but server is unreachable."
+                    };
+                }
+
+                // Try cached result
+                var cached = _onlineManager.GetCachedResult();
+                if (cached != null)
+                    return cached;
+            }
+        }
+
+        return new LicenseValidationResult
+        {
+            IsValid = false,
+            Status = LicenseStatus.NotFound,
+            Message = "No license found. Please activate your copy."
+        };
+    }
+
+    /// <summary>
+    /// Validates the license offline only, without contacting the server.
+    /// Uses cached offline license or stored online license.
+    /// </summary>
+    /// <returns>True if license is valid offline</returns>
+    public bool ValidateOffline()
+    {
+        // Check offline license first
+        if (_currentOfflineLicense != null)
+        {
+            var result = ValidateOfflineLicense();
+            return result.IsValid;
+        }
+
+        // Check if we have a stored online license that's still valid
+        if (_onlineManager != null)
+        {
+            var cached = _onlineManager.GetCachedResult();
+            if (cached != null && (cached.IsValid || cached.Status == LicenseStatus.GracePeriod))
+            {
+                // Check offline period hasn't expired
+                // This is handled by the LicenseValidator internally
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets all enabled features as a structured LicenseFeatures object.
+    /// Includes modules, feature flags, tier information, and limits.
+    /// </summary>
+    /// <returns>LicenseFeatures object with all enabled features</returns>
+    public LicenseFeatures GetEnabledFeatures()
+    {
+        var features = new LicenseFeatures();
+
+        // Get raw feature list
+        var featureList = new List<string>();
+
+        if (_currentOfflineLicense != null)
+        {
+            var result = ValidateOfflineLicense();
+            if (result.IsValid)
+            {
+                featureList.AddRange(result.EnabledFeatures);
+                featureList.AddRange(result.LicensedModules.Select(m => $"Module:{m}"));
+
+                // Add tier from edition
+                if (!string.IsNullOrEmpty(_currentOfflineLicense.Product.Edition))
+                {
+                    features.Tier = _currentOfflineLicense.Product.Edition;
+                }
+
+                // Add seats
+                features.MaxSeats = _currentOfflineLicense.Product.Seats;
+
+                // Add offline settings
+                features.AllowOffline = _currentOfflineLicense.Terms.AllowOffline;
+                features.MaxOfflineDays = _currentOfflineLicense.Terms.OfflineMaxDays;
+            }
+        }
+        else if (_onlineManager != null)
+        {
+            var cached = _onlineManager.GetCachedResult();
+            if (cached != null && (cached.IsValid || cached.Status == LicenseStatus.GracePeriod))
+            {
+                featureList.AddRange(cached.EnabledFeatures);
+                if (cached.License?.Modules != null)
+                {
+                    featureList.AddRange(cached.License.Modules.Select(m => $"Module:{m}"));
+                }
+
+                if (!string.IsNullOrEmpty(cached.Edition))
+                {
+                    features.Tier = cached.Edition;
+                }
+            }
+        }
+
+        // Parse feature list into structured format
+        foreach (var feature in featureList)
+        {
+            if (feature.StartsWith("Module:", StringComparison.OrdinalIgnoreCase))
+            {
+                var module = feature.Substring(7);
+                if (!features.Modules.Contains(module, StringComparer.OrdinalIgnoreCase))
+                    features.Modules.Add(module);
+            }
+            else if (feature.StartsWith("Tier:", StringComparison.OrdinalIgnoreCase))
+            {
+                features.Tier = feature.Substring(5);
+            }
+            else if (feature.StartsWith("Seats:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (int.TryParse(feature.Substring(6), out var seats))
+                    features.MaxSeats = seats;
+            }
+            else if (feature.StartsWith("Limit:", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = feature.Substring(6).Split('=', 2);
+                if (parts.Length == 2)
+                    features.Limits[parts[0]] = parts[1];
+            }
+            else if (feature.Equals("AllowTransfer", StringComparison.OrdinalIgnoreCase))
+            {
+                features.AllowTransfer = true;
+            }
+            else
+            {
+                if (!features.Features.Contains(feature, StringComparer.OrdinalIgnoreCase))
+                    features.Features.Add(feature);
+            }
+        }
+
+        return features;
+    }
+
+    /// <summary>
+    /// Checks if a specific feature is enabled in the current license.
+    /// Performs case-insensitive comparison.
+    /// </summary>
+    /// <param name="featureName">Feature name to check (e.g., "Export:PDF", "AdvancedCharts")</param>
+    /// <returns>True if the feature is enabled</returns>
+    public bool IsFeatureEnabled(string featureName)
+    {
+        return HasFeature(featureName);
+    }
+
+    /// <summary>
+    /// Gets the current grace period status if applicable.
+    /// Returns null if not in grace period.
+    /// </summary>
+    /// <returns>Grace period warning info, or null if not in grace period</returns>
+    public GracePeriodWarning? GetGracePeriodStatus()
+    {
+        int? graceDays = null;
+
+        if (_currentOfflineLicense != null)
+        {
+            var result = ValidateOfflineLicense();
+            if (result.IsInGracePeriod)
+            {
+                graceDays = result.GraceDaysRemaining;
+            }
+        }
+        else if (_onlineManager != null)
+        {
+            var cached = _onlineManager.GetCachedResult();
+            if (cached?.Status == LicenseStatus.GracePeriod)
+            {
+                graceDays = cached.GraceDaysRemaining;
+            }
+        }
+
+        if (graceDays.HasValue)
+        {
+            return GracePeriodWarning.Create(graceDays.Value);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if the license is currently in grace period and fires warning events.
+    /// Call this periodically to ensure users are notified of impending expiration.
+    /// </summary>
+    public void CheckGracePeriodWarnings()
+    {
+        var warning = GetGracePeriodStatus();
+        if (warning != null)
+        {
+            OnGracePeriodWarning?.Invoke(this, new GracePeriodWarningEventArgs
+            {
+                Warning = warning
+            });
+        }
     }
 
     #endregion
@@ -699,9 +974,10 @@ public class FathomOSLicenseIntegration : IDisposable
     }
 
     /// <summary>
-    /// Get all enabled features.
+    /// Get all enabled features as a simple list of strings.
+    /// For structured feature info, use GetEnabledFeatures() instead.
     /// </summary>
-    public List<string> GetEnabledFeatures()
+    public List<string> GetEnabledFeaturesList()
     {
         // Check offline license first
         if (_currentOfflineLicense != null)
@@ -1083,6 +1359,113 @@ public class OfflineLicenseInfo
     public OfflineLicenseValidationResult ValidationResult { get; set; } = new();
     public List<string> HardwareFingerprints { get; set; } = new();
     public string DisplayId { get; set; } = "";
+}
+
+/// <summary>
+/// Event args for grace period warnings
+/// </summary>
+public class GracePeriodWarningEventArgs : EventArgs
+{
+    public GracePeriodWarning Warning { get; set; } = new();
+}
+
+/// <summary>
+/// Grace period warning information
+/// </summary>
+public class GracePeriodWarning
+{
+    /// <summary>
+    /// Days remaining in grace period
+    /// </summary>
+    public int DaysRemaining { get; set; }
+
+    /// <summary>
+    /// Warning severity level
+    /// </summary>
+    public GraceWarningSeverity Severity { get; set; }
+
+    /// <summary>
+    /// User-friendly warning message
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Recommended action
+    /// </summary>
+    public string RecommendedAction { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether to show a modal dialog
+    /// </summary>
+    public bool ShowModal { get; set; }
+
+    /// <summary>
+    /// Creates appropriate warning based on days remaining
+    /// </summary>
+    public static GracePeriodWarning Create(int daysRemaining)
+    {
+        return daysRemaining switch
+        {
+            <= 0 => new GracePeriodWarning
+            {
+                DaysRemaining = 0,
+                Severity = GraceWarningSeverity.Expired,
+                Message = "Your license grace period has expired. FathomOS will now operate in limited mode.",
+                RecommendedAction = "Please renew your license immediately to restore full functionality.",
+                ShowModal = true
+            },
+            1 => new GracePeriodWarning
+            {
+                DaysRemaining = 1,
+                Severity = GraceWarningSeverity.Critical,
+                Message = "URGENT: Your license grace period expires TOMORROW!",
+                RecommendedAction = "Renew your license now to avoid service interruption.",
+                ShowModal = true
+            },
+            <= 3 => new GracePeriodWarning
+            {
+                DaysRemaining = daysRemaining,
+                Severity = GraceWarningSeverity.Critical,
+                Message = $"Your license grace period expires in {daysRemaining} days.",
+                RecommendedAction = "Please renew your license as soon as possible.",
+                ShowModal = true
+            },
+            <= 7 => new GracePeriodWarning
+            {
+                DaysRemaining = daysRemaining,
+                Severity = GraceWarningSeverity.Warning,
+                Message = $"Your license has expired. You have {daysRemaining} days remaining in the grace period.",
+                RecommendedAction = "Please renew your license to continue using FathomOS.",
+                ShowModal = true
+            },
+            _ => new GracePeriodWarning
+            {
+                DaysRemaining = daysRemaining,
+                Severity = GraceWarningSeverity.Info,
+                Message = $"Your license has expired. Grace period: {daysRemaining} days remaining.",
+                RecommendedAction = "Consider renewing your license.",
+                ShowModal = false
+            }
+        };
+    }
+}
+
+/// <summary>
+/// Grace period warning severity levels
+/// </summary>
+public enum GraceWarningSeverity
+{
+    /// <summary>Informational - more than 7 days remaining</summary>
+    Info,
+
+    /// <summary>Warning - 7 days or less remaining</summary>
+    Warning,
+
+    /// <summary>Critical - 3 days or less remaining</summary>
+    Critical,
+
+    /// <summary>Expired - grace period has ended</summary>
+    Expired
 }
 
 #endregion

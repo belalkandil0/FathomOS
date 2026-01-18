@@ -5,7 +5,7 @@ namespace FathomOS.Core.Interfaces;
 /// <summary>
 /// Request model for creating a new certificate
 /// </summary>
-public class CertificationRequest
+public record CertificationRequest
 {
     /// <summary>Module identifier (e.g., "SurveyListing")</summary>
     public required string ModuleId { get; init; }

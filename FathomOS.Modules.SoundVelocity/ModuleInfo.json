@@ -3,13 +3,18 @@
     "displayName": "Sound Velocity Profile",
     "description": "Process CTD cast data, calculate sound velocity using Chen-Millero or Del Grosso formulas, and export to industry formats (USR, VEL, PRO, Excel)",
     "version": "1.2.0",
-    "author": "S7 Solutions",
+    "author": "FathomOS Team",
     "category": "Data Processing",
     "displayOrder": 15,
     "icon": "icon.png",
     "supportedFileTypes": [".000", ".001", ".002", ".003", ".svp", ".ctd", ".bp3", ".txt", ".csv"],
     "dependencies": [],
     "minimumShellVersion": "1.0.0",
+
+    "CertificateCode": "SVP",
+    "CertificateTitle": "Sound Velocity Profile Processing Certificate",
+    "CertificateStatement": "This is to certify that the sound velocity profile data documented herein has been processed and verified using FathomOS Sound Velocity Profile module in accordance with industry standards for oceanographic data processing.",
+
     "features": [
         "Valeport MIDAS SVX2 CTD file parsing with auto-detection",
         "Multiple input format support (Valeport, QINSy, EIVA, CSV, etc.)",

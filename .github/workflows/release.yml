@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}".TrimStart('v')
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Release version: $version"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore FathomOS.sln
+
+      - name: Build solution
+        run: dotnet build FathomOS.sln -c ${{ env.CONFIGURATION }} --no-restore
+
+      - name: Run tests
+        run: dotnet test FathomOS.sln -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
+
+  build-release:
+    name: Build Release (${{ matrix.runtime }})
+    runs-on: windows-latest
+    needs: validate
+    strategy:
+      matrix:
+        runtime: [win-x64, win-x86, win-arm64]
+        include:
+          - runtime: win-x64
+            artifact_name: FathomOS-win-x64
+          - runtime: win-x86
+            artifact_name: FathomOS-win-x86
+          - runtime: win-arm64
+            artifact_name: FathomOS-win-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore FathomOS.sln
+
+      - name: Build solution
+        run: |
+          dotnet build FathomOS.sln -c ${{ env.CONFIGURATION }} --no-restore -p:Version=${{ needs.validate.outputs.version }}
+
+      - name: Publish application
+        run: |
+          dotnet publish FathomOS.Shell/FathomOS.Shell.csproj `
+            -c ${{ env.CONFIGURATION }} `
+            -r ${{ matrix.runtime }} `
+            --self-contained true `
+            -p:Version=${{ needs.validate.outputs.version }} `
+            -p:PublishReadyToRun=true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o ./publish/${{ matrix.runtime }}
+
+      - name: Create portable zip
+        shell: pwsh
+        run: |
+          $version = "${{ needs.validate.outputs.version }}"
+          $runtime = "${{ matrix.runtime }}"
+          $zipName = "FathomOS-$version-$runtime-portable.zip"
+          Compress-Archive -Path "./publish/$runtime/*" -DestinationPath "./$zipName" -CompressionLevel Optimal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ./publish/${{ matrix.runtime }}
+          retention-days: 30
+
+      - name: Upload portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-portable
+          path: ./FathomOS-*.zip
+          retention-days: 30
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build-release]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display artifacts
+        run: ls -R ./artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          find ./artifacts -name "*.zip" -exec cp {} ./release-assets/ \;
+          ls -la ./release-assets/
+
+      - name: Generate release notes
+        id: release_notes
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          cat << EOF > RELEASE_NOTES.md
+          ## FathomOS v$VERSION
+
+          ### Downloads
+
+          | Platform | Download |
+          |----------|----------|
+          | Windows x64 | FathomOS-$VERSION-win-x64-portable.zip |
+          | Windows x86 | FathomOS-$VERSION-win-x86-portable.zip |
+          | Windows ARM64 | FathomOS-$VERSION-win-arm64-portable.zip |
+
+          ### Installation
+
+          1. Download the appropriate portable zip for your platform
+          2. Extract to a directory of your choice
+          3. Run FathomOS.Shell.exe
+
+          ### Changelog
+
+          See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
+
+          ---
+          *Built with .NET 8.0*
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: FathomOS v${{ needs.validate.outputs.version }}
+          tag_name: v${{ needs.validate.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          files: |
+            ./release-assets/*.zip
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate, create-release]
+    if: always() && needs.create-release.result == 'success'
+
+    steps:
+      - name: Release notification
+        run: |
+          echo "Release v${{ needs.validate.outputs.version }} created successfully!"
+          echo "GitHub Release URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.validate.outputs.version }}"

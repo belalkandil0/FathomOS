@@ -7,7 +7,9 @@
 
 using System.IO;
 using System.Windows;
+using FathomOS.Core.Certificates;
 using FathomOS.Core.Interfaces;
+using FathomOS.Core.Services;
 using FathomOS.Modules.SurveyLogbook.Views;
 
 namespace FathomOS.Modules.SurveyLogbook;
@@ -15,6 +17,10 @@ namespace FathomOS.Modules.SurveyLogbook;
 /// <summary>
 /// Survey Electronic Logbook module entry point.
 /// Implements IModule interface for Fathom OS Shell discovery and integration.
+///
+/// Certificate System Integration:
+/// - Certificate Code: LOG
+/// - Certificate Title: Survey Logbook Verification Certificate
 /// </summary>
 /// <remarks>
 /// This module provides:
@@ -36,6 +42,11 @@ public class SurveyLogbookModule : IModule
     private readonly IEventAggregator? _eventAggregator;
     private readonly IThemeService? _themeService;
     private readonly IErrorReporter? _errorReporter;
+    private readonly IExportService? _exportService;
+
+    // Certificate configuration
+    public const string CertificateCode = "LOG";
+    public const string CertificateTitle = "Survey Logbook Verification Certificate";
 
     #endregion
 
@@ -56,14 +67,30 @@ public class SurveyLogbookModule : IModule
         ICertificationService certService,
         IEventAggregator eventAggregator,
         IThemeService themeService,
-        IErrorReporter errorReporter)
+        IErrorReporter errorReporter,
+        IExportService? exportService = null)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _certService = certService;
         _eventAggregator = eventAggregator;
         _themeService = themeService;
         _errorReporter = errorReporter;
+        _exportService = exportService;
     }
+
+    #endregion
+
+    #region Public Properties
+
+    /// <summary>
+    /// Gets the certification service.
+    /// </summary>
+    public ICertificationService? CertificationService => _certService;
+
+    /// <summary>
+    /// Gets the export service from Core.
+    /// </summary>
+    public IExportService? ExportService => _exportService;
 
     #endregion
 
@@ -319,7 +346,7 @@ public class SurveyLogbookModule : IModule
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "FathomOS",
                 "SurveyLogbook");
-            
+
             if (!Directory.Exists(settingsPath))
             {
                 Directory.CreateDirectory(settingsPath);
@@ -331,7 +358,7 @@ public class SurveyLogbookModule : IModule
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "FathomOS",
                 "SurveyLogs");
-            
+
             if (!Directory.Exists(outputPath))
             {
                 Directory.CreateDirectory(outputPath);
@@ -342,6 +369,75 @@ public class SurveyLogbookModule : IModule
         {
             System.Diagnostics.Debug.WriteLine($"[{ModuleId}] Failed to create directories: {ex.Message}");
         }
+    }
+
+    #endregion
+
+    #region Certificate Support
+
+    /// <summary>
+    /// Generate a certificate for survey logbook entries.
+    /// </summary>
+    /// <param name="projectName">Project name.</param>
+    /// <param name="processingData">Processing data for certificate.</param>
+    /// <param name="owner">Parent window for dialog.</param>
+    /// <returns>Certificate ID if created, null if cancelled.</returns>
+    public async Task<string?> GenerateCertificateAsync(
+        string projectName,
+        Dictionary<string, string> processingData,
+        Window? owner = null)
+    {
+        var request = ModuleCertificateHelper.CreateRequest(
+            ModuleId,
+            CertificateCode,
+            Version.ToString(),
+            projectName,
+            processingData);
+
+        return await ModuleCertificateHelper.GenerateCertificateAsync(_certService, request, owner);
+    }
+
+    /// <summary>
+    /// Gets certificate processing data for a shift/DPR.
+    /// </summary>
+    public Dictionary<string, string> GetCertificateProcessingData(
+        string projectName,
+        string vesselName,
+        DateTime shiftStart,
+        DateTime shiftEnd,
+        int logEntryCount,
+        int positionFixCount,
+        int waypointCount)
+    {
+        return new Dictionary<string, string>
+        {
+            [ModuleCertificateHelper.DataKeys.ProjectName] = projectName,
+            [ModuleCertificateHelper.DataKeys.VesselName] = vesselName,
+            ["Shift Start"] = shiftStart.ToString("dd MMM yyyy HH:mm"),
+            ["Shift End"] = shiftEnd.ToString("dd MMM yyyy HH:mm"),
+            ["Duration"] = (shiftEnd - shiftStart).ToString(@"hh\:mm"),
+            ["Log Entries"] = logEntryCount.ToString(),
+            ["Position Fixes"] = positionFixCount.ToString(),
+            ["Waypoint Changes"] = waypointCount.ToString(),
+            [ModuleCertificateHelper.DataKeys.ProcessingDate] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm UTC"),
+            [ModuleCertificateHelper.DataKeys.SoftwareVersion] = $"Survey Logbook v{Version}"
+        };
+    }
+
+    /// <summary>
+    /// Gets recommended signatory titles for logbook certificates.
+    /// </summary>
+    public static IEnumerable<string> GetSignatoryTitles()
+    {
+        return new[]
+        {
+            "Party Chief",
+            "Online Surveyor",
+            "Shift Surveyor",
+            "Survey Manager",
+            "Client Representative",
+            "Senior Surveyor"
+        };
     }
 
     #endregion

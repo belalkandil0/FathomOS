@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using FathomOS.Core.Certificates;
 using FathomOS.Core.Interfaces;
 using FathomOS.Modules.PersonnelManagement.Views;
 
@@ -8,6 +9,10 @@ namespace FathomOS.Modules.PersonnelManagement;
 /// <summary>
 /// Personnel Management Module - Manage survey crew, certifications,
 /// training records, and competency tracking for offshore operations.
+///
+/// Certificate System Integration:
+/// - Certificate Code: PERS
+/// - Certificate Title: Personnel Management Certificate
 /// </summary>
 public class PersonnelManagementModule : IModule
 {
@@ -17,6 +22,11 @@ public class PersonnelManagementModule : IModule
     private readonly IEventAggregator? _eventAggregator;
     private readonly IThemeService? _themeService;
     private readonly IErrorReporter? _errorReporter;
+    private readonly IExportService? _exportService;
+
+    // Certificate configuration (matches ModuleInfo.json)
+    public const string CertificateCode = "PM";
+    public const string CertificateTitle = "Personnel Management Certificate";
 
     #region Constructors
 
@@ -35,13 +45,15 @@ public class PersonnelManagementModule : IModule
         ICertificationService certService,
         IEventAggregator eventAggregator,
         IThemeService themeService,
-        IErrorReporter errorReporter)
+        IErrorReporter errorReporter,
+        IExportService? exportService = null)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _certService = certService;
         _eventAggregator = eventAggregator;
         _themeService = themeService;
         _errorReporter = errorReporter;
+        _exportService = exportService;
 
         // Subscribe to authentication changes
         _authService.AuthenticationChanged += OnAuthenticationChanged;
@@ -60,6 +72,16 @@ public class PersonnelManagementModule : IModule
     /// Gets whether a user is currently authenticated.
     /// </summary>
     public bool IsAuthenticated => _authService?.IsAuthenticated ?? false;
+
+    /// <summary>
+    /// Gets the certification service.
+    /// </summary>
+    public ICertificationService? CertificationService => _certService;
+
+    /// <summary>
+    /// Gets the export service from Core.
+    /// </summary>
+    public IExportService? ExportService => _exportService;
 
     #endregion
 
@@ -240,6 +262,70 @@ public class PersonnelManagementModule : IModule
     public Guid? GetCurrentUserId()
     {
         return _authService?.CurrentUser?.UserId;
+    }
+
+    #endregion
+
+    #region Certificate Support
+
+    /// <summary>
+    /// Generate a certificate for personnel management operations.
+    /// </summary>
+    /// <param name="projectName">Project name.</param>
+    /// <param name="processingData">Processing data for certificate.</param>
+    /// <param name="owner">Parent window for dialog.</param>
+    /// <returns>Certificate ID if created, null if cancelled.</returns>
+    public async Task<string?> GenerateCertificateAsync(
+        string projectName,
+        Dictionary<string, string> processingData,
+        Window? owner = null)
+    {
+        var request = ModuleCertificateHelper.CreateRequest(
+            ModuleId,
+            CertificateCode,
+            Version.ToString(),
+            projectName,
+            processingData);
+
+        return await ModuleCertificateHelper.GenerateCertificateAsync(_certService, request, owner);
+    }
+
+    /// <summary>
+    /// Gets certificate processing data for personnel certification verification.
+    /// </summary>
+    public Dictionary<string, string> GetCertificateProcessingData(
+        string projectName,
+        string personnelName,
+        string certificationType,
+        DateTime expiryDate,
+        string verifiedBy)
+    {
+        return new Dictionary<string, string>
+        {
+            [ModuleCertificateHelper.DataKeys.ProjectName] = projectName,
+            ["Personnel Name"] = personnelName,
+            ["Certification Type"] = certificationType,
+            [ModuleCertificateHelper.DataKeys.ExpiryDate] = expiryDate.ToString("dd MMM yyyy"),
+            ["Verified By"] = verifiedBy,
+            [ModuleCertificateHelper.DataKeys.ProcessingDate] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm UTC"),
+            [ModuleCertificateHelper.DataKeys.SoftwareVersion] = $"Personnel Management v{Version}"
+        };
+    }
+
+    /// <summary>
+    /// Gets recommended signatory titles for personnel management certificates.
+    /// </summary>
+    public static IEnumerable<string> GetSignatoryTitles()
+    {
+        return new[]
+        {
+            "HR Manager",
+            "Operations Manager",
+            "Training Manager",
+            "HSE Manager",
+            "Project Manager",
+            "Survey Manager"
+        };
     }
 
     #endregion

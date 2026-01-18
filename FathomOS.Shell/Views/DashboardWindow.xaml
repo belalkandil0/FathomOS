@@ -409,6 +409,14 @@
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="11" Opacity="0.6"/>
                         <TextBlock Text="  •  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Opacity="0.4"/>
+                        <!-- Server Connection Status -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Ellipse x:Name="ServerStatusDot" Width="8" Height="8" Fill="#6E7681" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtServerStatus" Text="Checking..."
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="10" Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="  •  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Opacity="0.4"/>
                         <!-- License Status -->
                         <Border x:Name="LicenseBadge" Background="#2E7D32" CornerRadius="8" Padding="8,2" Margin="0,0,6,0"
                                 ToolTip="Click to view license details" Cursor="Hand" MouseLeftButtonDown="LicenseBadge_Click">

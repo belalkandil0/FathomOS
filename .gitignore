@@ -95,3 +95,150 @@ PublishOutput/
 # dotfuscator
 *.dfproj.user
 Dotfuscated/
+
+# ConfuserEx
+Confused/
+*.crproj.user
+
+# Artifacts and publish output
+artifacts/
+publish/
+PublishOutput/
+
+# User-specific files
+*.rsuser
+*.user
+*.userosscache
+*.sln.docstates
+launchSettings.json
+
+# Build server artifacts
+_builds/
+_releases/
+
+# Local environment
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.Local.json
+
+# Secrets and certificates
+*.pfx
+*.snk
+*.p12
+*.cer
+secrets/
+.secrets/
+
+# Crash dumps
+*.dmp
+crashdumps/
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+coveragereport/
+TestResults/
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Node (if any frontend tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Installer artifacts
+*.msi
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.exe.config
+SetupOutput/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Azure Functions
+local.settings.json
+
+# Entity Framework Migrations - keep these but ignore generated files
+**/Migrations/*.Designer.cs
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows shortcuts
+*.lnk
+
+# =============================================================================
+# FathomOS-specific ignores
+# =============================================================================
+
+# Build output documentation (duplicates from source folders)
+# The actual documentation lives in /Documentation/ - these are just copies
+**/bin/Debug/**/Documentation/
+**/bin/Release/**/Documentation/
+**/bin/**/net8.0-windows/Documentation/
+**/bin/**/net8.0/Documentation/
+
+# Don't include module info JSONs from build output
+**/bin/**/ModuleInfo.json
+
+# License files in build output
+**/bin/**/license.dat
+**/bin/**/offline_license.lic
+
+# Local database files
+**/*.db
+**/*.db-shm
+**/*.db-wal
+!**/Migrations/*.sql
+
+# User preferences and local settings
+FathomOS.Shell/appsettings.local.json
+FathomOS.Shell/usersettings.json
+
+# Generated certificate files
+**/certificates/*.pdf
+**/certificates/qr_*.png
+
+# Test output files
+**/TestOutput/
+**/test_exports/
+FathomOS.Core/nul

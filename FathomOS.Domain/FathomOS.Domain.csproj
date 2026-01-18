@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FathomOS.Domain</RootNamespace>
+    <AssemblyName>FathomOS.Domain</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Fathom OS</Authors>
+    <Description>Domain layer for FathomOS - Contains core business entities, value objects, domain events, and specifications. This is the innermost layer with zero external dependencies.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    IMPORTANT: This project should have NO external dependencies.
+    Domain layer is pure C# with no infrastructure concerns.
+    This ensures the domain model remains portable and testable.
+  -->
+
+</Project>

@@ -91,6 +91,13 @@ builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 // License obfuscation
 builder.Services.AddScoped<ILicenseObfuscationService, LicenseObfuscationService>();
 
+// Webhook notification service
+builder.Services.AddHttpClient("Webhooks", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddScoped<IWebhookService, WebhookService>();
+
 // DEPRECATED: Setup service (kept for backward compatibility)
 builder.Services.AddScoped<ISetupService, SetupService>();
 
@@ -165,9 +172,34 @@ app.MapGet("/", () => Results.Ok(new
             "GET  /api/admin/licenses/{id} - Get license details (requires X-API-Key)",
             "GET  /api/admin/stats - Dashboard statistics (requires X-API-Key)"
         },
-        @public = new[]
+        analytics = new[]
         {
-            "GET  /api/certificates/verify/{id} - Verify a certificate (public)",
+            "GET  /api/analytics/licenses/stats - License statistics (requires X-API-Key)",
+            "GET  /api/analytics/usage/{licenseId} - License usage stats (requires X-API-Key)",
+            "GET  /api/analytics/activations - Activation trends (requires X-API-Key)",
+            "GET  /api/analytics/expiring - Expiring licenses (requires X-API-Key)",
+            "GET  /api/analytics/certificates - Certificate analytics (requires X-API-Key)",
+            "GET  /api/analytics/dashboard - Analytics dashboard (requires X-API-Key)"
+        },
+        health = new[]
+        {
+            "GET  /api/health - Basic health check (public)",
+            "GET  /api/health/detailed - Detailed health (public)",
+            "GET  /api/health/database - Database health (public)",
+            "GET  /api/health/metrics - Server metrics (public)",
+            "GET  /api/health/ready - Readiness probe (public)",
+            "GET  /api/health/live - Liveness probe (public)"
+        },
+        certificates = new[]
+        {
+            "GET  /api/certificates/verify/{id} - Verify certificate (public)",
+            "POST /api/certificates/verify/batch - Batch verify (public)",
+            "GET  /api/certificates/stats/{licenseeCode} - Certificate stats (requires X-API-Key)",
+            "GET  /api/certificates/search - Search certificates (requires X-API-Key)",
+            "POST /api/certificates/sync - Sync certificates (requires X-API-Key)"
+        },
+        legacy = new[]
+        {
             "GET  /health - Server health status (public)",
             "GET  /db-status - Database status (public)"
         }

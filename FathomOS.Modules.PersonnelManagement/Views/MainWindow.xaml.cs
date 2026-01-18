@@ -17,11 +17,10 @@ public partial class MainWindow : MetroWindow
     {
         InitializeComponent();
 
-        // Initialize database
+        // Initialize database service (NOT initialized yet - will be done async)
         _dbService = new PersonnelDatabaseService();
-        _dbService.Initialize();
 
-        // Initialize main ViewModel
+        // Initialize main ViewModel (database not ready yet)
         _viewModel = new MainViewModel(_dbService);
         DataContext = _viewModel;
 
@@ -40,7 +39,29 @@ public partial class MainWindow : MetroWindow
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await _viewModel.LoadDataAsync();
+        try
+        {
+            // Show loading state
+            IsEnabled = false;
+            Cursor = System.Windows.Input.Cursors.Wait;
+
+            // Initialize database asynchronously (non-blocking)
+            await _dbService.InitializeAsync();
+
+            // Now load data
+            await _viewModel.LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error initializing: {ex.Message}");
+            MessageBox.Show($"Error initializing module: {ex.Message}", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsEnabled = true;
+            Cursor = System.Windows.Input.Cursors.Arrow;
+        }
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)

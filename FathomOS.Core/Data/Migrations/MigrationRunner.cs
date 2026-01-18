@@ -10,12 +10,15 @@ namespace FathomOS.Core.Data.Migrations;
 /// <summary>
 /// Runs database migrations and tracks migration history.
 /// Ensures migrations are applied in version order and only once.
+/// Implements IMigrationRunner for comprehensive migration management.
 /// </summary>
-public class MigrationRunner
+public class MigrationRunner : IMigrationRunner
 {
     private readonly SqliteConnectionFactory _connectionFactory;
     private readonly List<IMigration> _migrations = new();
     private const string MigrationTableName = "__MigrationHistory";
+    private int? _cachedCurrentVersion;
+    private HashSet<int>? _cachedAppliedVersions;
 
     /// <summary>
     /// Creates a new migration runner
@@ -26,8 +29,39 @@ public class MigrationRunner
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
     }
 
+    /// <inheritdoc />
+    public int CurrentVersion
+    {
+        get
+        {
+            if (_cachedCurrentVersion.HasValue)
+            {
+                return _cachedCurrentVersion.Value;
+            }
+
+            var task = GetCurrentVersionAsync();
+            task.Wait();
+            return task.Result;
+        }
+    }
+
+    /// <inheritdoc />
+    public int TargetVersion => _migrations.Count > 0 ? _migrations.Max(m => m.Version) : 0;
+
+    /// <inheritdoc />
+    public bool HasPendingMigrations => GetPendingMigrations().Any();
+
     /// <summary>
     /// Registers a migration with the runner
+    /// </summary>
+    /// <param name="migration">Migration to register</param>
+    IMigrationRunner IMigrationRunner.Register(IMigration migration)
+    {
+        return Register(migration);
+    }
+
+    /// <summary>
+    /// Registers a migration with the runner (fluent API)
     /// </summary>
     /// <param name="migration">Migration to register</param>
     public MigrationRunner Register(IMigration migration)
@@ -49,6 +83,15 @@ public class MigrationRunner
     /// Registers multiple migrations
     /// </summary>
     /// <param name="migrations">Migrations to register</param>
+    IMigrationRunner IMigrationRunner.RegisterAll(IEnumerable<IMigration> migrations)
+    {
+        return RegisterAll(migrations);
+    }
+
+    /// <summary>
+    /// Registers multiple migrations (fluent API)
+    /// </summary>
+    /// <param name="migrations">Migrations to register</param>
     public MigrationRunner RegisterAll(IEnumerable<IMigration> migrations)
     {
         foreach (var migration in migrations)
@@ -60,6 +103,15 @@ public class MigrationRunner
 
     /// <summary>
     /// Discovers and registers all migrations from an assembly
+    /// </summary>
+    /// <param name="assembly">Assembly to scan for migrations</param>
+    IMigrationRunner IMigrationRunner.DiscoverMigrations(System.Reflection.Assembly assembly)
+    {
+        return DiscoverMigrations(assembly);
+    }
+
+    /// <summary>
+    /// Discovers and registers all migrations from an assembly (fluent API)
     /// </summary>
     /// <param name="assembly">Assembly to scan for migrations</param>
     public MigrationRunner DiscoverMigrations(System.Reflection.Assembly assembly)
@@ -83,17 +135,25 @@ public class MigrationRunner
     /// </summary>
     /// <param name="createBackup">Whether to create a backup before migrating</param>
     /// <returns>Results of all executed migrations</returns>
-    public async Task<List<MigrationResult>> MigrateAsync(bool createBackup = true)
+    public async Task<List<MigrationResult>> MigrateAllAsync(bool createBackup = true)
     {
-        var results = new List<MigrationResult>();
+        var batchResult = await MigrateAsync(null);
+        return batchResult.Results;
+    }
+
+    /// <inheritdoc />
+    public async Task<MigrationBatchResult> MigrateAsync(int? targetVersion = null)
+    {
+        var batchResult = new MigrationBatchResult();
+        var stopwatch = Stopwatch.StartNew();
 
         // Create backup before migrations
-        if (createBackup && File.Exists(_connectionFactory.DatabasePath))
+        if (File.Exists(_connectionFactory.DatabasePath))
         {
             try
             {
-                var backupPath = _connectionFactory.BackupWithTimestamp();
-                Debug.WriteLine($"Migration backup created: {backupPath}");
+                batchResult.BackupPath = _connectionFactory.BackupWithTimestamp();
+                Debug.WriteLine($"Migration backup created: {batchResult.BackupPath}");
             }
             catch (Exception ex)
             {
@@ -108,17 +168,25 @@ public class MigrationRunner
 
         // Get applied migrations
         var appliedVersions = await GetAppliedMigrationsAsync(connection);
+        batchResult.StartVersion = appliedVersions.Count > 0 ? appliedVersions.Max() : 0;
 
         // Get pending migrations (ordered by version)
         var pendingMigrations = _migrations
             .Where(m => !appliedVersions.Contains(m.Version))
+            .Where(m => !targetVersion.HasValue || m.Version <= targetVersion.Value)
             .OrderBy(m => m.Version)
             .ToList();
+
+        batchResult.TotalMigrations = pendingMigrations.Count;
 
         if (pendingMigrations.Count == 0)
         {
             Debug.WriteLine("No pending migrations to apply.");
-            return results;
+            batchResult.Success = true;
+            batchResult.EndVersion = batchResult.StartVersion;
+            stopwatch.Stop();
+            batchResult.TotalDuration = stopwatch.Elapsed;
+            return batchResult;
         }
 
         Debug.WriteLine($"Applying {pendingMigrations.Count} pending migration(s)...");
@@ -127,31 +195,97 @@ public class MigrationRunner
         foreach (var migration in pendingMigrations)
         {
             var result = await ApplyMigrationAsync(connection, migration);
-            results.Add(result);
+            batchResult.Results.Add(result);
 
-            if (!result.Success)
+            if (result.Success)
             {
+                batchResult.SuccessfulMigrations++;
+                batchResult.EndVersion = migration.Version;
+            }
+            else
+            {
+                batchResult.FailedMigrations++;
+                batchResult.ErrorMessage = result.ErrorMessage;
                 Debug.WriteLine($"Migration {migration.Version} failed. Stopping migration process.");
                 break;
             }
         }
 
-        return results;
+        // Invalidate cache
+        _cachedCurrentVersion = null;
+        _cachedAppliedVersions = null;
+
+        batchResult.Success = batchResult.FailedMigrations == 0;
+        stopwatch.Stop();
+        batchResult.TotalDuration = stopwatch.Elapsed;
+
+        return batchResult;
     }
 
-    /// <summary>
-    /// Rolls back to a specific version
-    /// </summary>
-    /// <param name="targetVersion">Target version to roll back to</param>
-    /// <returns>Results of all rolled back migrations</returns>
-    public async Task<List<MigrationResult>> RollbackToAsync(int targetVersion)
+    /// <inheritdoc />
+    public async Task<MigrationBatchResult> RollbackAsync(int steps = 1)
     {
-        var results = new List<MigrationResult>();
+        var batchResult = new MigrationBatchResult();
+        var stopwatch = Stopwatch.StartNew();
 
         await using var connection = await _connectionFactory.CreateConnectionAsync();
         await EnsureMigrationTableAsync(connection);
 
         var appliedVersions = await GetAppliedMigrationsAsync(connection);
+        batchResult.StartVersion = appliedVersions.Count > 0 ? appliedVersions.Max() : 0;
+
+        // Get migrations to rollback (in reverse order, limited by steps)
+        var migrationsToRollback = _migrations
+            .Where(m => appliedVersions.Contains(m.Version))
+            .OrderByDescending(m => m.Version)
+            .Take(steps)
+            .ToList();
+
+        batchResult.TotalMigrations = migrationsToRollback.Count;
+
+        foreach (var migration in migrationsToRollback)
+        {
+            var result = await RollbackMigrationAsync(connection, migration);
+            batchResult.Results.Add(result);
+
+            if (result.Success)
+            {
+                batchResult.SuccessfulMigrations++;
+            }
+            else
+            {
+                batchResult.FailedMigrations++;
+                batchResult.ErrorMessage = result.ErrorMessage;
+                break;
+            }
+        }
+
+        // Determine end version
+        var remainingVersions = await GetAppliedMigrationsAsync(connection);
+        batchResult.EndVersion = remainingVersions.Count > 0 ? remainingVersions.Max() : 0;
+
+        // Invalidate cache
+        _cachedCurrentVersion = null;
+        _cachedAppliedVersions = null;
+
+        batchResult.Success = batchResult.FailedMigrations == 0;
+        stopwatch.Stop();
+        batchResult.TotalDuration = stopwatch.Elapsed;
+
+        return batchResult;
+    }
+
+    /// <inheritdoc />
+    public async Task<MigrationBatchResult> RollbackToAsync(int targetVersion)
+    {
+        var batchResult = new MigrationBatchResult();
+        var stopwatch = Stopwatch.StartNew();
+
+        await using var connection = await _connectionFactory.CreateConnectionAsync();
+        await EnsureMigrationTableAsync(connection);
+
+        var appliedVersions = await GetAppliedMigrationsAsync(connection);
+        batchResult.StartVersion = appliedVersions.Count > 0 ? appliedVersions.Max() : 0;
 
         // Get migrations to rollback (in reverse order)
         var migrationsToRollback = _migrations
@@ -159,18 +293,93 @@ public class MigrationRunner
             .OrderByDescending(m => m.Version)
             .ToList();
 
+        batchResult.TotalMigrations = migrationsToRollback.Count;
+
         foreach (var migration in migrationsToRollback)
         {
             var result = await RollbackMigrationAsync(connection, migration);
-            results.Add(result);
+            batchResult.Results.Add(result);
 
-            if (!result.Success)
+            if (result.Success)
             {
+                batchResult.SuccessfulMigrations++;
+            }
+            else
+            {
+                batchResult.FailedMigrations++;
+                batchResult.ErrorMessage = result.ErrorMessage;
                 break;
             }
         }
 
-        return results;
+        batchResult.EndVersion = targetVersion;
+
+        // Invalidate cache
+        _cachedCurrentVersion = null;
+        _cachedAppliedVersions = null;
+
+        batchResult.Success = batchResult.FailedMigrations == 0;
+        stopwatch.Stop();
+        batchResult.TotalDuration = stopwatch.Elapsed;
+
+        return batchResult;
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<MigrationInfo> GetPendingMigrations()
+    {
+        // Get applied versions synchronously for interface implementation
+        HashSet<int> appliedVersions;
+
+        if (_cachedAppliedVersions != null)
+        {
+            appliedVersions = _cachedAppliedVersions;
+        }
+        else
+        {
+            var task = Task.Run(async () =>
+            {
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await EnsureMigrationTableAsync(connection);
+                return await GetAppliedMigrationsAsync(connection);
+            });
+            task.Wait();
+            appliedVersions = task.Result;
+            _cachedAppliedVersions = appliedVersions;
+        }
+
+        return _migrations
+            .Where(m => !appliedVersions.Contains(m.Version))
+            .OrderBy(m => m.Version)
+            .Select(m => new MigrationInfo
+            {
+                Version = m.Version,
+                Description = m.Description,
+                CreatedAt = (m as IMigrationWithMetadata)?.CreatedAt
+            });
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MigrationHistoryEntry>> GetMigrationHistoryAsync()
+    {
+        var history = await GetMigrationHistoryInternalAsync();
+        return history.Select(h => new MigrationHistoryEntry
+        {
+            Version = h.Version,
+            Description = h.Description,
+            AppliedAt = h.AppliedAt
+        });
+    }
+
+    /// <summary>
+    /// Legacy rollback method for backward compatibility
+    /// </summary>
+    /// <param name="targetVersion">Target version to roll back to</param>
+    /// <returns>Results of all rolled back migrations</returns>
+    public async Task<List<MigrationResult>> RollbackToVersionAsync(int targetVersion)
+    {
+        var batchResult = await RollbackToAsync(targetVersion);
+        return batchResult.Results;
     }
 
     /// <summary>
@@ -205,10 +414,10 @@ public class MigrationRunner
     }
 
     /// <summary>
-    /// Gets migration history
+    /// Gets migration history (internal helper)
     /// </summary>
     /// <returns>List of applied migrations with timestamps</returns>
-    public async Task<List<(int Version, string Description, DateTime AppliedAt)>> GetMigrationHistoryAsync()
+    private async Task<List<(int Version, string Description, DateTime AppliedAt)>> GetMigrationHistoryInternalAsync()
     {
         await using var connection = await _connectionFactory.CreateConnectionAsync();
         await EnsureMigrationTableAsync(connection);

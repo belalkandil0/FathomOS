@@ -18,11 +18,10 @@ public partial class MainWindow : MetroWindow
     {
         InitializeComponent();
 
-        // Initialize database service
+        // Initialize database service (NOT initialized yet - will be done async)
         _dbService = new ProjectDatabaseService();
-        _dbService.Initialize();
 
-        // Initialize ViewModel
+        // Initialize ViewModel (database not ready yet)
         _viewModel = new MainViewModel(_dbService);
         DataContext = _viewModel;
 
@@ -32,13 +31,35 @@ public partial class MainWindow : MetroWindow
         _viewModel.OpenClientDetail += OnOpenClientDetail;
         _viewModel.CloseClientDetail += OnCloseClientDetail;
 
-        // Load data
+        // Load data asynchronously
         Loaded += MainWindow_Loaded;
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await _viewModel.InitializeAsync();
+        try
+        {
+            // Show loading state
+            IsEnabled = false;
+            Cursor = System.Windows.Input.Cursors.Wait;
+
+            // Initialize database asynchronously (non-blocking)
+            await _dbService.InitializeAsync();
+
+            // Now initialize the ViewModel
+            await _viewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error initializing: {ex.Message}");
+            MessageBox.Show($"Error initializing module: {ex.Message}", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsEnabled = true;
+            Cursor = System.Windows.Input.Cursors.Arrow;
+        }
     }
 
     private void OnOpenProjectDetail(object? sender, SurveyProject? project)

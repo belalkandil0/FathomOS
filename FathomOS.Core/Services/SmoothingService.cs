@@ -66,9 +66,10 @@ public class SmoothingSettings
 }
 
 /// <summary>
-/// Service for applying various smoothing algorithms to survey data
+/// Service for applying various smoothing algorithms to survey data.
+/// Implements ISmoothingService for unified access to smoothing algorithms.
 /// </summary>
-public class SmoothingService
+public class SmoothingService : ISmoothingService
 {
     private readonly SmoothingOptions? _options;
     
@@ -253,6 +254,85 @@ public class SmoothingService
             points[i].SmoothedNorthing = smoothedNorthings[i];
             // Note: SmoothedDepth would need to be added to model if needed
         }
+    }
+
+    /// <summary>
+    /// Apply smoothing using options parameter (ISmoothingService interface method)
+    /// </summary>
+    public SmoothingResult Smooth(List<SurveyPoint> points, SmoothingOptions options)
+    {
+        var result = new SmoothingResult { TotalPoints = points.Count };
+
+        if (options == null || points.Count < 3)
+            return result;
+
+        var originalEastings = points.Select(p => p.Easting).ToArray();
+        var originalNorthings = points.Select(p => p.Northing).ToArray();
+        var originalDepths = points.Select(p => p.SmoothedDepth ?? p.Z ?? 0.0).ToArray();
+        var originalAltitudes = points.Select(p => p.SmoothedAltitude ?? p.Altitude ?? 0.0).ToArray();
+
+        // Smooth position (Easting/Northing)
+        if (options.SmoothPosition)
+        {
+            var smoothedEastings = ApplyMethod(originalEastings, options.PositionMethod, options.PositionWindowSize, options.PositionThreshold, options.ProcessNoise, options.MeasurementNoise);
+            var smoothedNorthings = ApplyMethod(originalNorthings, options.PositionMethod, options.PositionWindowSize, options.PositionThreshold, options.ProcessNoise, options.MeasurementNoise);
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                double posDiff = Math.Sqrt(Math.Pow(smoothedEastings[i] - originalEastings[i], 2) +
+                                           Math.Pow(smoothedNorthings[i] - originalNorthings[i], 2));
+                if (posDiff > 0.0001)
+                {
+                    result.PositionPointsModified++;
+                    result.MaxPositionCorrection = Math.Max(result.MaxPositionCorrection, posDiff);
+                    if (!result.ModifiedPointIndices.Contains(i))
+                        result.ModifiedPointIndices.Add(i);
+                }
+                points[i].SmoothedEasting = smoothedEastings[i];
+                points[i].SmoothedNorthing = smoothedNorthings[i];
+            }
+        }
+
+        // Smooth depth
+        if (options.SmoothDepth)
+        {
+            var smoothedDepths = ApplyMethod(originalDepths, options.DepthMethod, options.DepthWindowSize, options.DepthThreshold, options.ProcessNoise, options.MeasurementNoise);
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                double depthDiff = Math.Abs(smoothedDepths[i] - originalDepths[i]);
+                if (depthDiff > 0.0001)
+                {
+                    result.DepthPointsModified++;
+                    result.MaxDepthCorrection = Math.Max(result.MaxDepthCorrection, depthDiff);
+                    if (!result.ModifiedPointIndices.Contains(i))
+                        result.ModifiedPointIndices.Add(i);
+                }
+                points[i].SmoothedDepth = smoothedDepths[i];
+            }
+        }
+
+        // Smooth altitude
+        if (options.SmoothAltitude)
+        {
+            var smoothedAltitudes = ApplyMethod(originalAltitudes, options.DepthMethod, options.DepthWindowSize, options.DepthThreshold, options.ProcessNoise, options.MeasurementNoise);
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                double altDiff = Math.Abs(smoothedAltitudes[i] - originalAltitudes[i]);
+                if (altDiff > 0.0001)
+                {
+                    result.AltitudePointsModified++;
+                    result.MaxAltitudeCorrection = Math.Max(result.MaxAltitudeCorrection, altDiff);
+                    if (!result.ModifiedPointIndices.Contains(i))
+                        result.ModifiedPointIndices.Add(i);
+                }
+                points[i].SmoothedAltitude = smoothedAltitudes[i];
+            }
+        }
+
+        result.SpikesRemoved = result.ModifiedPointIndices.Count;
+        return result;
     }
 
     /// <summary>
@@ -553,6 +633,221 @@ public class SmoothingService
         }
         
         return smoothed;
+    }
+
+    /// <summary>
+    /// Weighted moving average filter where weights decrease linearly from center.
+    /// </summary>
+    public double[] WeightedMovingAverage(double[] data, int windowSize)
+    {
+        if (data.Length == 0) return data;
+
+        windowSize = Math.Max(3, windowSize | 1);
+        int halfWindow = windowSize / 2;
+
+        var result = new double[data.Length];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            double weightedSum = 0;
+            double totalWeight = 0;
+
+            for (int j = -halfWindow; j <= halfWindow; j++)
+            {
+                int idx = i + j;
+                if (idx >= 0 && idx < data.Length)
+                {
+                    double weight = halfWindow + 1 - Math.Abs(j);
+                    weightedSum += data[idx] * weight;
+                    totalWeight += weight;
+                }
+            }
+
+            result[i] = weightedSum / totalWeight;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Exponential smoothing (single exponential smoothing).
+    /// </summary>
+    public double[] ExponentialSmoothing(double[] data, double alpha)
+    {
+        if (data.Length == 0) return data;
+
+        alpha = Math.Max(0.0, Math.Min(1.0, alpha));
+        var result = new double[data.Length];
+        result[0] = data[0];
+
+        for (int i = 1; i < data.Length; i++)
+        {
+            result[i] = alpha * data[i] + (1 - alpha) * result[i - 1];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Low-pass filter using simple IIR (Butterworth-like) approximation.
+    /// </summary>
+    public double[] LowPassFilter(double[] data, double cutoffFrequency, double sampleRate)
+    {
+        if (data.Length == 0 || sampleRate <= 0 || cutoffFrequency <= 0) return data;
+
+        // Simple RC low-pass filter
+        double rc = 1.0 / (2.0 * Math.PI * cutoffFrequency);
+        double dt = 1.0 / sampleRate;
+        double alpha = dt / (rc + dt);
+
+        var result = new double[data.Length];
+        result[0] = data[0];
+
+        for (int i = 1; i < data.Length; i++)
+        {
+            result[i] = result[i - 1] + alpha * (data[i] - result[i - 1]);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// High-pass filter using simple IIR approximation.
+    /// </summary>
+    public double[] HighPassFilter(double[] data, double cutoffFrequency, double sampleRate)
+    {
+        if (data.Length == 0 || sampleRate <= 0 || cutoffFrequency <= 0) return data;
+
+        // High-pass = original - low-pass
+        var lowPassed = LowPassFilter(data, cutoffFrequency, sampleRate);
+        var result = new double[data.Length];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            result[i] = data[i] - lowPassed[i];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Band-pass filter combining low-pass and high-pass filters.
+    /// </summary>
+    public double[] BandPassFilter(double[] data, double lowCutoff, double highCutoff, double sampleRate)
+    {
+        if (data.Length == 0 || sampleRate <= 0) return data;
+
+        // Apply high-pass first (removes frequencies below lowCutoff)
+        var highPassed = HighPassFilter(data, lowCutoff, sampleRate);
+        // Then apply low-pass (removes frequencies above highCutoff)
+        return LowPassFilter(highPassed, highCutoff, sampleRate);
+    }
+
+    /// <summary>
+    /// Detect spikes/outliers using statistical methods.
+    /// </summary>
+    public int[] DetectSpikes(double[] data, int windowSize, double threshold = 3.0)
+    {
+        if (data.Length < 3) return Array.Empty<int>();
+
+        windowSize = Math.Max(3, windowSize | 1);
+        int halfWindow = windowSize / 2;
+        var spikeIndices = new List<int>();
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            var window = new List<double>();
+
+            for (int j = i - halfWindow; j <= i + halfWindow; j++)
+            {
+                if (j >= 0 && j < data.Length && j != i)
+                {
+                    window.Add(data[j]);
+                }
+            }
+
+            if (window.Count < 2) continue;
+
+            double mean = window.Average();
+            double stdDev = Math.Sqrt(window.Average(v => Math.Pow(v - mean, 2)));
+
+            if (stdDev > 0 && Math.Abs(data[i] - mean) > threshold * stdDev)
+            {
+                spikeIndices.Add(i);
+            }
+        }
+
+        return spikeIndices.ToArray();
+    }
+
+    /// <summary>
+    /// Remove detected spikes by linear interpolation.
+    /// </summary>
+    public double[] RemoveSpikes(double[] data, int[] spikeIndices)
+    {
+        if (data.Length == 0 || spikeIndices.Length == 0) return data;
+
+        var result = new double[data.Length];
+        Array.Copy(data, result, data.Length);
+
+        var spikeSet = new HashSet<int>(spikeIndices);
+
+        foreach (int idx in spikeIndices)
+        {
+            // Find nearest non-spike neighbors
+            int leftIdx = idx - 1;
+            while (leftIdx >= 0 && spikeSet.Contains(leftIdx)) leftIdx--;
+
+            int rightIdx = idx + 1;
+            while (rightIdx < data.Length && spikeSet.Contains(rightIdx)) rightIdx++;
+
+            // Interpolate
+            if (leftIdx >= 0 && rightIdx < data.Length)
+            {
+                double fraction = (double)(idx - leftIdx) / (rightIdx - leftIdx);
+                result[idx] = data[leftIdx] + fraction * (data[rightIdx] - data[leftIdx]);
+            }
+            else if (leftIdx >= 0)
+            {
+                result[idx] = data[leftIdx];
+            }
+            else if (rightIdx < data.Length)
+            {
+                result[idx] = data[rightIdx];
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Resample data to new length using linear interpolation.
+    /// </summary>
+    public double[] Resample(double[] data, int newLength)
+    {
+        if (data.Length == 0 || newLength <= 0) return Array.Empty<double>();
+        if (newLength == data.Length) return (double[])data.Clone();
+
+        var result = new double[newLength];
+        double scale = (double)(data.Length - 1) / (newLength - 1);
+
+        for (int i = 0; i < newLength; i++)
+        {
+            double srcIdx = i * scale;
+            int srcIdxFloor = (int)srcIdx;
+            double fraction = srcIdx - srcIdxFloor;
+
+            if (srcIdxFloor >= data.Length - 1)
+            {
+                result[i] = data[data.Length - 1];
+            }
+            else
+            {
+                result[i] = data[srcIdxFloor] * (1 - fraction) + data[srcIdxFloor + 1] * fraction;
+            }
+        }
+
+        return result;
     }
 
     /// <summary>

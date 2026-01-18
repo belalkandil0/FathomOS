@@ -6,13 +6,16 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Solution Structure](#solution-structure)
-3. [Core Components](#core-components)
-4. [Module Architecture](#module-architecture)
-5. [Service Layer](#service-layer)
-6. [Data Flow](#data-flow)
-7. [Dependency Injection](#dependency-injection)
-8. [Module Discovery](#module-discovery)
+2. [Clean Architecture Layers](#clean-architecture-layers)
+3. [Solution Structure](#solution-structure)
+4. [Core Components](#core-components)
+5. [Module Architecture](#module-architecture)
+6. [Service Layer](#service-layer)
+7. [CQRS Pattern](#cqrs-pattern)
+8. [Data Flow](#data-flow)
+9. [Dependency Injection](#dependency-injection)
+10. [Module Discovery](#module-discovery)
+11. [Technology Stack](#technology-stack)
 
 ---
 
@@ -60,6 +63,70 @@ FathomOS follows a modular, plugin-based architecture that allows independent de
 | (Survey List)  |  | (Calibration)  |  | (Utilities)    |
 +----------------+  +----------------+  +----------------+
 ```
+
+---
+
+## Clean Architecture Layers
+
+FathomOS follows Uncle Bob's Clean Architecture principles with dependency rules flowing inward from external layers to core business logic.
+
+### Layer Diagram
+
+```
++=========================================================================+
+|                        PRESENTATION LAYER                                |
+|  +-------------------------------------------------------------------+  |
+|  |              WPF Views, XAML, ViewModels (MVVM)                   |  |
+|  |     FathomOS.Shell/Views   |   FathomOS.Modules.*/Views          |  |
+|  +-------------------------------------------------------------------+  |
++=========================================================================+
+                                    |
+                                    | depends on
+                                    v
++=========================================================================+
+|                        APPLICATION LAYER                                 |
+|  +-------------------------------------------------------------------+  |
+|  |            Services, Commands, Queries, DTOs                      |  |
+|  |   FathomOS.Core/Services   |   Module-specific Services          |  |
+|  +-------------------------------------------------------------------+  |
++=========================================================================+
+                                    |
+                                    | depends on
+                                    v
++=========================================================================+
+|                          DOMAIN LAYER                                    |
+|  +-------------------------------------------------------------------+  |
+|  |      Entities, Value Objects, Domain Services, Interfaces         |  |
+|  |  FathomOS.Core/Models  |  FathomOS.Core/Interfaces               |  |
+|  +-------------------------------------------------------------------+  |
++=========================================================================+
+                                    |
+                                    | depends on
+                                    v
++=========================================================================+
+|                       INFRASTRUCTURE LAYER                               |
+|  +-------------------------------------------------------------------+  |
+|  |    Parsers, Exporters, Data Access, External Services             |  |
+|  |  FathomOS.Core/Parsers  |  FathomOS.Core/Export  |  Licensing    |  |
+|  +-------------------------------------------------------------------+  |
++=========================================================================+
+```
+
+### Layer Responsibilities
+
+| Layer | Responsibility | FathomOS Components |
+|-------|---------------|---------------------|
+| **Presentation** | User interface, input handling, data binding | WPF Views, ViewModels, Themes |
+| **Application** | Use case orchestration, service coordination | Services (Smoothing, Cache, AutoSave) |
+| **Domain** | Business entities, rules, interfaces | Models (SurveyPoint, RouteData, TideData) |
+| **Infrastructure** | External concerns, I/O, data persistence | Parsers, Exporters, LicenseManager |
+
+### Dependency Rules
+
+1. Inner layers know nothing about outer layers
+2. All dependencies point inward
+3. Domain layer has no external dependencies
+4. Interfaces defined in Domain, implemented in Infrastructure
 
 ---
 
@@ -312,6 +379,107 @@ public class MyModule : IModule
 
 ---
 
+## CQRS Pattern
+
+FathomOS uses a lightweight CQRS (Command Query Responsibility Segregation) pattern for complex operations, separating read and write operations for better scalability and maintainability.
+
+### Pattern Overview
+
+```
++------------------+                      +------------------+
+|     Commands     |                      |     Queries      |
+|  (Write Ops)     |                      |   (Read Ops)     |
++--------+---------+                      +--------+---------+
+         |                                         |
+         v                                         v
++--------+---------+                      +--------+---------+
+| Command Handler  |                      |  Query Handler   |
+|  - Validation    |                      |  - Data Access   |
+|  - Business Logic|                      |  - Projection    |
+|  - State Change  |                      |  - Caching       |
++--------+---------+                      +--------+---------+
+         |                                         |
+         v                                         v
++--------+---------+                      +--------+---------+
+|  Command Result  |                      |   Query Result   |
+|  - Success/Fail  |                      |  - Data DTOs     |
+|  - Validation    |                      |  - Collections   |
++------------------+                      +------------------+
+```
+
+### Commands (Write Operations)
+
+Commands modify state and return results indicating success or failure.
+
+```csharp
+// Command Definition
+public class ProcessSurveyCommand
+{
+    public List<SurveyPoint> Points { get; set; }
+    public SmoothingOptions SmoothingOptions { get; set; }
+    public TideCorrectionOptions TideOptions { get; set; }
+    public RouteAlignmentOptions RouteOptions { get; set; }
+}
+
+// Command Result
+public class ProcessSurveyResult
+{
+    public bool Success { get; set; }
+    public string Message { get; set; }
+    public List<SurveyPoint> ProcessedPoints { get; set; }
+    public SmoothingResult SmoothingStats { get; set; }
+    public int PointsModified { get; set; }
+}
+```
+
+### Queries (Read Operations)
+
+Queries retrieve data without causing side effects.
+
+```csharp
+// Query Interface
+public interface IProjectQuery
+{
+    Task<Project?> GetByIdAsync(string projectId);
+    Task<IEnumerable<Project>> GetRecentAsync(int count);
+    Task<IEnumerable<Project>> SearchAsync(string searchTerm);
+}
+
+// Query Implementation
+public class ProjectQuery : IProjectQuery
+{
+    private readonly ICacheService _cache;
+
+    public async Task<Project?> GetByIdAsync(string projectId)
+    {
+        return await _cache.GetOrCreateAsync(
+            $"project:{projectId}",
+            () => LoadProjectFromDisk(projectId),
+            TimeSpan.FromMinutes(5));
+    }
+}
+```
+
+### Command vs Query Comparison
+
+| Aspect | Commands | Queries |
+|--------|----------|---------|
+| **Purpose** | Modify state | Read data |
+| **Returns** | Result/Status | Data |
+| **Caching** | No (invalidates cache) | Yes (uses cache) |
+| **Validation** | Full validation required | Minimal validation |
+| **Side Effects** | Yes | No |
+| **Idempotency** | Often non-idempotent | Always idempotent |
+
+### Benefits in FathomOS
+
+1. **Separation of Concerns**: Read and write paths are optimized independently
+2. **Testability**: Commands and queries can be unit tested in isolation
+3. **Scalability**: Read-heavy operations (viewing data) don't block write operations (processing)
+4. **Caching**: Query results can be aggressively cached without worrying about stale data
+
+---
+
 ## Data Flow
 
 ### Survey Processing Pipeline
@@ -414,6 +582,54 @@ FathomOS.ModuleGroups.Calibrations/
 ```
 
 The group name is derived from the folder name (e.g., "Calibrations").
+
+---
+
+## Technology Stack
+
+### Core Technologies
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| .NET | 8.0 LTS | Runtime framework |
+| WPF | 8.0 | Windows UI framework |
+| C# | 12.0 | Programming language |
+
+### NuGet Packages by Category
+
+#### UI & Presentation
+| Package | Version | Purpose |
+|---------|---------|---------|
+| MahApps.Metro | 2.x | Modern Metro-style UI |
+| ControlzEx | 5.x | UI behaviors and controls |
+| HelixToolkit.Wpf | 2.x | 3D visualization |
+| OxyPlot.Wpf | 2.x | Charting and graphs |
+
+#### Data Processing
+| Package | Version | Purpose |
+|---------|---------|---------|
+| MathNet.Numerics | 5.x | Statistics and numerics |
+| Microsoft.Data.Sqlite | 8.x | Local database storage |
+
+#### Export & Reporting
+| Package | Version | Purpose |
+|---------|---------|---------|
+| ClosedXML | 0.102+ | Excel file generation |
+| netDxf | 3.x | DXF/CAD file export |
+| QuestPDF | 2024.x | PDF report generation |
+
+#### Security & Licensing
+| Package | Version | Purpose |
+|---------|---------|---------|
+| System.Security.Cryptography | built-in | ECDSA license signing |
+
+### Development Tools
+
+| Tool | Purpose |
+|------|---------|
+| Visual Studio 2022 | Primary IDE |
+| .NET 8.0 SDK | Build toolchain |
+| MSBuild | Build automation |
 
 ---
 

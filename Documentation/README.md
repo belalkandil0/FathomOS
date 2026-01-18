@@ -1,11 +1,21 @@
 # FathomOS Documentation
 
-**Version:** 1.0.45
-**Last Updated:** January 2026
+**Version:** 1.0.47
+**Last Updated:** January 18, 2026
+
+## Recent Updates (v1.0.47)
+- Added multi-seat licensing server endpoints (6 new endpoints)
+- Implemented Email Service for license transfers with HTML templates
+- Updated SSL/TLS certificate pinning with issuer-based validation for Render.com
+- Consolidated documentation with comprehensive INDEX.md
+- Added FathomOS-specific entries to .gitignore
+- Fixed build errors in AntiDebug.cs and SettingsWindow.xaml.cs
 
 ## Overview
 
 FathomOS is a modular hydrographic survey processing platform designed for offshore survey operations. The platform provides a unified environment for data processing, equipment calibration, quality control, and project management.
+
+> **Complete Documentation Index:** See [INDEX.md](INDEX.md) for a comprehensive list of all project documentation.
 
 ## Documentation Structure
 

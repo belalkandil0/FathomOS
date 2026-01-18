@@ -30,30 +30,31 @@ public class LocalDatabaseService : IDisposable
     }
     
     /// <summary>
-    /// Initialize database and seed default data
+    /// Initialize database and seed default data (synchronous - may block UI)
+    /// Prefer InitializeAsync() for non-blocking initialization.
     /// </summary>
     public void Initialize()
     {
         if (_isInitialized) return;
-        
+
         try
         {
             // Check if database file exists
             var dbPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "FathomOS", "EquipmentInventory", "local.db");
-            
+
             bool isNewDatabase = !File.Exists(dbPath);
-            
+
             // Create database if needed
             Context.Database.EnsureCreated();
-            
+
             // Run migrations for existing databases
             if (!isNewDatabase)
             {
                 RunSchemaMigrations();
             }
-            
+
             SeedDefaultData();
             _isInitialized = true;
         }
@@ -62,6 +63,44 @@ public class LocalDatabaseService : IDisposable
             System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Initialize database asynchronously (non-blocking)
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        if (_isInitialized) return;
+
+        await Task.Run(() =>
+        {
+            try
+            {
+                // Check if database file exists
+                var dbPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "FathomOS", "EquipmentInventory", "local.db");
+
+                bool isNewDatabase = !File.Exists(dbPath);
+
+                // Create database if needed
+                Context.Database.EnsureCreated();
+
+                // Run migrations for existing databases
+                if (!isNewDatabase)
+                {
+                    RunSchemaMigrations();
+                }
+
+                SeedDefaultData();
+                _isInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
+                throw;
+            }
+        });
     }
     
     /// <summary>

@@ -49,6 +49,10 @@ public partial class DashboardWindow : Window
             System.Diagnostics.Debug.WriteLine("DEBUG: UpdateThemeToggleIcon completed");
             UpdateLicenseStatus();
             System.Diagnostics.Debug.WriteLine("DEBUG: UpdateLicenseStatus completed");
+            UpdateWindowTitle();
+            System.Diagnostics.Debug.WriteLine("DEBUG: UpdateWindowTitle completed");
+            _ = CheckServerConnectionAsync();
+            System.Diagnostics.Debug.WriteLine("DEBUG: CheckServerConnectionAsync started");
             StartLicenseMonitoring();
             System.Diagnostics.Debug.WriteLine("DEBUG: StartLicenseMonitoring completed");
             System.Diagnostics.Debug.WriteLine("DEBUG: DashboardWindow_Loaded FINISHED - window should stay open!");
@@ -82,6 +86,89 @@ public partial class DashboardWindow : Window
     }
     
     /// <summary>
+    /// Update window title with client name and edition
+    /// Format: "FathomOS - Client Name - Edition"
+    /// </summary>
+    private void UpdateWindowTitle()
+    {
+        try
+        {
+            var clientName = App.ClientName;
+            var edition = App.LicenseEdition;
+
+            if (!string.IsNullOrEmpty(clientName) && !string.IsNullOrEmpty(edition))
+            {
+                Title = $"FathomOS - {clientName} - {edition}";
+            }
+            else if (!string.IsNullOrEmpty(edition))
+            {
+                Title = $"FathomOS - {edition}";
+            }
+            else
+            {
+                Title = "FathomOS";
+            }
+        }
+        catch
+        {
+            Title = "FathomOS";
+        }
+    }
+
+    /// <summary>
+    /// Check server connection status and update indicator
+    /// </summary>
+    private async Task CheckServerConnectionAsync()
+    {
+        try
+        {
+            // Set initial state
+            await Dispatcher.InvokeAsync(() =>
+            {
+                ServerStatusDot.Fill = new SolidColorBrush(Color.FromRgb(110, 118, 129)); // Gray
+                TxtServerStatus.Text = "Checking...";
+            });
+
+            // Try to check server connectivity
+            bool isConnected = false;
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(5);
+                var response = await httpClient.GetAsync("https://fathom-os-license-server.onrender.com/api/health");
+                isConnected = response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                isConnected = false;
+            }
+
+            // Update UI
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (isConnected)
+                {
+                    ServerStatusDot.Fill = new SolidColorBrush(Color.FromRgb(63, 185, 80)); // Green
+                    TxtServerStatus.Text = "Online";
+                }
+                else
+                {
+                    ServerStatusDot.Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); // Red
+                    TxtServerStatus.Text = "Offline";
+                }
+            });
+        }
+        catch
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                ServerStatusDot.Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); // Red
+                TxtServerStatus.Text = "Offline";
+            });
+        }
+    }
+
+    /// <summary>
     /// Start background license monitoring
     /// </summary>
     private void StartLicenseMonitoring()
@@ -102,11 +189,18 @@ public partial class DashboardWindow : Window
         try
         {
             if (App.LicenseManager == null) return;
-            
+
             var result = await App.LicenseManager.ForceServerCheckAsync();
-            
+
             // Update UI on dispatcher thread
-            await Dispatcher.InvokeAsync(() => UpdateLicenseStatus());
+            await Dispatcher.InvokeAsync(() =>
+            {
+                UpdateLicenseStatus();
+                UpdateWindowTitle();
+            });
+
+            // Also check server connectivity in the background
+            _ = CheckServerConnectionAsync();
             
             // Only take action if server CONFIRMED revocation or expiration
             if (result.Status == LicenseStatus.Revoked)
@@ -851,8 +945,24 @@ public partial class DashboardWindow : Window
     
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Settings dialog coming soon.", "Settings", 
-            MessageBoxButton.OK, MessageBoxImage.Information);
+        try
+        {
+            var settingsWindow = new SettingsWindow();
+            settingsWindow.Owner = this;
+            settingsWindow.ShowDialog();
+
+            // Refresh UI after settings change
+            UpdateThemeToggleIcon();
+            UpdateLicenseStatus();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error opening settings: {ex.Message}",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 }
 

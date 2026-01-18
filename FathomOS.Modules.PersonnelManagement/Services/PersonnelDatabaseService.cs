@@ -23,12 +23,25 @@ public class PersonnelDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Initialize the database (create if not exists, apply migrations)
+    /// Initialize the database (create if not exists, apply migrations) - SYNCHRONOUS
+    /// Prefer InitializeAsync() for non-blocking initialization.
     /// </summary>
     public void Initialize()
     {
         _context.Database.EnsureCreated();
         SeedReferenceData();
+    }
+
+    /// <summary>
+    /// Initialize the database asynchronously (non-blocking)
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await Task.Run(() =>
+        {
+            _context.Database.EnsureCreated();
+            SeedReferenceData();
+        });
     }
 
     /// <summary>

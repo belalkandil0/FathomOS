@@ -10,6 +10,11 @@
     "supportedFileTypes": [".npd", ".rlx", ".s7p", ".tide"],
     "dependencies": [],
     "minimumShellVersion": "1.0.0",
+
+    "CertificateCode": "SL",
+    "CertificateTitle": "Survey Listing Processing Certificate",
+    "CertificateStatement": "This is to certify that the survey listing data documented herein has been processed and verified using FathomOS Survey Listing Generator in accordance with industry standards for hydrographic data processing.",
+
     "features": [
         "NPD file parsing with column mapping",
         "RLX route alignment processing",

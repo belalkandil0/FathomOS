@@ -1,0 +1,114 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore FathomOS.sln
+
+      - name: Build solution
+        run: dotnet build FathomOS.sln -c ${{ env.CONFIGURATION }} --no-restore
+
+      - name: Run tests
+        run: dotnet test FathomOS.sln -c ${{ env.CONFIGURATION }} --no-build --verbosity normal --logger trx --results-directory ./TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: ./TestResults
+          retention-days: 7
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore FathomOS.sln
+
+      - name: Build with analyzers
+        run: dotnet build FathomOS.sln -c ${{ env.CONFIGURATION }} --no-restore -warnaserror
+
+  build-artifacts:
+    name: Build Artifacts
+    runs-on: windows-latest
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore FathomOS.sln
+
+      - name: Build solution
+        run: dotnet build FathomOS.sln -c ${{ env.CONFIGURATION }} --no-restore
+
+      - name: Publish application
+        run: |
+          dotnet publish FathomOS.Shell/FathomOS.Shell.csproj -c ${{ env.CONFIGURATION }} -r win-x64 --self-contained true -o ./publish/win-x64
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: FathomOS-win-x64
+          path: ./publish/win-x64
+          retention-days: 14

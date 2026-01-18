@@ -2,12 +2,17 @@ namespace FathomOS.Modules.NetworkTimeSync;
 
 using System.IO;
 using System.Windows;
+using FathomOS.Core.Certificates;
 using FathomOS.Core.Interfaces;
 using FathomOS.Modules.NetworkTimeSync.Views;
 
 /// <summary>
 /// Module implementation for Fathom OS Shell integration.
 /// Implements IModule interface to enable discovery and launching.
+///
+/// Certificate System Integration:
+/// - Certificate Code: NTS
+/// - Certificate Title: Network Time Synchronization Certificate
 /// </summary>
 public class NetworkTimeSyncModule : IModule
 {
@@ -17,6 +22,10 @@ public class NetworkTimeSyncModule : IModule
     private readonly IEventAggregator? _eventAggregator;
     private readonly IThemeService? _themeService;
     private readonly IErrorReporter? _errorReporter;
+
+    // Certificate configuration (matches ModuleInfo.json)
+    public const string CertificateCode = "NT";
+    public const string CertificateTitle = "Network Time Synchronization Verification Certificate";
 
     #region Constructors
 
@@ -43,6 +52,15 @@ public class NetworkTimeSyncModule : IModule
         _themeService = themeService;
         _errorReporter = errorReporter;
     }
+
+    #endregion
+
+    #region Public Properties
+
+    /// <summary>
+    /// Gets the certification service.
+    /// </summary>
+    public ICertificationService? CertificationService => _certService;
 
     #endregion
     
@@ -161,8 +179,73 @@ public class NetworkTimeSyncModule : IModule
     {
         // Launch the module
         Launch();
-        
+
         // Load the configuration file
         _mainWindow?.LoadConfiguration(filePath);
     }
+
+    #region Certificate Support
+
+    /// <summary>
+    /// Generate a certificate for network time synchronization.
+    /// </summary>
+    /// <param name="projectName">Project name.</param>
+    /// <param name="processingData">Processing data for certificate.</param>
+    /// <param name="owner">Parent window for dialog.</param>
+    /// <returns>Certificate ID if created, null if cancelled.</returns>
+    public async Task<string?> GenerateCertificateAsync(
+        string projectName,
+        Dictionary<string, string> processingData,
+        Window? owner = null)
+    {
+        var request = ModuleCertificateHelper.CreateRequest(
+            ModuleId,
+            CertificateCode,
+            Version.ToString(),
+            projectName,
+            processingData);
+
+        return await ModuleCertificateHelper.GenerateCertificateAsync(_certService, request, owner);
+    }
+
+    /// <summary>
+    /// Gets certificate processing data for time sync verification.
+    /// </summary>
+    public Dictionary<string, string> GetCertificateProcessingData(
+        string projectName,
+        string referenceServer,
+        int computersSynced,
+        double maxOffset,
+        double averageOffset,
+        DateTime syncTime)
+    {
+        return new Dictionary<string, string>
+        {
+            [ModuleCertificateHelper.DataKeys.ProjectName] = projectName,
+            ["Reference Server"] = referenceServer,
+            ["Computers Synchronized"] = computersSynced.ToString(),
+            ["Maximum Offset"] = $"{maxOffset:F3} ms",
+            ["Average Offset"] = $"{averageOffset:F3} ms",
+            ["Sync Time"] = syncTime.ToString("dd MMM yyyy HH:mm:ss UTC"),
+            [ModuleCertificateHelper.DataKeys.ProcessingDate] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm UTC"),
+            [ModuleCertificateHelper.DataKeys.SoftwareVersion] = $"Network Time Sync v{Version}"
+        };
+    }
+
+    /// <summary>
+    /// Gets recommended signatory titles for time sync certificates.
+    /// </summary>
+    public static IEnumerable<string> GetSignatoryTitles()
+    {
+        return new[]
+        {
+            "Survey Engineer",
+            "IT Administrator",
+            "Online Surveyor",
+            "System Administrator",
+            "Technical Manager"
+        };
+    }
+
+    #endregion
 }

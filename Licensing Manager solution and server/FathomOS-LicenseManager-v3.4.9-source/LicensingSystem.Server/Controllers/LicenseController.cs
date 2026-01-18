@@ -656,9 +656,9 @@ public class LicenseController : ControllerBase
             return "***";
         return $"{key[..4]}***{key[^4..]}";
     }
-}
 
-// Session Management DTOs
+// ==================== Session Management DTOs (for backwards compatibility) ====================
+// Note: These are now inside the controller class for proper scoping
 
 public class SessionStartRequest
 {
@@ -758,4 +758,478 @@ public class OfflineSyncResponse
     public string? Message { get; set; }
     public bool IsRevoked { get; set; }
     public DateTime? ExpiresAt { get; set; }
+}
+
+// ==================== MULTI-SEAT LICENSE ENDPOINTS ====================
+// These endpoints support concurrent user licensing (multiple seats per license)
+
+/// <summary>
+/// Acquires a seat for the current session (multi-seat licensing)
+/// POST /api/license/seats/acquire
+/// </summary>
+[HttpPost("seats/acquire")]
+public async Task<ActionResult<AcquireSeatResponse>> AcquireSeat([FromBody] AcquireSeatRequest request)
+{
+    var clientIp = GetClientIp();
+
+    // Rate limiting
+    if (!await _rateLimitService.CheckRateLimitAsync(clientIp, "seats-acquire", 20, TimeSpan.FromMinutes(5)))
+    {
+        await _auditService.LogAsync("RATE_LIMIT", "Seat", request.LicenseId, null, null, clientIp,
+            "Seat acquisition rate limit exceeded", false);
+        return StatusCode(429, new AcquireSeatResponse
+        {
+            Success = false,
+            Message = "Too many attempts. Please try again later."
+        });
+    }
+
+    try
+    {
+        _logger.LogInformation("Seat acquisition request for license: {LicenseId}, Machine: {Machine}",
+            request.LicenseId, request.MachineName);
+
+        // Find the license
+        var license = await _db.LicenseKeys
+            .FirstOrDefaultAsync(l => l.LicenseId == request.LicenseId && !l.IsRevoked);
+
+        if (license == null)
+        {
+            return NotFound(new AcquireSeatResponse
+            {
+                Success = false,
+                Message = "License not found or revoked"
+            });
+        }
+
+        // Check for expired license
+        if (license.ExpiresAt < DateTime.UtcNow)
+        {
+            return BadRequest(new AcquireSeatResponse
+            {
+                Success = false,
+                Message = "License has expired"
+            });
+        }
+
+        // Get max seats from license features (default to 1 if not specified)
+        var maxSeats = GetMaxSeatsFromLicense(license);
+
+        // Get timeout from request or use default
+        var timeoutMinutes = request.TimeoutMinutes > 0 ? request.TimeoutMinutes : 5;
+        var staleThreshold = DateTime.UtcNow.AddMinutes(-timeoutMinutes);
+
+        // Clean up stale sessions first
+        var staleSessions = await _db.ActiveSessions
+            .Where(s => s.LicenseId == request.LicenseId && s.IsActive && s.LastHeartbeat < staleThreshold)
+            .ToListAsync();
+
+        foreach (var stale in staleSessions)
+        {
+            stale.IsActive = false;
+            stale.EndedAt = DateTime.UtcNow;
+            stale.EndReason = "Session timeout";
+        }
+
+        // Count current active sessions
+        var activeSessions = await _db.ActiveSessions
+            .Where(s => s.LicenseId == request.LicenseId && s.IsActive)
+            .ToListAsync();
+
+        var seatsUsed = activeSessions.Count;
+
+        // Check if this device already has a seat
+        var existingSession = activeSessions
+            .FirstOrDefault(s => s.HardwareFingerprint == request.HardwareFingerprint);
+
+        if (existingSession != null)
+        {
+            // Same device, refresh the session
+            existingSession.LastHeartbeat = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            return Ok(new AcquireSeatResponse
+            {
+                Success = true,
+                SessionId = existingSession.SessionToken,
+                SeatsUsed = seatsUsed,
+                SeatsAvailable = maxSeats - seatsUsed,
+                Message = "Session resumed"
+            });
+        }
+
+        // Check if seats are available
+        if (seatsUsed >= maxSeats)
+        {
+            var activeSessionsList = activeSessions.Select(s => new SeatActiveSession
+            {
+                SessionId = s.SessionToken,
+                MachineName = s.MachineName ?? "Unknown",
+                UserName = null, // Could be added if stored
+                StartedAt = s.StartedAt,
+                LastHeartbeat = s.LastHeartbeat,
+                IsCurrentSession = false
+            }).ToList();
+
+            return Conflict(new AcquireSeatResponse
+            {
+                Success = false,
+                SeatsUsed = seatsUsed,
+                SeatsAvailable = 0,
+                Message = $"All {maxSeats} license seats are currently in use.",
+                ActiveSessions = activeSessionsList
+            });
+        }
+
+        // Create new session
+        var sessionToken = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var newSession = new ActiveSessionRecord
+        {
+            LicenseId = request.LicenseId,
+            SessionToken = sessionToken,
+            HardwareFingerprint = request.HardwareFingerprint,
+            MachineName = request.MachineName,
+            IpAddress = clientIp,
+            StartedAt = DateTime.UtcNow,
+            LastHeartbeat = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        _db.ActiveSessions.Add(newSession);
+        await _db.SaveChangesAsync();
+
+        await _auditService.LogAsync("SEAT_ACQUIRE", "Session", request.LicenseId, null, null, clientIp,
+            $"Seat acquired on {request.MachineName}", true);
+
+        _logger.LogInformation("Seat acquired for license: {LicenseId}, Machine: {Machine}, Seats: {Used}/{Max}",
+            request.LicenseId, request.MachineName, seatsUsed + 1, maxSeats);
+
+        return Ok(new AcquireSeatResponse
+        {
+            Success = true,
+            SessionId = sessionToken,
+            SeatsUsed = seatsUsed + 1,
+            SeatsAvailable = maxSeats - seatsUsed - 1,
+            Message = "Seat acquired successfully"
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Seat acquisition error for license: {LicenseId}", request.LicenseId);
+        return StatusCode(500, new AcquireSeatResponse
+        {
+            Success = false,
+            Message = "Failed to acquire seat"
+        });
+    }
+}
+
+/// <summary>
+/// Releases a seat (multi-seat licensing)
+/// POST /api/license/seats/release
+/// </summary>
+[HttpPost("seats/release")]
+public async Task<ActionResult> ReleaseSeat([FromBody] SeatReleaseRequest request)
+{
+    try
+    {
+        _logger.LogInformation("Seat release request for session: {SessionId}", request.SessionId);
+
+        var session = await _db.ActiveSessions
+            .FirstOrDefaultAsync(s => s.SessionToken == request.SessionId && s.IsActive);
+
+        if (session != null)
+        {
+            session.IsActive = false;
+            session.EndedAt = DateTime.UtcNow;
+            session.EndReason = "Normal release";
+            await _db.SaveChangesAsync();
+
+            await _auditService.LogAsync("SEAT_RELEASE", "Session", session.LicenseId, null, null,
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                $"Seat released from {session.MachineName}", true);
+
+            _logger.LogInformation("Seat released for license: {LicenseId}", session.LicenseId);
+        }
+
+        return Ok(new { success = true, message = "Seat released" });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Seat release error");
+        return StatusCode(500, new { success = false, message = "Failed to release seat" });
+    }
+}
+
+/// <summary>
+/// Heartbeat for multi-seat session
+/// POST /api/license/seats/heartbeat
+/// </summary>
+[HttpPost("seats/heartbeat")]
+public async Task<ActionResult<SeatHeartbeatResponse>> SeatHeartbeat([FromBody] SeatHeartbeatRequest request)
+{
+    try
+    {
+        var session = await _db.ActiveSessions
+            .FirstOrDefaultAsync(s => s.SessionToken == request.SessionId && s.IsActive);
+
+        if (session == null)
+        {
+            return NotFound(new SeatHeartbeatResponse
+            {
+                Success = false,
+                Reason = "Session not found or expired",
+                Message = "Session not found or expired. Please reacquire a seat."
+            });
+        }
+
+        // Update heartbeat
+        session.LastHeartbeat = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        // Get seat count
+        var license = await _db.LicenseKeys
+            .FirstOrDefaultAsync(l => l.LicenseId == session.LicenseId);
+
+        var maxSeats = license != null ? GetMaxSeatsFromLicense(license) : 1;
+        var seatsUsed = await _db.ActiveSessions
+            .CountAsync(s => s.LicenseId == session.LicenseId && s.IsActive);
+
+        // Check if license is still valid
+        var isValid = license != null && !license.IsRevoked && license.ExpiresAt > DateTime.UtcNow;
+
+        return Ok(new SeatHeartbeatResponse
+        {
+            Success = true,
+            SeatsUsed = seatsUsed,
+            TimeUntilExpiry = license != null ? license.ExpiresAt - DateTime.UtcNow : TimeSpan.Zero,
+            Message = isValid ? "OK" : "License expired or revoked"
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Seat heartbeat error");
+        return StatusCode(500, new SeatHeartbeatResponse
+        {
+            Success = false,
+            Message = "Heartbeat failed"
+        });
+    }
+}
+
+/// <summary>
+/// Get seat status for a license
+/// GET /api/license/seats/status?licenseId={id}
+/// </summary>
+[HttpGet("seats/status")]
+public async Task<ActionResult<SeatStatusResponse>> GetSeatStatus([FromQuery] string licenseId)
+{
+    try
+    {
+        var license = await _db.LicenseKeys
+            .FirstOrDefaultAsync(l => l.LicenseId == licenseId);
+
+        if (license == null)
+        {
+            return NotFound(new SeatStatusResponse
+            {
+                MaxSeats = 0,
+                SeatsUsed = 0,
+                Error = "License not found"
+            });
+        }
+
+        var maxSeats = GetMaxSeatsFromLicense(license);
+        var timeoutMinutes = 5;
+        var staleThreshold = DateTime.UtcNow.AddMinutes(-timeoutMinutes);
+
+        var activeSessions = await _db.ActiveSessions
+            .Where(s => s.LicenseId == licenseId && s.IsActive && s.LastHeartbeat >= staleThreshold)
+            .Select(s => new SeatActiveSession
+            {
+                SessionId = s.SessionToken,
+                MachineName = s.MachineName ?? "Unknown",
+                StartedAt = s.StartedAt,
+                LastHeartbeat = s.LastHeartbeat,
+                IsCurrentSession = false
+            })
+            .ToListAsync();
+
+        return Ok(new SeatStatusResponse
+        {
+            MaxSeats = maxSeats,
+            SeatsUsed = activeSessions.Count,
+            ActiveSessions = activeSessions
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Get seat status error");
+        return StatusCode(500, new SeatStatusResponse
+        {
+            Error = "Failed to get seat status"
+        });
+    }
+}
+
+/// <summary>
+/// Get all active sessions for a license
+/// GET /api/license/seats/sessions?licenseId={id}
+/// </summary>
+[HttpGet("seats/sessions")]
+public async Task<ActionResult<List<SeatActiveSession>>> GetActiveSessions([FromQuery] string licenseId)
+{
+    try
+    {
+        var timeoutMinutes = 5;
+        var staleThreshold = DateTime.UtcNow.AddMinutes(-timeoutMinutes);
+
+        var sessions = await _db.ActiveSessions
+            .Where(s => s.LicenseId == licenseId && s.IsActive && s.LastHeartbeat >= staleThreshold)
+            .Select(s => new SeatActiveSession
+            {
+                SessionId = s.SessionToken,
+                MachineName = s.MachineName ?? "Unknown",
+                StartedAt = s.StartedAt,
+                LastHeartbeat = s.LastHeartbeat,
+                IsCurrentSession = false
+            })
+            .ToListAsync();
+
+        return Ok(sessions);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Get active sessions error");
+        return Ok(new List<SeatActiveSession>());
+    }
+}
+
+/// <summary>
+/// Force release a session (admin function)
+/// POST /api/license/seats/force-release
+/// </summary>
+[HttpPost("seats/force-release")]
+public async Task<ActionResult> ForceReleaseSeat([FromBody] SeatReleaseRequest request)
+{
+    try
+    {
+        _logger.LogWarning("Force seat release request for session: {SessionId}", request.SessionId);
+
+        var session = await _db.ActiveSessions
+            .FirstOrDefaultAsync(s => s.SessionToken == request.SessionId && s.IsActive);
+
+        if (session != null)
+        {
+            session.IsActive = false;
+            session.EndedAt = DateTime.UtcNow;
+            session.EndReason = "Force released";
+            await _db.SaveChangesAsync();
+
+            await _auditService.LogAsync("SEAT_FORCE_RELEASE", "Session", session.LicenseId, null, null,
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                $"Seat force released from {session.MachineName}", true);
+
+            _logger.LogWarning("Seat force released for license: {LicenseId}, Machine: {Machine}",
+                session.LicenseId, session.MachineName);
+        }
+
+        return Ok(new { success = true, message = "Session force released" });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Force seat release error");
+        return StatusCode(500, new { success = false, message = "Failed to force release seat" });
+    }
+}
+
+/// <summary>
+/// Gets the maximum number of seats allowed for a license
+/// </summary>
+private int GetMaxSeatsFromLicense(LicenseKeyRecord license)
+{
+    // Check for MaxSeats in features (e.g., "MaxSeats:5")
+    if (!string.IsNullOrEmpty(license.Features))
+    {
+        var features = license.Features.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var maxSeatsFeature = features.FirstOrDefault(f => f.Trim().StartsWith("MaxSeats:", StringComparison.OrdinalIgnoreCase));
+        if (maxSeatsFeature != null)
+        {
+            var value = maxSeatsFeature.Split(':')[1].Trim();
+            if (int.TryParse(value, out var seats))
+                return seats;
+        }
+    }
+
+    // Default seats by tier
+    var tier = license.Edition?.ToLowerInvariant() ?? "professional";
+    return tier switch
+    {
+        "basic" => 1,
+        "professional" => 3,
+        "enterprise" => 10,
+        _ => 1
+    };
+}
+} // End of LicenseController class
+
+// ==================== MULTI-SEAT DTOs ====================
+
+public class AcquireSeatRequest
+{
+    public string LicenseId { get; set; } = "";
+    public string HardwareFingerprint { get; set; } = "";
+    public string? MachineName { get; set; }
+    public string? UserName { get; set; }
+    public int TimeoutMinutes { get; set; } = 5;
+}
+
+public class AcquireSeatResponse
+{
+    public bool Success { get; set; }
+    public string? SessionId { get; set; }
+    public int SeatsUsed { get; set; }
+    public int SeatsAvailable { get; set; }
+    public string? Message { get; set; }
+    public List<SeatActiveSession>? ActiveSessions { get; set; }
+}
+
+public class SeatReleaseRequest
+{
+    public string LicenseId { get; set; } = "";
+    public string SessionId { get; set; } = "";
+}
+
+public class SeatHeartbeatRequest
+{
+    public string LicenseId { get; set; } = "";
+    public string SessionId { get; set; } = "";
+}
+
+public class SeatHeartbeatResponse
+{
+    public bool Success { get; set; }
+    public int SeatsUsed { get; set; }
+    public TimeSpan TimeUntilExpiry { get; set; }
+    public string? Message { get; set; }
+    public string? Reason { get; set; }
+}
+
+public class SeatStatusResponse
+{
+    public int MaxSeats { get; set; }
+    public int SeatsUsed { get; set; }
+    public int SeatsAvailable => MaxSeats - SeatsUsed;
+    public List<SeatActiveSession> ActiveSessions { get; set; } = new();
+    public string? Error { get; set; }
+}
+
+public class SeatActiveSession
+{
+    public string SessionId { get; set; } = "";
+    public string MachineName { get; set; } = "";
+    public string? UserName { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime LastHeartbeat { get; set; }
+    public bool IsCurrentSession { get; set; }
 }

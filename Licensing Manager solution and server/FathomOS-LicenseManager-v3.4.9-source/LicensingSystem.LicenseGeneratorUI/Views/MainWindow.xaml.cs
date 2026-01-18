@@ -651,7 +651,7 @@ public partial class MainWindow : Window
 
     private void UpdateKeyStorageInfo()
     {
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FathomOS", "LicenseManager");
+        var path = _keyService.GetStoragePath();
         KeyStorageLocation.Text = $"Keys stored in: {path}";
     }
 
