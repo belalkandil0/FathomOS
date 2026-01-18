@@ -141,9 +141,9 @@ public partial class ModuleDialog : Window
         }
 
         var code = CertificateCodeInput.Text.Trim().ToUpperInvariant();
-        if (string.IsNullOrWhiteSpace(code) || code.Length != 2)
+        if (string.IsNullOrWhiteSpace(code) || code.Length < 2 || code.Length > 3)
         {
-            MessageBox.Show("Certificate Code must be exactly 2 characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Certificate Code must be 2-3 characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             CertificateCodeInput.Focus();
             return;
         }

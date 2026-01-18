@@ -103,8 +103,8 @@
                 <!-- Certificate Code -->
                 <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="Certificate Code *" FontSize="12" FontWeight="Medium" Foreground="#8B949E" Margin="0,0,0,6"/>
-                    <TextBox x:Name="CertificateCodeInput" Style="{StaticResource DialogTextBox}" MaxLength="2" CharacterCasing="Upper" ToolTip="2-character code (A-Z, 0-9)"/>
-                    <TextBlock Text="Exactly 2 characters (A-Z or 0-9), e.g., SL, TA, BC" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
+                    <TextBox x:Name="CertificateCodeInput" Style="{StaticResource DialogTextBox}" MaxLength="3" CharacterCasing="Upper" ToolTip="2-3 character code (A-Z, 0-9)"/>
+                    <TextBlock Text="2-3 characters (A-Z or 0-9), e.g., SL, GC, OCS" FontSize="10" Foreground="#6E7681" Margin="0,4,0,0"/>
                 </StackPanel>
                 
                 <!-- Default Tier -->

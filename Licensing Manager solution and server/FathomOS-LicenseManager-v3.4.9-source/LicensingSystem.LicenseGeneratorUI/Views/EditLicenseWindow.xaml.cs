@@ -177,9 +177,9 @@ public partial class EditLicenseWindow : Window
             return;
         }
 
-        if (code.Length != 2)
+        if (code.Length < 2 || code.Length > 3)
         {
-            LicenseeCodeStatus.Text = "Must be exactly 2 characters (A-Z, 0-9)";
+            LicenseeCodeStatus.Text = "Must be 2-3 characters (A-Z, 0-9)";
             LicenseeCodeStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626"));
             _licenseeCodeValid = false;
             return;

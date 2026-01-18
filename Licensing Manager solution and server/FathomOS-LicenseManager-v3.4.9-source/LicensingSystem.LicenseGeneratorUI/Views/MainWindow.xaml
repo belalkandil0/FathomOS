@@ -379,8 +379,8 @@
                                         <TextBox x:Name="BrandNameInput" Style="{StaticResource ModernTextBox}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Grid.Row="2">
-                                        <TextBlock Text="Licensee Code (2 chars, A-Z/0-9)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                                        <TextBox x:Name="LicenseeCodeInput" Style="{StaticResource ModernTextBox}" MaxLength="2" CharacterCasing="Upper" TextChanged="LicenseeCodeInput_TextChanged"/>
+                                        <TextBlock Text="Licensee Code (2-3 chars, A-Z/0-9)" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="LicenseeCodeInput" Style="{StaticResource ModernTextBox}" MaxLength="3" CharacterCasing="Upper" TextChanged="LicenseeCodeInput_TextChanged"/>
                                         <TextBlock x:Name="LicenseeCodeStatus" Text="" FontSize="11" Margin="0,4,0,0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3">

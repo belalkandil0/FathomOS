@@ -76,7 +76,7 @@ public class LicenseDbContext : DbContext
             
             // White-label branding fields
             entity.Property(e => e.Brand).HasMaxLength(256);
-            entity.Property(e => e.LicenseeCode).HasMaxLength(2);
+            entity.Property(e => e.LicenseeCode).HasMaxLength(3);
             entity.Property(e => e.SupportCode).HasMaxLength(20);
             entity.Property(e => e.BrandLogoUrl).HasMaxLength(512);
             
@@ -130,7 +130,7 @@ public class LicenseDbContext : DbContext
             entity.Property(e => e.Category).HasMaxLength(100);
             entity.Property(e => e.DefaultTier).HasMaxLength(50);
             entity.Property(e => e.Icon).HasMaxLength(50);
-            entity.Property(e => e.CertificateCode).HasMaxLength(2);
+            entity.Property(e => e.CertificateCode).HasMaxLength(3);
             entity.Property(e => e.Version).HasMaxLength(20);
         });
 
@@ -165,9 +165,9 @@ public class LicenseDbContext : DbContext
             
             entity.Property(e => e.CertificateId).HasMaxLength(30).IsRequired();
             entity.Property(e => e.LicenseId).HasMaxLength(32).IsRequired();
-            entity.Property(e => e.LicenseeCode).HasMaxLength(2).IsRequired();
+            entity.Property(e => e.LicenseeCode).HasMaxLength(3).IsRequired();
             entity.Property(e => e.ModuleId).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.ModuleCertificateCode).HasMaxLength(2).IsRequired();
+            entity.Property(e => e.ModuleCertificateCode).HasMaxLength(3).IsRequired();
             entity.Property(e => e.ModuleVersion).HasMaxLength(20);
             entity.Property(e => e.ProjectName).HasMaxLength(256).IsRequired();
             entity.Property(e => e.ProjectLocation).HasMaxLength(256);
@@ -191,7 +191,7 @@ public class LicenseDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.LicenseeCode, e.YearMonth }).IsUnique();
             
-            entity.Property(e => e.LicenseeCode).HasMaxLength(2).IsRequired();
+            entity.Property(e => e.LicenseeCode).HasMaxLength(3).IsRequired();
             entity.Property(e => e.YearMonth).HasMaxLength(4).IsRequired(); // YYMM format
         });
 
@@ -362,14 +362,26 @@ public class LicenseDbContext : DbContext
             new LicenseTierRecord { Id = 3, TierId = "Enterprise", DisplayName = "Enterprise", Description = "All modules plus priority support", DisplayOrder = 3, IsActive = true }
         );
 
-        // Seed default modules with CertificateCode
+        // Seed all 13 FathomOS modules with CertificateCode
         modelBuilder.Entity<ModuleRecord>().HasData(
-            new ModuleRecord { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing", Description = "Process and generate survey listings", Category = "Core", DefaultTier = "Basic", DisplayOrder = 1, Icon = "📊", CertificateCode = "SL", IsActive = true },
-            new ModuleRecord { Id = 2, ModuleId = "TideAnalysis", DisplayName = "Tide Analysis", Description = "Advanced tide data analysis and corrections", Category = "Analysis", DefaultTier = "Professional", DisplayOrder = 2, Icon = "🌊", CertificateCode = "TA", IsActive = true },
-            new ModuleRecord { Id = 3, ModuleId = "Calibrations", DisplayName = "Calibrations", Description = "Sensor calibration tools", Category = "Tools", DefaultTier = "Professional", DisplayOrder = 3, Icon = "🔧", CertificateCode = "CA", IsActive = true },
-            new ModuleRecord { Id = 4, ModuleId = "SoundVelocity", DisplayName = "Sound Velocity", Description = "Sound velocity profiler", Category = "Analysis", DefaultTier = "Professional", DisplayOrder = 4, Icon = "🔊", CertificateCode = "SV", IsActive = true },
-            new ModuleRecord { Id = 5, ModuleId = "NetworkTimeSync", DisplayName = "Network Time Sync", Description = "Network time synchronization", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 5, Icon = "⏱️", CertificateCode = "NT", IsActive = true },
-            new ModuleRecord { Id = 6, ModuleId = "BatchProcessor", DisplayName = "Batch Processor", Description = "Batch processing for large datasets", Category = "Tools", DefaultTier = "Enterprise", DisplayOrder = 6, Icon = "⚡", CertificateCode = "BP", IsActive = true }
+            // Core Modules
+            new ModuleRecord { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing Generator", Description = "Process and generate survey listings from NPD files", Category = "Core", DefaultTier = "Basic", DisplayOrder = 1, Icon = "📋", CertificateCode = "SL", IsActive = true },
+            new ModuleRecord { Id = 2, ModuleId = "SurveyLogbook", DisplayName = "Survey Logbook", Description = "Real-time survey event logging with NaviPac integration", Category = "Core", DefaultTier = "Professional", DisplayOrder = 2, Icon = "📓", CertificateCode = "LB", IsActive = true },
+            // Utilities
+            new ModuleRecord { Id = 3, ModuleId = "NetworkTimeSync", DisplayName = "Network Time Synchronization", Description = "Synchronize time across survey network equipment", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 3, Icon = "⏱️", CertificateCode = "NT", IsActive = true },
+            new ModuleRecord { Id = 4, ModuleId = "EquipmentInventory", DisplayName = "Equipment Inventory Management", Description = "Track survey equipment with barcode scanning and maintenance", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 4, Icon = "📦", CertificateCode = "EI", IsActive = true },
+            // Analysis
+            new ModuleRecord { Id = 5, ModuleId = "SoundVelocity", DisplayName = "Sound Velocity Profiler", Description = "Process CTD cast data and calculate sound velocity", Category = "Analysis", DefaultTier = "Professional", DisplayOrder = 5, Icon = "🔊", CertificateCode = "SV", IsActive = true },
+            // Calibrations
+            new ModuleRecord { Id = 6, ModuleId = "GnssCalibration", DisplayName = "GNSS Calibration", Description = "Compare GNSS positioning systems with statistical analysis", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 6, Icon = "📡", CertificateCode = "GC", IsActive = true },
+            new ModuleRecord { Id = 7, ModuleId = "MruCalibration", DisplayName = "MRU Calibration", Description = "Calibrate vessel motion reference units", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 7, Icon = "🧭", CertificateCode = "MR", IsActive = true },
+            new ModuleRecord { Id = 8, ModuleId = "UsblVerification", DisplayName = "USBL Verification", Description = "Verify underwater acoustic positioning systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 8, Icon = "📍", CertificateCode = "UV", IsActive = true },
+            new ModuleRecord { Id = 9, ModuleId = "TreeInclination", DisplayName = "Tree Inclination", Description = "Calibrate inclinometers using reference measurements", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 9, Icon = "🌲", CertificateCode = "TI", IsActive = true },
+            new ModuleRecord { Id = 10, ModuleId = "RovGyroCalibration", DisplayName = "ROV Gyro Calibration", Description = "Calibrate ROV gyroscopic sensors", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 10, Icon = "🤖", CertificateCode = "RG", IsActive = true },
+            new ModuleRecord { Id = 11, ModuleId = "VesselGyroCalibration", DisplayName = "Vessel Gyro Calibration", Description = "Calibrate vessel gyroscopic compass systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 11, Icon = "🚢", CertificateCode = "VG", IsActive = true },
+            // Management
+            new ModuleRecord { Id = 12, ModuleId = "PersonnelManagement", DisplayName = "Personnel Management", Description = "Manage survey personnel, certifications, and assignments", Category = "Management", DefaultTier = "Professional", DisplayOrder = 12, Icon = "👥", CertificateCode = "PM", IsActive = true },
+            new ModuleRecord { Id = 13, ModuleId = "ProjectManagement", DisplayName = "Project Management", Description = "Manage survey projects, timelines, and deliverables", Category = "Management", DefaultTier = "Professional", DisplayOrder = 13, Icon = "📁", CertificateCode = "PJ", IsActive = true }
         );
 
         // Seed tier-module relationships
@@ -378,23 +390,37 @@ public class LicenseDbContext : DbContext
             new TierModuleRecord { TierId = "Basic", ModuleId = "SurveyListing" }
         );
 
-        // Professional tier: All except BatchProcessor
+        // Professional tier: Core, Utilities, Analysis, and Management modules
         modelBuilder.Entity<TierModuleRecord>().HasData(
             new TierModuleRecord { TierId = "Professional", ModuleId = "SurveyListing" },
-            new TierModuleRecord { TierId = "Professional", ModuleId = "TideAnalysis" },
-            new TierModuleRecord { TierId = "Professional", ModuleId = "Calibrations" },
+            new TierModuleRecord { TierId = "Professional", ModuleId = "SurveyLogbook" },
+            new TierModuleRecord { TierId = "Professional", ModuleId = "NetworkTimeSync" },
+            new TierModuleRecord { TierId = "Professional", ModuleId = "EquipmentInventory" },
             new TierModuleRecord { TierId = "Professional", ModuleId = "SoundVelocity" },
-            new TierModuleRecord { TierId = "Professional", ModuleId = "NetworkTimeSync" }
+            new TierModuleRecord { TierId = "Professional", ModuleId = "PersonnelManagement" },
+            new TierModuleRecord { TierId = "Professional", ModuleId = "ProjectManagement" }
         );
 
-        // Enterprise tier: All modules
+        // Enterprise tier: All 13 modules (Professional + Calibrations)
         modelBuilder.Entity<TierModuleRecord>().HasData(
+            // Core
             new TierModuleRecord { TierId = "Enterprise", ModuleId = "SurveyListing" },
-            new TierModuleRecord { TierId = "Enterprise", ModuleId = "TideAnalysis" },
-            new TierModuleRecord { TierId = "Enterprise", ModuleId = "Calibrations" },
-            new TierModuleRecord { TierId = "Enterprise", ModuleId = "SoundVelocity" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "SurveyLogbook" },
+            // Utilities
             new TierModuleRecord { TierId = "Enterprise", ModuleId = "NetworkTimeSync" },
-            new TierModuleRecord { TierId = "Enterprise", ModuleId = "BatchProcessor" }
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "EquipmentInventory" },
+            // Analysis
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "SoundVelocity" },
+            // Calibrations (Enterprise only)
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "GnssCalibration" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "MruCalibration" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "UsblVerification" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "TreeInclination" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "RovGyroCalibration" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "VesselGyroCalibration" },
+            // Management
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "PersonnelManagement" },
+            new TierModuleRecord { TierId = "Enterprise", ModuleId = "ProjectManagement" }
         );
     }
 }

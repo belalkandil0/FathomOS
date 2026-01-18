@@ -1098,9 +1098,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (code.Length < 2)
+        if (code.Length < 2 || code.Length > 3)
         {
-            LicenseeCodeStatus.Text = "Enter 2 characters";
+            LicenseeCodeStatus.Text = "Enter 2-3 characters";
             LicenseeCodeStatus.Foreground = FindResource("TextMutedBrush") as Brush;
             return;
         }
@@ -1199,9 +1199,9 @@ public partial class MainWindow : Window
     {
         // Generate support code in format: SUP-XX-XXXXX
         var licenseeCode = LicenseeCodeInput?.Text?.Trim().ToUpperInvariant();
-        if (string.IsNullOrEmpty(licenseeCode) || licenseeCode.Length != 2)
+        if (string.IsNullOrEmpty(licenseeCode) || licenseeCode.Length < 2 || licenseeCode.Length > 3)
         {
-            licenseeCode = "00";
+            licenseeCode = "000";
         }
         
         var random = new Random();

@@ -127,11 +127,11 @@
                             <!-- Licensee Code -->
                             <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,10">
                                 <TextBlock Text="Licensee Code" Style="{StaticResource FieldLabel}"/>
-                                <TextBox x:Name="LicenseeCodeTextBox" 
-                                         Style="{StaticResource ModernTextBox}" 
-                                         MaxLength="2"
+                                <TextBox x:Name="LicenseeCodeTextBox"
+                                         Style="{StaticResource ModernTextBox}"
+                                         MaxLength="3"
                                          CharacterCasing="Upper"
-                                         ToolTip="2 characters: letters (A-Z) or numbers (0-9), e.g., S7, AC"
+                                         ToolTip="2-3 characters: letters (A-Z) or numbers (0-9), e.g., OCS, S7, AC"
                                          TextChanged="LicenseeCode_TextChanged"/>
                             </StackPanel>
 
