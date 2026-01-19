@@ -18,7 +18,7 @@ public class ProcessingCertificateService
     
     // Module identification
     private const string ModuleId = "SurveyListing";
-    private const string ModuleCertificateCode = "SL";
+    private const string ModuleCertificateCode = "SLG";
     private const string ModuleVersion = "1.0.45";
     
     /// <summary>

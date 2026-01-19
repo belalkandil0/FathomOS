@@ -8,7 +8,7 @@
   "author": "FathomOS Team",
   "iconResource": "/FathomOS.Modules.ProjectManagement;component/Assets/icon.png",
   "supportedFileTypes": [".sproj", ".csv", ".xlsx"],
-  "certificateCode": "PRJ",
+  "certificateCode": "PJM",
   "features": [
     "Project creation and tracking",
     "Milestone management",

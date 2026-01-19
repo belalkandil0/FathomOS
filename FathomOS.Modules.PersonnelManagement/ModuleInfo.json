@@ -8,7 +8,7 @@
   "author": "FathomOS Team",
   "iconResource": "/FathomOS.Modules.PersonnelManagement;component/Assets/icon.png",
   "supportedFileTypes": [".csv", ".xlsx"],
-  "certificateCode": "PM",
+  "certificateCode": "PRM",
   "features": [
     "Crew roster management",
     "Certification tracking",

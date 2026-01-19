@@ -29,7 +29,7 @@
         "Professional Certificate Generation"
     ],
     
-    "CertificateCode": "GC",
+    "CertificateCode": "GNS",
     "CertificateTitle": "GNSS Position Verification Certificate",
     "CertificateStatement": "This is to certify that a comprehensive GNSS position comparison analysis has been successfully completed, comparing two GNSS positioning systems and calculating 2DRMS accuracy metrics in accordance with industry standards."
 }

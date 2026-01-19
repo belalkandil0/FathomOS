@@ -10,7 +10,7 @@ public record CertificationRequest
     /// <summary>Module identifier (e.g., "SurveyListing")</summary>
     public required string ModuleId { get; init; }
 
-    /// <summary>Short code for certificate ID (e.g., "SL")</summary>
+    /// <summary>Short code for certificate ID (e.g., "SLG")</summary>
     public required string ModuleCertificateCode { get; init; }
 
     /// <summary>Module version string</summary>

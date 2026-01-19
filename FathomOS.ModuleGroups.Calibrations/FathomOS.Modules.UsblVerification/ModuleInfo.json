@@ -11,7 +11,7 @@
     "dependencies": [],
     "minimumShellVersion": "1.0.0",
     
-    "certificateCode": "UV",
+    "certificateCode": "USB",
     "certificateTitle": "USBL System Verification Certificate",
     "certificateStatement": "This is to certify that the Ultra-Short BaseLine (USBL) acoustic positioning system verification has been successfully completed. The spin test and transit test results confirm that the USBL system performs within the specified tolerances for offshore survey operations.",
     

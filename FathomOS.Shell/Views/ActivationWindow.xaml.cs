@@ -85,7 +85,7 @@ public partial class ActivationWindow : Window
             LicenseKeyTextBox.Focus();
             return;
         }
-        
+
         if (string.IsNullOrEmpty(email))
         {
             ShowStatus("Please enter your email address.", isError: true);
@@ -93,30 +93,61 @@ public partial class ActivationWindow : Window
             return;
         }
 
-        ShowStatus("🔄 Activating your license...", isError: false);
+        ShowStatus("Activating your license...", isError: false);
         SetButtonsEnabled(false);
 
         try
         {
+            // Log the activation attempt for debugging
+            System.Diagnostics.Debug.WriteLine($"ActivationWindow: Attempting online activation to https://s7fathom-license-server.onrender.com");
+            System.Diagnostics.Debug.WriteLine($"ActivationWindow: License Key: {key.Substring(0, Math.Min(8, key.Length))}..., Email: {email}");
+
             var result = await App.LicenseManager.ActivateOnlineAsync(key, email);
 
             if (result.IsValid)
             {
                 // Mark activation as successful
                 ActivationSuccessful = true;
-                
+
                 // Show success overlay
                 ShowSuccessOverlay(result);
             }
             else
             {
-                ShowStatus($"❌ {result.Message}", isError: true);
+                System.Diagnostics.Debug.WriteLine($"ActivationWindow: Activation failed - {result.Message}");
+                ShowStatus($"Activation failed: {result.Message}", isError: true);
                 SetButtonsEnabled(true);
             }
         }
+        catch (System.Net.Http.HttpRequestException httpEx)
+        {
+            // Network connectivity issues
+            System.Diagnostics.Debug.WriteLine($"ActivationWindow: Network error - {httpEx.Message}");
+            ShowStatus(
+                "Cannot connect to the license server.\n\n" +
+                "Please check your internet connection or use offline activation instead.\n\n" +
+                $"Technical details: {httpEx.Message}",
+                isError: true);
+            SetButtonsEnabled(true);
+        }
+        catch (TaskCanceledException)
+        {
+            // Timeout
+            System.Diagnostics.Debug.WriteLine("ActivationWindow: Request timeout");
+            ShowStatus(
+                "Connection timed out. The license server may be temporarily unavailable.\n\n" +
+                "Please try again later or use offline activation.",
+                isError: true);
+            SetButtonsEnabled(true);
+        }
         catch (Exception ex)
         {
-            ShowStatus($"❌ Activation failed: {ex.Message}", isError: true);
+            // Log full exception for debugging
+            System.Diagnostics.Debug.WriteLine($"ActivationWindow: Exception during activation - {ex}");
+            ShowStatus(
+                $"Activation error: {ex.Message}\n\n" +
+                "If this problem persists, please try offline activation or contact support.",
+                isError: true);
             SetButtonsEnabled(true);
         }
     }
@@ -198,16 +229,18 @@ public partial class ActivationWindow : Window
     {
         StatusBorder.Visibility = Visibility.Visible;
         StatusText.Text = message;
-        
+
         if (isError)
         {
-            StatusBorder.Background = new SolidColorBrush(Color.FromRgb(60, 30, 35));
-            StatusText.Foreground = new SolidColorBrush(Color.FromRgb(255, 120, 120));
+            // GitHub dark error colors
+            StatusBorder.Background = new SolidColorBrush(Color.FromRgb(45, 25, 25));
+            StatusText.Foreground = new SolidColorBrush(Color.FromRgb(248, 81, 73));
         }
         else
         {
-            StatusBorder.Background = new SolidColorBrush(Color.FromRgb(30, 50, 45));
-            StatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 212, 170));
+            // GitHub dark success colors
+            StatusBorder.Background = new SolidColorBrush(Color.FromRgb(25, 45, 35));
+            StatusText.Foreground = new SolidColorBrush(Color.FromRgb(63, 185, 80));
         }
     }
     

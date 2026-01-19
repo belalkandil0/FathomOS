@@ -8,7 +8,7 @@
     "displayOrder": 15,
     "icon": "icon.png",
     
-    "CertificateCode": "LOG",
+    "CertificateCode": "SLB",
     "CertificateTitle": "Survey Electronic Logbook Processing Verification Certificate",
     "CertificateStatement": "This is to certify that the survey data logging, DVR monitoring, position fix capture, and Daily Progress Report documentation has been successfully completed using validated data capture and processing procedures in accordance with industry standards for marine survey operations.",
     

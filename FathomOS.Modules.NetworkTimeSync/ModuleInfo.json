@@ -25,7 +25,7 @@
         "Computer Dashboard with Actions",
         "Agent-Based Architecture"
     ],
-    "CertificateCode": "NT",
+    "CertificateCode": "NTS",
     "CertificateTitle": "Network Time Synchronization Verification Certificate",
     "CertificateStatement": "This is to certify that network time synchronization has been successfully completed across all specified systems, ensuring temporal consistency within acceptable tolerances for survey and marine operations."
 }

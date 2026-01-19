@@ -11,7 +11,7 @@ namespace FathomOS.Modules.PersonnelManagement;
 /// training records, and competency tracking for offshore operations.
 ///
 /// Certificate System Integration:
-/// - Certificate Code: PERS
+/// - Certificate Code: PRM
 /// - Certificate Title: Personnel Management Certificate
 /// </summary>
 public class PersonnelManagementModule : IModule
@@ -25,7 +25,7 @@ public class PersonnelManagementModule : IModule
     private readonly IExportService? _exportService;
 
     // Certificate configuration (matches ModuleInfo.json)
-    public const string CertificateCode = "PM";
+    public const string CertificateCode = "PRM";
     public const string CertificateTitle = "Personnel Management Certificate";
 
     #region Constructors

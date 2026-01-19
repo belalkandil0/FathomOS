@@ -1,7 +1,8 @@
 // LicensingSystem.LicenseGeneratorUI/Services/LicenseCertificateGenerator.cs
-// Premium Certificate-Style License PDF Generator
+// Premium Certificate-Style License PDF & HTML Generator
 // Ocean Blue Theme | Decorative Borders | Seal | Small QR Code
 
+using System.IO;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -113,6 +114,7 @@ public class LicenseCertificateGenerator
                             });
 
                             AddDetailRow(table, "License ID:", data.LicenseId);
+                            AddDetailRow(table, "License Code:", data.LicenseCode ?? "—");
                             AddDetailRow(table, "Email:", data.CustomerEmail);
                             AddDetailRow(table, "Organization:", data.Brand ?? "—");
                             AddDetailRow(table, "Licensee Code:", data.LicenseeCode ?? "—");
@@ -353,6 +355,7 @@ public class LicenseCertificateGenerator
                             });
 
                             AddDarkDetailRow(table, "License ID:", data.LicenseId);
+                            AddDarkDetailRow(table, "License Code:", data.LicenseCode ?? "—");
                             AddDarkDetailRow(table, "Email:", data.CustomerEmail);
                             AddDarkDetailRow(table, "Organization:", data.Brand ?? "—");
                             AddDarkDetailRow(table, "Licensee Code:", data.LicenseeCode ?? "—");
@@ -488,6 +491,422 @@ public class LicenseCertificateGenerator
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // HTML CERTIFICATE (LIGHT MODE)
+    // ═══════════════════════════════════════════════════════════════════════════
+    public static void GenerateHtmlCertificate(string outputPath, LicenseCertificateData data)
+    {
+        var html = GenerateHtmlContent(data, darkMode: false);
+        File.WriteAllText(outputPath, html);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HTML CERTIFICATE (DARK MODE)
+    // ═══════════════════════════════════════════════════════════════════════════
+    public static void GenerateDarkModeHtmlCertificate(string outputPath, LicenseCertificateData data)
+    {
+        var html = GenerateHtmlContent(data, darkMode: true);
+        File.WriteAllText(outputPath, html);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HTML CONTENT GENERATOR
+    // ═══════════════════════════════════════════════════════════════════════════
+    private static string GenerateHtmlContent(LicenseCertificateData data, bool darkMode)
+    {
+        var bg = darkMode ? "#0F172A" : "#F8FAFC";
+        var cardBg = darkMode ? "#1E293B" : "#FFFFFF";
+        var borderColor = darkMode ? "#334155" : "#CBD5E1";
+        var textPrimary = darkMode ? "#F1F5F9" : "#1E293B";
+        var textSecondary = darkMode ? "#94A3B8" : "#64748B";
+        var accentBlue = darkMode ? "#0EA5E9" : "#0369A1";
+        var accentLight = "#0EA5E9";
+        var gold = "#B8860B";
+        var goldLight = "#D4A84B";
+        var navy = darkMode ? "#38BDF8" : "#0C4A6E";
+        var successGreen = darkMode ? "#22C55E" : "#166534";
+        var successBg = darkMode ? "#14532D" : "#F0FDF4";
+        var headerBg = darkMode ? "#0369A1" : "#0369A1";
+        var sectionBg = darkMode ? "#1E293B" : "#F8FAFC";
+        var supportBg = darkMode ? "#292524" : "#FFFBEB";
+
+        var moduleText = data.Modules.Any()
+            ? string.Join(" &middot; ", data.Modules)
+            : $"All modules included with {data.Edition} edition";
+
+        var statusText = GetStatusText(data.DaysRemaining);
+        var statusColor = data.DaysRemaining > 30 ? "#22C55E" : (data.DaysRemaining > 0 ? "#D29922" : "#EF4444");
+
+        var activationSection = string.IsNullOrEmpty(data.LicenseKey)
+            ? $@"
+            <div style='margin-top: 20px; border: 1px solid {successGreen}; border-radius: 8px; overflow: hidden;'>
+                <div style='background: {successGreen}; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;'>
+                    <span style='color: white; font-weight: 600; font-size: 12px;'>ACTIVATION</span>
+                    <span style='color: {(darkMode ? "#86EFAC" : "white")}; font-size: 11px;'>ONLINE LICENSE</span>
+                </div>
+                <div style='background: {successBg}; padding: 16px; text-align: center;'>
+                    <div style='color: {successGreen}; font-weight: 700; font-size: 14px;'>&#10003; Automatic Online Activation</div>
+                    <div style='color: {textSecondary}; font-size: 10px; margin-top: 8px;'>Enter your License ID in: Fathom OS → Settings → License → Activate Online</div>
+                    <div style='font-family: Consolas, monospace; color: {accentBlue}; font-size: 11px; margin-top: 6px;'>License ID: {data.LicenseId}</div>
+                </div>
+            </div>"
+            : $@"
+            <div style='margin-top: 20px; border: 1px solid {accentLight}; border-radius: 8px; overflow: hidden;'>
+                <div style='background: {accentLight}; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;'>
+                    <span style='color: white; font-weight: 600; font-size: 12px;'>LICENSE KEY</span>
+                    <span style='color: white; font-size: 11px;'>OFFLINE LICENSE</span>
+                </div>
+                <div style='background: {(darkMode ? "#1E293B" : "#F0F9FF")}; padding: 16px; text-align: center;'>
+                    <div style='font-family: Consolas, monospace; color: {accentBlue}; font-size: 11px; word-break: break-all;'>{data.LicenseKey}</div>
+                    <div style='color: {textSecondary}; font-size: 10px; margin-top: 8px;'>Activation: Fathom OS → Settings → License → Activate Offline → Import this file</div>
+                </div>
+            </div>";
+
+        return $@"<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Fathom OS License Certificate - {data.CustomerName}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: {bg};
+            padding: 30px;
+            color: {textPrimary};
+        }}
+        .certificate {{
+            max-width: 800px;
+            margin: 0 auto;
+            background: {cardBg};
+            border: 4px solid {accentBlue};
+            padding: 4px;
+        }}
+        .inner-border {{
+            border: 1px solid {accentLight};
+            padding: 2px;
+        }}
+        .inner-border-2 {{
+            border: 1px solid {accentBlue};
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        .divider {{
+            color: {accentLight};
+            font-size: 12px;
+            letter-spacing: 2px;
+        }}
+        .brand {{
+            font-size: 36px;
+            font-weight: 700;
+            color: {accentBlue};
+            margin: 12px 0 4px 0;
+        }}
+        .tagline {{
+            font-size: 11px;
+            color: {textSecondary};
+            letter-spacing: 2px;
+        }}
+        .title {{
+            font-size: 22px;
+            font-weight: 600;
+            color: {navy};
+            margin: 20px 0 8px 0;
+        }}
+        .certify {{
+            font-size: 14px;
+            color: {textSecondary};
+        }}
+        .customer-name {{
+            font-size: 28px;
+            font-weight: 700;
+            color: {accentBlue};
+            margin: 10px 0;
+        }}
+        .granted-text {{
+            color: {textSecondary};
+            font-size: 13px;
+        }}
+        .granted-text strong {{
+            color: {textPrimary};
+        }}
+        .details-box {{
+            border: 1px solid {borderColor};
+            border-radius: 0;
+            overflow: hidden;
+            margin: 20px 0;
+        }}
+        .details-header {{
+            background: {headerBg};
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+        }}
+        .details-content {{
+            background: {sectionBg};
+            padding: 16px;
+        }}
+        .details-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+        }}
+        .detail-row {{
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }}
+        .detail-label {{
+            color: {textSecondary};
+            font-size: 11px;
+        }}
+        .detail-value {{
+            font-weight: 600;
+            font-size: 11px;
+            color: {textPrimary};
+        }}
+        .modules-box {{
+            border: 1px solid {borderColor};
+            overflow: hidden;
+            margin: 16px 0;
+        }}
+        .modules-header {{
+            background: #075985;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+        }}
+        .modules-content {{
+            background: {sectionBg};
+            padding: 14px;
+            text-align: center;
+            color: {textSecondary};
+            font-size: 12px;
+        }}
+        .seal-row {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 16px;
+        }}
+        .seal {{
+            text-align: center;
+            flex: 1;
+        }}
+        .seal-icon {{
+            font-size: 52px;
+            color: {accentBlue};
+        }}
+        .seal-text {{
+            font-size: 10px;
+            font-weight: 700;
+            color: {(darkMode ? accentLight : "#075985")};
+            letter-spacing: 1px;
+        }}
+        .support-box {{
+            flex: 2;
+            border: 2px solid {gold};
+            overflow: hidden;
+        }}
+        .support-header {{
+            background: {gold};
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+        }}
+        .support-content {{
+            background: {supportBg};
+            padding: 16px;
+            text-align: center;
+        }}
+        .support-code {{
+            font-family: Consolas, monospace;
+            font-size: 26px;
+            font-weight: 700;
+            color: {(darkMode ? goldLight : gold)};
+        }}
+        .support-hint {{
+            font-size: 10px;
+            color: {textSecondary};
+            margin-top: 8px;
+        }}
+        .qr-section {{
+            flex: 1;
+            text-align: center;
+        }}
+        .qr-placeholder {{
+            width: 60px;
+            height: 60px;
+            background: {borderColor};
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: {textSecondary};
+        }}
+        .qr-text {{
+            font-size: 9px;
+            color: {textSecondary};
+            margin-top: 6px;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 16px;
+        }}
+        .footer-divider {{
+            color: {accentLight};
+            font-size: 12px;
+            letter-spacing: 2px;
+        }}
+        .footer-row {{
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 10px;
+            color: {textSecondary};
+        }}
+        .footer-link {{
+            color: {accentBlue};
+        }}
+        @media print {{
+            body {{ padding: 0; background: white; }}
+            .certificate {{ border-width: 2px; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class='certificate'>
+        <div class='inner-border'>
+            <div class='inner-border-2'>
+                <!-- Header -->
+                <div class='header'>
+                    <div class='divider'>════════════════════════════════════════════</div>
+                    <div class='brand'>FATHOM OS</div>
+                    <div class='tagline'>SURVEY PROCESSING SOFTWARE</div>
+                    <div class='title'>CERTIFICATE OF LICENSE</div>
+                    <div class='divider'>════════════════════════════════════════════</div>
+                </div>
+
+                <!-- Certification -->
+                <div style='text-align: center; margin: 20px 0;'>
+                    <div class='certify'>This is to certify that</div>
+                    <div class='customer-name'>{System.Net.WebUtility.HtmlEncode(data.CustomerName)}</div>
+                    <div class='granted-text'>
+                        has been granted an authorized license for <strong>Fathom OS {data.Edition}</strong>
+                    </div>
+                </div>
+
+                <!-- License Details -->
+                <div class='details-box'>
+                    <div class='details-header'>LICENSE DETAILS</div>
+                    <div class='details-content'>
+                        <div class='details-grid'>
+                            <div class='detail-row'>
+                                <span class='detail-label'>License ID:</span>
+                                <span class='detail-value'>{data.LicenseId}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>License Code:</span>
+                                <span class='detail-value'>{data.LicenseCode ?? "—"}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Email:</span>
+                                <span class='detail-value'>{System.Net.WebUtility.HtmlEncode(data.CustomerEmail)}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Organization:</span>
+                                <span class='detail-value'>{System.Net.WebUtility.HtmlEncode(data.Brand ?? "—")}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Licensee Code:</span>
+                                <span class='detail-value'>{data.LicenseeCode ?? "—"}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Edition:</span>
+                                <span class='detail-value'>{data.Edition}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Subscription:</span>
+                                <span class='detail-value'>{data.SubscriptionType}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>License Type:</span>
+                                <span class='detail-value'>{data.LicenseType}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Issue Date:</span>
+                                <span class='detail-value'>{data.IssuedAt:MMMM dd, yyyy}</span>
+                            </div>
+                            <div class='detail-row'>
+                                <span class='detail-label'>Expiry Date:</span>
+                                <span class='detail-value'>{data.ExpiresAt:MMMM dd, yyyy}</span>
+                            </div>
+                            <div class='detail-row' style='grid-column: span 2;'>
+                                <span class='detail-label'>Status:</span>
+                                <span class='detail-value' style='color: {statusColor};'>{statusText}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Licensed Modules -->
+                <div class='modules-box'>
+                    <div class='modules-header'>LICENSED MODULES</div>
+                    <div class='modules-content'>{moduleText}</div>
+                </div>
+
+                <!-- Seal, Support Code, QR -->
+                <div class='seal-row'>
+                    <div class='seal'>
+                        <div class='seal-icon'>⚓</div>
+                        <div class='seal-text'>AUTHORIZED</div>
+                        <div class='seal-text'>LICENSE</div>
+                    </div>
+                    <div class='support-box'>
+                        <div class='support-header'>SUPPORT CODE</div>
+                        <div class='support-content'>
+                            <div class='support-code'>{data.SupportCode ?? "N/A"}</div>
+                            <div class='support-hint'>Keep this code for technical support</div>
+                        </div>
+                    </div>
+                    <div class='qr-section'>
+                        <div class='qr-placeholder'>QR</div>
+                        <div class='qr-text'>Scan to Verify</div>
+                    </div>
+                </div>
+
+                <!-- Activation Section -->
+                {activationSection}
+
+                <!-- Footer -->
+                <div class='footer'>
+                    <div class='footer-divider'>════════════════════════════════════════════</div>
+                    <div class='footer-row'>
+                        <span>Issued: {DateTime.Now:MMMM dd, yyyy}</span>
+                        <span class='footer-link'>www.fathomos.com</span>
+                        <span>support@fathomos.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>";
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // HELPER METHODS
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -539,6 +958,7 @@ public class LicenseCertificateGenerator
 public class LicenseCertificateData
 {
     public string LicenseId { get; set; } = "";
+    public string? LicenseCode { get; set; }  // NEW: Display license code on certificates
     public string CustomerName { get; set; } = "";
     public string CustomerEmail { get; set; } = "";
     public string? Brand { get; set; }

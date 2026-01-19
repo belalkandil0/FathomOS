@@ -31,7 +31,7 @@
         "documentation": "https://docs.fathomos.com/equipment-inventory"
     },
     
-    "CertificateCode": "EI",
+    "CertificateCode": "EQI",
     "CertificateTitle": "Equipment & Inventory Management Verification Certificate",
     "CertificateStatement": "This is to certify that the equipment inventory and manifest operations documented herein have been successfully processed and verified in accordance with industry standards for asset tracking and management."
 }

@@ -309,7 +309,7 @@ public class ProcessingCertificate
     public string ModuleId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 2-letter module certificate code (e.g., "SL" for Survey Listing)
+    /// 3-letter module certificate code (e.g., "SLG" for Survey Listing Generator)
     /// </summary>
     [JsonPropertyName("moduleCertificateCode")]
     public string ModuleCertificateCode { get; set; } = string.Empty;

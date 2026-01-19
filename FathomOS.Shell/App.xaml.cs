@@ -394,6 +394,20 @@ public partial class App : Application
 
                 case StartupResult.ReadyForLogin:
                     System.Diagnostics.Debug.WriteLine("DEBUG: Showing local login window...");
+
+                    // Check if default credentials were just created
+                    if (startupFlow.ErrorMessage == "DEFAULT_CREDENTIALS_CREATED")
+                    {
+                        MessageBox.Show(
+                            "A default administrator account has been created.\n\n" +
+                            "Username: administrator\n" +
+                            "Password: FathomOS2026!\n\n" +
+                            "Please change this password after first login for security.",
+                            "Default Credentials Created",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                    }
+
                     var settingsService = Services.GetService(typeof(ISettingsService)) as ISettingsService;
                     var loginWindow = new LocalLoginWindow(userService, settingsService);
                     var loginResult = loginWindow.ShowDialog();

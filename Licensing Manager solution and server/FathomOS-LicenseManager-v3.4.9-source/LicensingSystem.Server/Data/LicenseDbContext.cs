@@ -415,26 +415,26 @@ public class LicenseDbContext : DbContext
             new LicenseTierRecord { Id = 3, TierId = "Enterprise", DisplayName = "Enterprise", Description = "All modules plus priority support", DisplayOrder = 3, IsActive = true }
         );
 
-        // Seed all 13 FathomOS modules with CertificateCode
+        // Seed all 13 FathomOS modules with CertificateCode (3-letter codes)
         modelBuilder.Entity<ModuleRecord>().HasData(
             // Core Modules
-            new ModuleRecord { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing Generator", Description = "Process and generate survey listings from NPD files", Category = "Core", DefaultTier = "Basic", DisplayOrder = 1, Icon = "📋", CertificateCode = "SL", IsActive = true },
-            new ModuleRecord { Id = 2, ModuleId = "SurveyLogbook", DisplayName = "Survey Logbook", Description = "Real-time survey event logging with NaviPac integration", Category = "Core", DefaultTier = "Professional", DisplayOrder = 2, Icon = "📓", CertificateCode = "LB", IsActive = true },
+            new ModuleRecord { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing Generator", Description = "Process and generate survey listings from NPD files", Category = "Core", DefaultTier = "Basic", DisplayOrder = 1, Icon = "📋", CertificateCode = "SLG", IsActive = true },
+            new ModuleRecord { Id = 2, ModuleId = "SurveyLogbook", DisplayName = "Survey Logbook", Description = "Real-time survey event logging with NaviPac integration", Category = "Core", DefaultTier = "Professional", DisplayOrder = 2, Icon = "📓", CertificateCode = "SLB", IsActive = true },
             // Utilities
-            new ModuleRecord { Id = 3, ModuleId = "NetworkTimeSync", DisplayName = "Network Time Synchronization", Description = "Synchronize time across survey network equipment", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 3, Icon = "⏱️", CertificateCode = "NT", IsActive = true },
-            new ModuleRecord { Id = 4, ModuleId = "EquipmentInventory", DisplayName = "Equipment Inventory Management", Description = "Track survey equipment with barcode scanning and maintenance", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 4, Icon = "📦", CertificateCode = "EI", IsActive = true },
+            new ModuleRecord { Id = 3, ModuleId = "NetworkTimeSync", DisplayName = "Network Time Synchronization", Description = "Synchronize time across survey network equipment", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 3, Icon = "⏱️", CertificateCode = "NTS", IsActive = true },
+            new ModuleRecord { Id = 4, ModuleId = "EquipmentInventory", DisplayName = "Equipment Inventory Management", Description = "Track survey equipment with barcode scanning and maintenance", Category = "Utilities", DefaultTier = "Professional", DisplayOrder = 4, Icon = "📦", CertificateCode = "EQI", IsActive = true },
             // Analysis
-            new ModuleRecord { Id = 5, ModuleId = "SoundVelocity", DisplayName = "Sound Velocity Profiler", Description = "Process CTD cast data and calculate sound velocity", Category = "Analysis", DefaultTier = "Professional", DisplayOrder = 5, Icon = "🔊", CertificateCode = "SV", IsActive = true },
+            new ModuleRecord { Id = 5, ModuleId = "SoundVelocity", DisplayName = "Sound Velocity Profiler", Description = "Process CTD cast data and calculate sound velocity", Category = "Analysis", DefaultTier = "Professional", DisplayOrder = 5, Icon = "🔊", CertificateCode = "SVP", IsActive = true },
             // Calibrations
-            new ModuleRecord { Id = 6, ModuleId = "GnssCalibration", DisplayName = "GNSS Calibration", Description = "Compare GNSS positioning systems with statistical analysis", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 6, Icon = "📡", CertificateCode = "GC", IsActive = true },
-            new ModuleRecord { Id = 7, ModuleId = "MruCalibration", DisplayName = "MRU Calibration", Description = "Calibrate vessel motion reference units", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 7, Icon = "🧭", CertificateCode = "MR", IsActive = true },
-            new ModuleRecord { Id = 8, ModuleId = "UsblVerification", DisplayName = "USBL Verification", Description = "Verify underwater acoustic positioning systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 8, Icon = "📍", CertificateCode = "UV", IsActive = true },
-            new ModuleRecord { Id = 9, ModuleId = "TreeInclination", DisplayName = "Tree Inclination", Description = "Calibrate inclinometers using reference measurements", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 9, Icon = "🌲", CertificateCode = "TI", IsActive = true },
-            new ModuleRecord { Id = 10, ModuleId = "RovGyroCalibration", DisplayName = "ROV Gyro Calibration", Description = "Calibrate ROV gyroscopic sensors", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 10, Icon = "🤖", CertificateCode = "RG", IsActive = true },
-            new ModuleRecord { Id = 11, ModuleId = "VesselGyroCalibration", DisplayName = "Vessel Gyro Calibration", Description = "Calibrate vessel gyroscopic compass systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 11, Icon = "🚢", CertificateCode = "VG", IsActive = true },
+            new ModuleRecord { Id = 6, ModuleId = "GnssCalibration", DisplayName = "GNSS Calibration", Description = "Compare GNSS positioning systems with statistical analysis", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 6, Icon = "📡", CertificateCode = "GNS", IsActive = true },
+            new ModuleRecord { Id = 7, ModuleId = "MruCalibration", DisplayName = "MRU Calibration", Description = "Calibrate vessel motion reference units", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 7, Icon = "🧭", CertificateCode = "MRU", IsActive = true },
+            new ModuleRecord { Id = 8, ModuleId = "UsblVerification", DisplayName = "USBL Verification", Description = "Verify underwater acoustic positioning systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 8, Icon = "📍", CertificateCode = "USB", IsActive = true },
+            new ModuleRecord { Id = 9, ModuleId = "TreeInclination", DisplayName = "Tree Inclination", Description = "Calibrate inclinometers using reference measurements", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 9, Icon = "🌲", CertificateCode = "TRI", IsActive = true },
+            new ModuleRecord { Id = 10, ModuleId = "RovGyroCalibration", DisplayName = "ROV Gyro Calibration", Description = "Calibrate ROV gyroscopic sensors", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 10, Icon = "🤖", CertificateCode = "RGC", IsActive = true },
+            new ModuleRecord { Id = 11, ModuleId = "VesselGyroCalibration", DisplayName = "Vessel Gyro Calibration", Description = "Calibrate vessel gyroscopic compass systems", Category = "Calibrations", DefaultTier = "Enterprise", DisplayOrder = 11, Icon = "🚢", CertificateCode = "VGC", IsActive = true },
             // Management
-            new ModuleRecord { Id = 12, ModuleId = "PersonnelManagement", DisplayName = "Personnel Management", Description = "Manage survey personnel, certifications, and assignments", Category = "Management", DefaultTier = "Professional", DisplayOrder = 12, Icon = "👥", CertificateCode = "PM", IsActive = true },
-            new ModuleRecord { Id = 13, ModuleId = "ProjectManagement", DisplayName = "Project Management", Description = "Manage survey projects, timelines, and deliverables", Category = "Management", DefaultTier = "Professional", DisplayOrder = 13, Icon = "📁", CertificateCode = "PJ", IsActive = true }
+            new ModuleRecord { Id = 12, ModuleId = "PersonnelManagement", DisplayName = "Personnel Management", Description = "Manage survey personnel, certifications, and assignments", Category = "Management", DefaultTier = "Professional", DisplayOrder = 12, Icon = "👥", CertificateCode = "PRM", IsActive = true },
+            new ModuleRecord { Id = 13, ModuleId = "ProjectManagement", DisplayName = "Project Management", Description = "Manage survey projects, timelines, and deliverables", Category = "Management", DefaultTier = "Professional", DisplayOrder = 13, Icon = "📁", CertificateCode = "PJM", IsActive = true }
         );
 
         // Seed tier-module relationships
@@ -704,8 +704,8 @@ public class ModuleRecord
     public string? Icon { get; set; }
     
     /// <summary>
-    /// 2-letter certificate code for this module (e.g., "SL" for Survey Listing)
-    /// Used in certificate IDs: FOS-S7-SL-2412-00001
+    /// 3-letter certificate code for this module (e.g., "SLG" for Survey Listing Generator)
+    /// Used in certificate IDs: OCS-SLG-20260118-0001
     /// </summary>
     public string? CertificateCode { get; set; }
     
@@ -809,7 +809,7 @@ public class CertificateRecord
     public string ModuleId { get; set; } = string.Empty;
     
     /// <summary>
-    /// 2-letter module certificate code (e.g., "SL" for Survey Listing)
+    /// 3-letter module certificate code (e.g., "SLG" for Survey Listing Generator)
     /// </summary>
     public string ModuleCertificateCode { get; set; } = string.Empty;
     

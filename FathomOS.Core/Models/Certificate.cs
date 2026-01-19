@@ -45,7 +45,7 @@ public class Certificate
     public required string ModuleId { get; set; }
 
     /// <summary>
-    /// Short code for the module used in certificate ID (e.g., "SL", "GNSS")
+    /// Short code for the module used in certificate ID (e.g., "SLG", "GNS")
     /// </summary>
     public required string ModuleCertificateCode { get; set; }
 

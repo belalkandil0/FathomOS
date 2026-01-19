@@ -1065,7 +1065,7 @@ public class LicenseManager : IDisposable
     /// Works offline - will sync to server when online.
     /// </summary>
     /// <param name="moduleId">Module ID (e.g., "SurveyListing")</param>
-    /// <param name="moduleCertificateCode">Module certificate code (e.g., "SL")</param>
+    /// <param name="moduleCertificateCode">Module certificate code (e.g., "SLG")</param>
     /// <param name="moduleVersion">Module version</param>
     /// <param name="projectName">Project name</param>
     /// <param name="signatoryName">Name of person signing</param>

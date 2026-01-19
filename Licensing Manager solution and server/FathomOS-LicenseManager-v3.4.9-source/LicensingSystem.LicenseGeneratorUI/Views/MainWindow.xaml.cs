@@ -309,14 +309,14 @@ public partial class MainWindow : Window
     /// </summary>
     private void LoadDefaultModules()
     {
-        // Default FathomOS modules
+        // Default FathomOS modules (using 3-letter certificate codes)
         _allModules = new List<ModuleInfoFull>
         {
-            new() { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing", CertificateCode = "SL", DisplayOrder = 1 },
-            new() { Id = 2, ModuleId = "PipelineAnalysis", DisplayName = "Pipeline Analysis", CertificateCode = "PA", DisplayOrder = 2 },
-            new() { Id = 3, ModuleId = "DataVisualization", DisplayName = "Data Visualization", CertificateCode = "DV", DisplayOrder = 3 },
-            new() { Id = 4, ModuleId = "ReportGeneration", DisplayName = "Report Generation", CertificateCode = "RG", DisplayOrder = 4 },
-            new() { Id = 5, ModuleId = "QualityControl", DisplayName = "Quality Control", CertificateCode = "QC", DisplayOrder = 5 }
+            new() { Id = 1, ModuleId = "SurveyListing", DisplayName = "Survey Listing Generator", CertificateCode = "SLG", DisplayOrder = 1 },
+            new() { Id = 2, ModuleId = "SurveyLogbook", DisplayName = "Survey Logbook", CertificateCode = "SLB", DisplayOrder = 2 },
+            new() { Id = 3, ModuleId = "SoundVelocity", DisplayName = "Sound Velocity Profile", CertificateCode = "SVP", DisplayOrder = 3 },
+            new() { Id = 4, ModuleId = "GnssCalibration", DisplayName = "GNSS Calibration", CertificateCode = "GNS", DisplayOrder = 4 },
+            new() { Id = 5, ModuleId = "EquipmentInventory", DisplayName = "Equipment Inventory", CertificateCode = "EQI", DisplayOrder = 5 }
         };
 
         _allTiers = new List<TierInfoFull>
@@ -812,6 +812,11 @@ public partial class MainWindow : Window
         pdfBtn.Click += ExportLicensePdf_Click;
         buttonsPanel.Children.Add(pdfBtn);
 
+        var exportHtmlBtn = CreateActionButton("📃", "Export HTML");
+        exportHtmlBtn.Tag = license;
+        exportHtmlBtn.Click += ExportLicenseHtml_Click;
+        buttonsPanel.Children.Add(exportHtmlBtn);
+
         var htmlBtn = CreateActionButton("🌐", "View Online Certificate");
         htmlBtn.Tag = license;
         htmlBtn.Click += ViewHtmlCertificate_Click;
@@ -892,6 +897,7 @@ public partial class MainWindow : Window
                     var certData = new LicenseCertificateData
                     {
                         LicenseId = license.LicenseId ?? "",
+                        LicenseCode = license.LicenseKey ?? "",  // Show LicenseKey as LicenseCode on certificate
                         // Only include LicenseKey for offline licenses
                         LicenseKey = license.IsOffline ? (license.LicenseKey ?? "") : "",
                         CustomerName = license.CustomerName ?? "",
@@ -906,18 +912,75 @@ public partial class MainWindow : Window
                         SupportCode = license.SupportCode,
                         Modules = license.Modules ?? new List<string>()
                     };
-                    
+
                     if (useDarkTheme)
                         LicenseCertificateGenerator.GenerateDarkModeCertificate(saveDialog.FileName, certData);
                     else
                         LicenseCertificateGenerator.GenerateCertificate(saveDialog.FileName, certData);
-                    
+
                     MessageBox.Show("Certificate exported successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to export PDF: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void ExportLicenseHtml_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is LicenseInfo license)
+        {
+            try
+            {
+                // Ask user for theme preference
+                var themeResult = MessageBox.Show(
+                    "Would you like to generate a Dark theme HTML certificate?\n\nClick 'Yes' for Dark theme\nClick 'No' for Light theme",
+                    "HTML Theme", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+                if (themeResult == MessageBoxResult.Cancel) return;
+                bool useDarkTheme = themeResult == MessageBoxResult.Yes;
+
+                var saveDialog = new SaveFileDialog
+                {
+                    Title = "Export HTML License Certificate",
+                    Filter = "HTML Files (*.html)|*.html",
+                    FileName = $"License_{license.CustomerName?.Replace(" ", "_") ?? "Certificate"}_{DateTime.Now:yyyyMMdd}.html"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    var certData = new LicenseCertificateData
+                    {
+                        LicenseId = license.LicenseId ?? "",
+                        LicenseCode = license.LicenseKey ?? "",  // Show LicenseKey as LicenseCode on certificate
+                        // Only include LicenseKey for offline licenses
+                        LicenseKey = license.IsOffline ? (license.LicenseKey ?? "") : "",
+                        CustomerName = license.CustomerName ?? "",
+                        CustomerEmail = license.CustomerEmail ?? "",
+                        Edition = license.Edition ?? "Professional",
+                        SubscriptionType = license.SubscriptionType ?? "Yearly",
+                        LicenseType = license.IsOffline ? "Offline" : "Online",
+                        IssuedAt = license.CreatedAt ?? DateTime.Now,
+                        ExpiresAt = license.ExpiresAt ?? DateTime.Now.AddYears(1),
+                        Brand = license.Brand,
+                        LicenseeCode = license.LicenseeCode,
+                        SupportCode = license.SupportCode,
+                        Modules = license.Modules ?? new List<string>()
+                    };
+
+                    if (useDarkTheme)
+                        LicenseCertificateGenerator.GenerateDarkModeHtmlCertificate(saveDialog.FileName, certData);
+                    else
+                        LicenseCertificateGenerator.GenerateHtmlCertificate(saveDialog.FileName, certData);
+
+                    MessageBox.Show("HTML Certificate exported successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to export HTML: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
@@ -1589,7 +1652,12 @@ public partial class MainWindow : Window
         await CreateLicenseAsync(exportPdf: true);
     }
 
-    private async Task CreateLicenseAsync(bool exportPdf)
+    private async void CreateLicenseWithHtml_Click(object sender, RoutedEventArgs e)
+    {
+        await CreateLicenseAsync(exportPdf: false, exportHtml: true);
+    }
+
+    private async Task CreateLicenseAsync(bool exportPdf, bool exportHtml = false)
     {
         // Validate required fields
         if (string.IsNullOrWhiteSpace(CustomerNameInput.Text))
@@ -1648,13 +1716,13 @@ public partial class MainWindow : Window
             if (_isStandaloneMode || !_isConnected)
             {
                 await CreateLicenseLocallyAsync(customerName, customerEmail, edition, subscription, duration,
-                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf);
+                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf, exportHtml);
             }
             else
             {
                 // Connected mode - use server API
                 await CreateLicenseViaServerAsync(customerName, customerEmail, edition, subscription, duration,
-                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf);
+                    features, brand, licenseeCode, supportCode, hardwareId, exportPdf, exportHtml);
             }
         }
         catch (Exception ex)
@@ -1668,7 +1736,7 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task CreateLicenseLocallyAsync(string customerName, string customerEmail, string edition,
         string subscription, int durationMonths, List<string> features, string? brand, string? licenseeCode,
-        string? supportCode, string? hardwareId, bool exportPdf)
+        string? supportCode, string? hardwareId, bool exportPdf, bool exportHtml = false)
     {
         // Generate license ID
         var licenseId = LicenseSigningService.GenerateLicenseId();
@@ -1754,17 +1822,23 @@ public partial class MainWindow : Window
 
         ResultTextBox.Text = resultText;
 
+        var result = new CreateLicenseResult
+        {
+            LicenseId = licenseId,
+            LicenseKey = licenseKey,
+            SupportCode = supportCode,
+            ExpiresAt = expiresAt,
+            LicenseFileContent = licenseFileContent
+        };
+
         if (exportPdf)
         {
-            var result = new CreateLicenseResult
-            {
-                LicenseId = licenseId,
-                LicenseKey = licenseKey,
-                SupportCode = supportCode,
-                ExpiresAt = expiresAt,
-                LicenseFileContent = licenseFileContent
-            };
             ExportPdfCertificate(result, customerName, customerEmail, edition, subscription, brand, licenseeCode, supportCode, features, _isOfflineLicense);
+        }
+
+        if (exportHtml)
+        {
+            ExportHtmlCertificate(result, customerName, customerEmail, edition, subscription, brand, licenseeCode, supportCode, features, _isOfflineLicense);
         }
 
         // Refresh local licenses
@@ -1782,7 +1856,7 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task CreateLicenseViaServerAsync(string customerName, string customerEmail, string edition,
         string subscription, int durationMonths, List<string> features, string? brand, string? licenseeCode,
-        string? supportCode, string? hardwareId, bool exportPdf)
+        string? supportCode, string? hardwareId, bool exportPdf, bool exportHtml = false)
     {
         var request = new
         {
@@ -1839,6 +1913,13 @@ public partial class MainWindow : Window
             if (exportPdf && result != null)
             {
                 ExportPdfCertificate(result, customerName, customerEmail, edition,
+                    subscription, brand, licenseeCode, result.SupportCode ?? supportCode,
+                    features, _isOfflineLicense);
+            }
+
+            if (exportHtml && result != null)
+            {
+                ExportHtmlCertificate(result, customerName, customerEmail, edition,
                     subscription, brand, licenseeCode, result.SupportCode ?? supportCode,
                     features, _isOfflineLicense);
             }
@@ -1927,7 +2008,8 @@ public partial class MainWindow : Window
                 var certData = new LicenseCertificateData
                 {
                     LicenseId = result.LicenseId ?? "",
-                    // Only include LicenseKey for offline licenses
+                    LicenseCode = result.LicenseKey ?? "",  // Show LicenseKey as LicenseCode on certificate
+                    // Only include LicenseKey (full key) for offline licenses
                     LicenseKey = isOffline ? (result.LicenseKey ?? "") : "",
                     CustomerName = customerName,
                     CustomerEmail = customerEmail,
@@ -1941,18 +2023,74 @@ public partial class MainWindow : Window
                     SupportCode = supportCode,
                     Modules = modules
                 };
-                
+
                 if (useDarkTheme)
                     LicenseCertificateGenerator.GenerateDarkModeCertificate(saveDialog.FileName, certData);
                 else
                     LicenseCertificateGenerator.GenerateCertificate(saveDialog.FileName, certData);
-                    
+
                 MessageBox.Show($"Certificate saved to:\n{saveDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Failed to generate PDF: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ExportHtmlCertificate(CreateLicenseResult result, string customerName, string customerEmail,
+        string edition, string subscriptionType, string? brand, string? licenseeCode, string? supportCode,
+        List<string> modules, bool isOffline = false)
+    {
+        try
+        {
+            // Ask user for theme preference
+            var themeResult = MessageBox.Show(
+                "Would you like to generate a Dark theme HTML certificate?\n\nClick 'Yes' for Dark theme\nClick 'No' for Light theme",
+                "HTML Theme", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+            if (themeResult == MessageBoxResult.Cancel) return;
+            bool useDarkTheme = themeResult == MessageBoxResult.Yes;
+
+            var saveDialog = new SaveFileDialog
+            {
+                Title = "Save HTML License Certificate",
+                Filter = "HTML Files (*.html)|*.html",
+                FileName = $"License_{customerName.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.html"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                var certData = new LicenseCertificateData
+                {
+                    LicenseId = result.LicenseId ?? "",
+                    LicenseCode = result.LicenseKey ?? "",  // Show LicenseKey as LicenseCode on certificate
+                    // Only include LicenseKey (full key) for offline licenses
+                    LicenseKey = isOffline ? (result.LicenseKey ?? "") : "",
+                    CustomerName = customerName,
+                    CustomerEmail = customerEmail,
+                    Edition = edition,
+                    SubscriptionType = subscriptionType,
+                    LicenseType = isOffline ? "Offline" : "Online",
+                    IssuedAt = DateTime.Now,
+                    ExpiresAt = result.ExpiresAt ?? DateTime.Now.AddYears(1),
+                    Brand = brand,
+                    LicenseeCode = licenseeCode,
+                    SupportCode = supportCode,
+                    Modules = modules
+                };
+
+                if (useDarkTheme)
+                    LicenseCertificateGenerator.GenerateDarkModeHtmlCertificate(saveDialog.FileName, certData);
+                else
+                    LicenseCertificateGenerator.GenerateHtmlCertificate(saveDialog.FileName, certData);
+
+                MessageBox.Show($"HTML Certificate saved to:\n{saveDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to generate HTML certificate: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

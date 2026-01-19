@@ -15,7 +15,7 @@ public static class ModuleCertificateHelper
     /// Creates a certificate request with standard fields populated.
     /// </summary>
     /// <param name="moduleId">Module identifier.</param>
-    /// <param name="moduleCertificateCode">Short code for certificate (e.g., "SL", "EI").</param>
+    /// <param name="moduleCertificateCode">Short code for certificate (e.g., "SLG", "EQI").</param>
     /// <param name="moduleVersion">Module version string.</param>
     /// <param name="projectName">Project name.</param>
     /// <param name="processingData">Module-specific processing data.</param>

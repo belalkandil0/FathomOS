@@ -161,13 +161,38 @@ public class AppStartupService
 
         if (!hasUsers)
         {
-            // License valid but no users - need to create admin account
-            System.Diagnostics.Debug.WriteLine("AppStartupService: No users found - needs account creation");
-            return new StartupFlowResult
+            // License valid but no users - auto-create default admin account
+            System.Diagnostics.Debug.WriteLine("AppStartupService: No users found - creating default administrator account");
+            try
             {
-                Result = StartupResult.NeedsAccountCreation,
-                LicenseResult = licenseResult
-            };
+                var defaultAdmin = _userService.CreateUser(new CreateUserRequest
+                {
+                    Username = "administrator",
+                    Email = "admin@fathomos.local",
+                    FullName = "System Administrator",
+                    Password = "FathomOS2026!",
+                    Role = "Administrator"
+                });
+                System.Diagnostics.Debug.WriteLine($"AppStartupService: Default admin account created: {defaultAdmin.Username}");
+
+                // Now we have users, proceed to login with a flag indicating default credentials were created
+                return new StartupFlowResult
+                {
+                    Result = StartupResult.ReadyForLogin,
+                    LicenseResult = licenseResult,
+                    ErrorMessage = "DEFAULT_CREDENTIALS_CREATED" // Signal to show message about default credentials
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AppStartupService: Failed to create default admin: {ex.Message}");
+                // Fall back to manual account creation if auto-create fails
+                return new StartupFlowResult
+                {
+                    Result = StartupResult.NeedsAccountCreation,
+                    LicenseResult = licenseResult
+                };
+            }
         }
 
         // Step 3: License valid and users exist

@@ -12,7 +12,7 @@ namespace FathomOS.Modules.ProjectManagement;
 /// deliverables, and client coordination.
 ///
 /// Certificate System Integration:
-/// - Certificate Code: PM
+/// - Certificate Code: PJM
 /// - Certificate Title: Project Management Certificate
 /// </summary>
 public class ProjectManagementModule : IModule
@@ -27,7 +27,7 @@ public class ProjectManagementModule : IModule
     private ProjectManagementSettings? _settings;
 
     // Certificate configuration (matches ModuleInfo.json)
-    public const string CertificateCode = "PRJ";
+    public const string CertificateCode = "PJM";
     public const string CertificateTitle = "Project Management Certificate";
 
     #region Constructors

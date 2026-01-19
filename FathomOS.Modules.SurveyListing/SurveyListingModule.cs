@@ -15,7 +15,7 @@ namespace FathomOS.Modules.SurveyListing;
 /// and multiple export formats.
 ///
 /// Certificate System Integration:
-/// - Certificate Code: SL
+/// - Certificate Code: SLG
 /// - Certificate Title: Survey Listing Processing Certificate
 /// </summary>
 public class SurveyListingModule : IModule
@@ -31,7 +31,7 @@ public class SurveyListingModule : IModule
     private SurveyListingSettings? _settings;
 
     // Certificate configuration
-    public const string CertificateCode = "SL";
+    public const string CertificateCode = "SLG";
     public const string CertificateTitle = "Survey Listing Processing Certificate";
     public const string CertificateStatement = "This is to certify that the survey listing data documented herein has been processed and verified using FathomOS Survey Listing Generator in accordance with industry standards for hydrographic data processing.";
 

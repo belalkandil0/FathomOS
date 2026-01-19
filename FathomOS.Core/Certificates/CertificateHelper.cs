@@ -72,7 +72,7 @@ public static class CertificateHelper
     /// </summary>
     /// <param name="licenseManager">The license manager instance</param>
     /// <param name="moduleId">Module ID (e.g., "SurveyListing")</param>
-    /// <param name="moduleCertificateCode">Module code for certificate ID (e.g., "SL")</param>
+    /// <param name="moduleCertificateCode">Module code for certificate ID (e.g., "SLG")</param>
     /// <param name="moduleVersion">Module version</param>
     /// <param name="projectName">Project name</param>
     /// <param name="processingData">Module-specific processing data</param>

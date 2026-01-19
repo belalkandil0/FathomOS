@@ -16,6 +16,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.49] - 2026-01-19
+
+### Added
+- **Default Administrator Account**: Auto-created on first launch with `administrator`/`FathomOS2026!`
+- **HTML Certificate Export**: License Manager now exports certificates in HTML format
+- **License Code on Certificates**: Both PDF and HTML certificates display License Code
+
+### Changed
+- **Premium 2026 UI Overhaul**: All windows modernized with GitHub dark theme
+  - LocalLoginWindow, LoginWindow, ActivationWindow
+  - CertificateListWindow, CertificateViewerWindow
+  - Dark background (#0D1117), accent blue (#58A6FF), green buttons (#238636)
+  - Rounded corners, hover effects, professional typography
+- **3-Letter Module Codes**: All modules updated from 2-letter to 3-letter codes
+  - SL→SLG, LB→SLB, NT→NTS, EI→EQI, SV→SVP
+  - GC→GNS, MC→MRU, UV→USB, TI→TRI, RG→RGC, VG→VGC
+  - PM→PRM, PJ→PJM
+- **License Manager UI**: Fixed dropdown visibility (white-on-white issue)
+- **Login Window**: Made responsive with ScrollViewer, MinHeight=500
+
+### Fixed
+- **Authentication Flow**: Account creation window now appears after license activation
+- **Online Activation Errors**: Added proper error handling with fallback to offline
+- **Login Button Visibility**: Fixed login window responsiveness issues
+
+---
+
 ## [1.0.48] - 2026-01-18
 
 ### Changed

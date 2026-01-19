@@ -15,7 +15,7 @@ namespace FathomOS.Modules.EquipmentInventory;
 /// Equipment &amp; Inventory Management Module for offshore and onshore operations.
 ///
 /// Certificate System Integration:
-/// - Certificate Code: EI
+/// - Certificate Code: EQI
 /// - Certificate Title: Equipment &amp; Inventory Management Verification Certificate
 /// </summary>
 public class EquipmentInventoryModule : IModule
@@ -30,7 +30,7 @@ public class EquipmentInventoryModule : IModule
     private readonly IExportService? _exportService;
 
     // Certificate configuration (matches ModuleInfo.json)
-    public const string CertificateCode = "EI";
+    public const string CertificateCode = "EQI";
     public const string CertificateTitle = "Equipment & Inventory Management Verification Certificate";
     public const string CertificateStatement = "This is to certify that the equipment inventory and manifest operations documented herein have been successfully processed and verified in accordance with industry standards for asset tracking and management.";
 

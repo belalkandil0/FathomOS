@@ -2,10 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="FathomOS - Login"
-        Height="520" Width="450"
-        MinHeight="480" MinWidth="400"
+        Height="580" Width="480"
+        MinHeight="500" MinWidth="400"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         Background="#0D1117">
 
     <Window.Resources>
@@ -24,7 +24,7 @@
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
+                                CornerRadius="8">
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -52,7 +52,7 @@
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
+                                CornerRadius="8">
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -78,7 +78,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}"
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -114,7 +114,7 @@
                         <Border x:Name="border" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -169,86 +169,93 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="40">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <!-- Wrap everything in ScrollViewer for responsiveness -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="40" MinHeight="420">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Header with Logo -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,30">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Border Background="#161B22" CornerRadius="12" Padding="12" Margin="0,0,12,0">
-                    <TextBlock Text="&#x1F30A;" FontSize="32" VerticalAlignment="Center"/>
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="FATHOM OS" FontSize="24" FontWeight="Bold" Foreground="#E6EDF3"/>
-                    <TextBlock x:Name="EditionText" Text="Professional Edition" FontSize="13" Foreground="#58A6FF" Margin="0,2,0,0"/>
+            <!-- Header with Logo -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,30">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Border Background="#161B22" CornerRadius="12" Padding="12" Margin="0,0,12,0">
+                        <TextBlock Text="&#x1F30A;" FontSize="32" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="FATHOM OS" FontSize="24" FontWeight="Bold" Foreground="#E6EDF3"/>
+                        <TextBlock x:Name="EditionText" Text="Professional Edition" FontSize="13" Foreground="#58A6FF" Margin="0,2,0,0"/>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
 
-        <!-- Login Form -->
-        <Border Grid.Row="1" Background="#161B22" CornerRadius="8" Padding="24">
-            <StackPanel>
-                <TextBlock Text="Sign in to continue" FontSize="16" FontWeight="SemiBold"
-                           Foreground="#E6EDF3" Margin="0,0,0,20"/>
+            <!-- Login Form -->
+            <Border Grid.Row="1" Background="#161B22" CornerRadius="8" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="Sign in to continue" FontSize="16" FontWeight="SemiBold"
+                               Foreground="#E6EDF3" Margin="0,0,0,20"/>
 
-                <!-- Username -->
-                <TextBlock Text="Username or Email" Foreground="#8B949E" FontSize="12" Margin="0,0,0,8"/>
-                <TextBox x:Name="UsernameTextBox"
-                         Style="{StaticResource ModernTextBox}"
-                         Margin="0,0,0,16"
-                         KeyDown="TextBox_KeyDown"/>
-
-                <!-- Password -->
-                <TextBlock Text="Password" Foreground="#8B949E" FontSize="12" Margin="0,0,0,8"/>
-                <PasswordBox x:Name="PasswordBox"
-                             Style="{StaticResource ModernPasswordBox}"
+                    <!-- Username -->
+                    <TextBlock Text="Username or Email" Foreground="#8B949E" FontSize="12" Margin="0,0,0,8"/>
+                    <TextBox x:Name="UsernameTextBox"
+                             Style="{StaticResource ModernTextBox}"
                              Margin="0,0,0,16"
-                             KeyDown="PasswordBox_KeyDown"/>
+                             KeyDown="TextBox_KeyDown"/>
 
-                <!-- Remember Me -->
-                <CheckBox x:Name="RememberMeCheckBox"
-                          Content="Remember me on this computer"
-                          Style="{StaticResource ModernCheckBox}"
-                          Margin="0,0,0,20"/>
+                    <!-- Password -->
+                    <TextBlock Text="Password" Foreground="#8B949E" FontSize="12" Margin="0,0,0,8"/>
+                    <PasswordBox x:Name="PasswordBox"
+                                 Style="{StaticResource ModernPasswordBox}"
+                                 Margin="0,0,0,16"
+                                 KeyDown="PasswordBox_KeyDown"/>
 
-                <!-- Login Button -->
-                <Button x:Name="LoginButton"
-                        Content="Sign In"
-                        Style="{StaticResource PrimaryButton}"
-                        Click="Login_Click"
-                        HorizontalAlignment="Stretch"/>
-            </StackPanel>
-        </Border>
+                    <!-- Remember Me -->
+                    <CheckBox x:Name="RememberMeCheckBox"
+                              Content="Remember me on this computer"
+                              Style="{StaticResource ModernCheckBox}"
+                              Margin="0,0,0,20"/>
 
-        <!-- Status Message -->
-        <Border x:Name="StatusBorder" Grid.Row="2"
-                Background="#21262D" CornerRadius="6" Padding="16,12"
-                Margin="0,20,0,0"
-                Visibility="Collapsed"
-                VerticalAlignment="Top">
-            <TextBlock x:Name="StatusText" TextWrapping="Wrap" FontSize="13"/>
-        </Border>
+                    <!-- Login Button - ALWAYS VISIBLE -->
+                    <Button x:Name="LoginButton"
+                            Content="Sign In"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="Login_Click"
+                            HorizontalAlignment="Stretch"
+                            MinHeight="44"/>
+                </StackPanel>
+            </Border>
 
-        <!-- Footer -->
-        <Grid Grid.Row="3" Margin="0,20,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- Status Message -->
+            <Border x:Name="StatusBorder" Grid.Row="2"
+                    Background="#21262D" CornerRadius="8" Padding="16,12"
+                    Margin="0,20,0,0"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="StatusText" TextWrapping="Wrap" FontSize="13"/>
+            </Border>
 
-            <!-- License Status -->
-            <TextBlock x:Name="LicenseStatusText" Text="Licensed" Foreground="#484F58" FontSize="11" VerticalAlignment="Center"/>
+            <!-- Spacer -->
+            <Grid Grid.Row="3"/>
 
-            <!-- Cancel Button -->
-            <Button Grid.Column="1" Content="Exit"
-                    Style="{StaticResource SecondaryButton}"
-                    Width="80"
-                    Click="Cancel_Click"/>
+            <!-- Footer -->
+            <Grid Grid.Row="4" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- License Status -->
+                <TextBlock x:Name="LicenseStatusText" Text="Licensed" Foreground="#484F58" FontSize="11" VerticalAlignment="Center"/>
+
+                <!-- Cancel Button -->
+                <Button Grid.Column="1" Content="Exit"
+                        Style="{StaticResource SecondaryButton}"
+                        Width="80"
+                        Click="Cancel_Click"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </Window>
