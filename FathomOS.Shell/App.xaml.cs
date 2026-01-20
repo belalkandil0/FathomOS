@@ -683,6 +683,9 @@ public partial class App : Application
         // Excel Export Service - generic Excel export for any data type
         services.AddSingleton<IExcelExportService, FathomOS.Core.Services.ExcelExportService>();
 
+        // Unified Export Service - provides consistent export across Excel, PDF, DXF, CSV, JSON formats
+        services.AddSingleton<IExportService, FathomOS.Core.Services.ExportService>();
+
         // Backup Service - database and configuration backup management
         services.AddSingleton<IBackupService, FathomOS.Core.Services.BackupService>();
 
