@@ -449,21 +449,5 @@ public class WebhookPayload
     public object Data { get; set; } = new();
 }
 
-/// <summary>
-/// Record of webhook delivery attempt.
-/// </summary>
-public class WebhookDeliveryRecord
-{
-    public int Id { get; set; }
-    public string WebhookId { get; set; } = string.Empty;
-    public string EndpointName { get; set; } = string.Empty;
-    public string EndpointUrl { get; set; } = string.Empty;
-    public string EventType { get; set; } = string.Empty;
-    public string Payload { get; set; } = string.Empty;
-    public DateTime AttemptedAt { get; set; }
-    public bool Success { get; set; }
-    public int? ResponseStatusCode { get; set; }
-    public string? ResponseBody { get; set; }
-    public string? ErrorMessage { get; set; }
-    public int RetryCount { get; set; }
-}
+// WebhookDeliveryRecord is defined in LicensingSystem.Server.Data.LicenseDbContext.cs
+// Do not duplicate here - use the Data namespace version

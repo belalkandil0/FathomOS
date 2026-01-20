@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Certificate - Fathom OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-header: linear-gradient(135deg, #0369A1 0%, #0EA5E9 100%);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --text-header: #ffffff;
+            --border-color: #e2e8f0;
+            --accent-primary: #0EA5E9;
+            --accent-secondary: #0369A1;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --watermark-opacity: 0.03;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: #1E293B;
+            --bg-header: linear-gradient(135deg, #0c4a6e 0%, #0369A1 100%);
+            --text-primary: #F1F5F9;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --text-header: #ffffff;
+            --border-color: #334155;
+            --accent-primary: #0EA5E9;
+            --accent-secondary: #38BDF8;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --watermark-opacity: 0.05;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Fixed Controls */
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .control-btn.primary {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .control-btn.theme-toggle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            padding: 0;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        /* Certificate Container */
+        .certificate {
+            max-width: 900px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        /* Watermark */
+        .certificate::before {
+            content: 'FATHOM OS';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 6rem;
+            font-weight: 800;
+            opacity: var(--watermark-opacity);
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-header);
+            padding: 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            transform: rotate(15deg);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        .logo-text {
+            color: var(--text-header);
+        }
+
+        .logo-text h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.15rem;
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .certificate-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .certificate-badge .verified-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        /* Content */
+        .content {
+            padding: 2rem 2.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .certificate-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .certificate-title h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .certificate-id {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 650px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+        }
+
+        .info-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .info-value.mono {
+            font-family: 'Courier New', monospace;
+            color: var(--accent-primary);
+        }
+
+        /* Section Headers */
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        /* Processing Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: var(--bg-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table td:first-child {
+            font-weight: 500;
+            color: var(--text-secondary);
+            width: 40%;
+        }
+
+        .data-table td:last-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* File Lists */
+        .file-list {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        .empty-list {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 1rem;
+        }
+
+        /* Signatory Section */
+        .signatory-section {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        @media (max-width: 650px) {
+            .signatory-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        .signatory-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .signatory-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .signatory-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .signatory-company {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qr-code {
+            width: 100px;
+            height: 100px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .qr-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Verification Badge */
+        .verification-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .verification-badge.verified {
+            background: rgba(5, 150, 105, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .verification-badge.unverified {
+            background: rgba(217, 119, 6, 0.15);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-info strong {
+            color: var(--text-secondary);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .footer-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        .footer-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* Copyright */
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--error);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .error-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0;
+            }
+
+            .controls {
+                display: none !important;
+            }
+
+            .certificate {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                max-width: 100%;
+            }
+
+            .footer-actions {
+                display: none !important;
+            }
+
+            .copyright {
+                margin-top: 1rem;
+            }
+
+            [data-theme="dark"] {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f8fafc;
+                --bg-card: #ffffff;
+                --text-primary: #0f172a;
+                --text-secondary: #475569;
+                --text-muted: #94a3b8;
+                --border-color: #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="control-btn" onclick="window.print()" title="Print Certificate">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print
+        </button>
+        <a class="control-btn primary" id="verifyBtn" href="verify.html" title="Verify Certificate">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+            Verify
+        </a>
+        <button class="control-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span id="theme-icon">moon</span>
+        </button>
+    </div>
+
+    <div class="certificate" id="certificate">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading certificate...</p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        &copy; 2025 Fathom OS - Professional Survey Software<br>
+        This certificate is digitally signed and can be verified online at fathomos.com
+    </div>
+
+    <script>
+        // Theme Management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            icon.textContent = isDark ? 'sun' : 'moon';
+        }
+
+        // Load saved theme (default to dark)
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+
+        // Get certificate ID from URL
+        function getCertificateId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id') || params.get('certificateId');
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Format date short (for print)
+        function formatDateShort(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Render processing data table
+        function renderProcessingData(data) {
+            if (!data || Object.keys(data).length === 0) {
+                return '<div class="empty-list">No processing data recorded</div>';
+            }
+
+            let rows = '';
+            for (const [key, value] of Object.entries(data)) {
+                // Format key for display (convert camelCase to Title Case)
+                const displayKey = key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+                rows += `
+                    <tr>
+                        <td>${displayKey}</td>
+                        <td>${value || 'N/A'}</td>
+                    </tr>
+                `;
+            }
+
+            return `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render file list
+        function renderFileList(files, type) {
+            if (!files || files.length === 0) {
+                return `<div class="empty-list">No ${type} files recorded</div>`;
+            }
+
+            return files.map(file => {
+                // Extract just the filename from full path
+                const fileName = file.split(/[/\\]/).pop();
+                return `
+                    <div class="file-item">
+                        <div class="file-icon">${type === 'input' ? 'IN' : 'OUT'}</div>
+                        <div class="file-name" title="${file}">${fileName}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render certificate
+        function renderCertificate(data) {
+            const certId = data.certificateId || 'Unknown';
+            const isVerified = data.isSignatureVerified;
+            const verifyUrl = `verify.html?id=${encodeURIComponent(certId)}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/verify.html?id=' + certId)}`;
+
+            // Update verify button link
+            document.getElementById('verifyBtn').href = verifyUrl;
+
+            document.getElementById('certificate').innerHTML = `
+                <div class="header">
+                    <div class="header-content">
+                        <div class="logo-section">
+                            <div class="logo">&#9875;</div>
+                            <div class="logo-text">
+                                <h1>Fathom OS</h1>
+                                <p>Processing Certificate</p>
+                            </div>
+                        </div>
+                        <div class="certificate-badge">
+                            ${isVerified ? '<div class="verified-icon">&#10003;</div>' : ''}
+                            ${isVerified ? 'Verified' : 'Certificate'}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="certificate-title">
+                        <h2>Data Processing Certificate</h2>
+                        <div class="certificate-id">${certId}</div>
+                        <div style="margin-top: 0.75rem;">
+                            <span class="verification-badge ${isVerified ? 'verified' : 'unverified'}">
+                                ${isVerified ? '&#128274; Cryptographically Verified' : '&#128275; Signature Not Verified'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Certificate Details -->
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">Company / Client</div>
+                            <div class="info-value">${data.companyName || data.client || 'N/A'}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Module</div>
+                            <div class="info-value">${data.moduleName || data.moduleId || 'N/A'}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Module Version</div>
+                            <div class="info-value mono">${data.moduleVersion || 'N/A'}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Issue Date</div>
+                            <div class="info-value">${formatDate(data.issuedAt)}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Project Name</div>
+                            <div class="info-value">${data.projectName || 'N/A'}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Project Location</div>
+                            <div class="info-value">${data.projectLocation || 'N/A'}</div>
+                        </div>
+                        ${data.vessel ? `
+                        <div class="info-card">
+                            <div class="info-label">Vessel</div>
+                            <div class="info-value">${data.vessel}</div>
+                        </div>
+                        ` : ''}
+                        ${data.client && data.client !== data.companyName ? `
+                        <div class="info-card">
+                            <div class="info-label">Client</div>
+                            <div class="info-value">${data.client}</div>
+                        </div>
+                        ` : ''}
+                        ${data.licenseeCode ? `
+                        <div class="info-card">
+                            <div class="info-label">Licensee Code</div>
+                            <div class="info-value mono">${data.licenseeCode}</div>
+                        </div>
+                        ` : ''}
+                        ${data.licenseId ? `
+                        <div class="info-card">
+                            <div class="info-label">License ID</div>
+                            <div class="info-value mono">${data.licenseId}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Processing Data -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">&#128202;</div>
+                            <div class="section-title">Processing Data</div>
+                        </div>
+                        ${renderProcessingData(data.processingData)}
+                    </div>
+
+                    <!-- Input Files -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">&#128229;</div>
+                            <div class="section-title">Input Files (${data.inputFiles?.length || 0})</div>
+                        </div>
+                        <div class="file-list">
+                            ${renderFileList(data.inputFiles, 'input')}
+                        </div>
+                    </div>
+
+                    <!-- Output Files -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">&#128228;</div>
+                            <div class="section-title">Output Files (${data.outputFiles?.length || 0})</div>
+                        </div>
+                        <div class="file-list">
+                            ${renderFileList(data.outputFiles, 'output')}
+                        </div>
+                    </div>
+
+                    <!-- Signatory Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">&#9997;</div>
+                            <div class="section-title">Signatory Information</div>
+                        </div>
+                        <div class="signatory-section">
+                            <div class="signatory-info">
+                                <div class="signatory-name">${data.signatoryName || 'N/A'}</div>
+                                <div class="signatory-title">${data.signatoryTitle || ''}</div>
+                                <div class="signatory-company">${data.companyName || ''}</div>
+                            </div>
+                            <div class="qr-section">
+                                <img class="qr-code" src="${qrUrl}" alt="QR Code for verification">
+                                <div class="qr-label">Scan to verify certificate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="footer">
+                        <div class="footer-info">
+                            <strong>Certificate ID:</strong> ${certId}<br>
+                            <strong>Synced to Server:</strong> ${formatDateShort(data.syncedAt)}<br>
+                            <strong>Verification URL:</strong> ${window.location.origin}/verify.html?id=${certId}
+                        </div>
+                        <div class="footer-actions">
+                            <a href="${verifyUrl}" class="footer-btn">Verify Certificate</a>
+                            <button onclick="window.print()" class="footer-btn">Print</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show error state
+        function showError(message) {
+            document.getElementById('certificate').innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">&#9888;</div>
+                    <h3 class="error-title">Certificate Not Found</h3>
+                    <p class="error-message">${message}</p>
+                    <a href="verify.html" class="error-btn">Go to Verification Page</a>
+                </div>
+            `;
+        }
+
+        // Load certificate data
+        async function loadCertificate() {
+            const certId = getCertificateId();
+
+            if (!certId) {
+                showError('No certificate ID provided. Please add ?id=CERTIFICATE_ID to the URL.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/certificates/${encodeURIComponent(certId)}`);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('This certificate was not found in our records. It may not have been synced to the server yet.');
+                    }
+                    throw new Error('Failed to load certificate. Please try again later.');
+                }
+
+                const data = await response.json();
+                renderCertificate(data);
+            } catch (error) {
+                console.error('Error loading certificate:', error);
+                showError(error.message || 'Unable to load certificate. Please check the certificate ID and try again.');
+            }
+        }
+
+        // Initialize
+        loadCertificate();
+    </script>
+</body>
+</html>

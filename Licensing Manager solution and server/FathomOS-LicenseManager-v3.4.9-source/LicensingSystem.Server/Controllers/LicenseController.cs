@@ -1358,7 +1358,7 @@ public async Task<ActionResult<CompleteTransferResponse>> CompleteTransfer([From
         {
             activation.IsDeactivated = true;
             activation.DeactivatedAt = DateTime.UtcNow;
-            activation.DeactivationReason = "Transferred to new device";
+            // Note: DeactivationReason tracked via transfer record, not on activation
         }
 
         // Create new activation for target machine
@@ -1894,7 +1894,7 @@ public async Task<ActionResult<FloatingPoolStatusResponse>> GetFloatingPoolStatu
             .Where(c => c.LicenseId == licenseId && c.IsActive)
             .Select(c => new FloatingPoolUser
             {
-                CheckoutToken = c.CheckoutToken[..8] + "...",
+                CheckoutToken = c.CheckoutToken.Substring(0, 8) + "...",
                 MachineName = c.MachineName,
                 UserName = c.UserName,
                 CheckedOutAt = c.CheckedOutAt,
