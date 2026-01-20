@@ -1424,6 +1424,418 @@ public class AdminController : ControllerBase
 
     #endregion
 
+    #region Analytics Endpoints
+
+    /// <summary>
+    /// Get comprehensive usage analytics
+    /// GET /api/admin/analytics
+    /// </summary>
+    [HttpGet("analytics")]
+    public async Task<ActionResult<AdminAnalyticsResponse>> GetAnalytics(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null)
+    {
+        try
+        {
+            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+            var toDate = to ?? DateTime.UtcNow;
+
+            // License statistics
+            var totalLicenses = await _db.LicenseKeys.CountAsync();
+            var activeLicenses = await _db.LicenseKeys.CountAsync(l => !l.IsRevoked && l.ExpiresAt > DateTime.UtcNow);
+            var expiredLicenses = await _db.LicenseKeys.CountAsync(l => !l.IsRevoked && l.ExpiresAt <= DateTime.UtcNow);
+            var revokedLicenses = await _db.LicenseKeys.CountAsync(l => l.IsRevoked);
+            var offlineLicenses = await _db.LicenseKeys.CountAsync(l => l.LicenseType == "Offline");
+
+            // Recent activity
+            var newLicensesThisMonth = await _db.LicenseKeys
+                .CountAsync(l => l.CreatedAt >= DateTime.UtcNow.AddDays(-30));
+            var activationsThisMonth = await _db.LicenseActivations
+                .CountAsync(a => a.ActivatedAt >= DateTime.UtcNow.AddDays(-30));
+
+            // Edition breakdown
+            var editionBreakdown = await _db.LicenseKeys
+                .Where(l => !l.IsRevoked)
+                .GroupBy(l => l.Edition ?? "Unknown")
+                .Select(g => new EditionStatistic { Edition = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            // Daily activity
+            var dailyActivity = await _db.LicenseActivations
+                .Where(a => a.ActivatedAt >= fromDate && a.ActivatedAt <= toDate)
+                .GroupBy(a => a.ActivatedAt.Date)
+                .Select(g => new DailyActivityStat
+                {
+                    Date = g.Key.ToString("yyyy-MM-dd"),
+                    Activations = g.Count()
+                })
+                .OrderBy(d => d.Date)
+                .ToListAsync();
+
+            // Usage analytics from UsageAnalytics table
+            var usageEvents = await _db.UsageAnalytics
+                .Where(u => u.Timestamp >= fromDate && u.Timestamp <= toDate)
+                .GroupBy(u => u.EventType)
+                .Select(g => new UsageEventStat { EventType = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            // Module usage
+            var moduleUsage = await _db.UsageAnalytics
+                .Where(u => u.EventType == "ModuleLaunch" && u.EntityId != null && u.Timestamp >= fromDate && u.Timestamp <= toDate)
+                .GroupBy(u => u.EntityId!)
+                .Select(g => new ModuleUsageStat { ModuleId = g.Key, LaunchCount = g.Count() })
+                .OrderByDescending(m => m.LaunchCount)
+                .Take(20)
+                .ToListAsync();
+
+            // Floating pool stats
+            var activeFloatingCheckouts = await _db.FloatingPoolCheckouts
+                .CountAsync(c => c.IsActive);
+            var totalFloatingCheckouts = await _db.FloatingPoolCheckouts.CountAsync();
+
+            // Transfer stats
+            var completedTransfers = await _db.LicenseTransfers
+                .CountAsync(t => t.Status == "Completed" && t.TransferredAt >= fromDate);
+            var pendingTransfers = await _db.LicenseTransfers
+                .CountAsync(t => t.Status == "Pending");
+
+            return Ok(new AdminAnalyticsResponse
+            {
+                GeneratedAt = DateTime.UtcNow,
+                PeriodFrom = fromDate,
+                PeriodTo = toDate,
+                LicenseStats = new LicenseStatistics
+                {
+                    Total = totalLicenses,
+                    Active = activeLicenses,
+                    Expired = expiredLicenses,
+                    Revoked = revokedLicenses,
+                    Offline = offlineLicenses,
+                    NewThisMonth = newLicensesThisMonth
+                },
+                ActivationStats = new ActivationStatistics
+                {
+                    TotalActivations = await _db.LicenseActivations.CountAsync(),
+                    ActiveActivations = await _db.LicenseActivations.CountAsync(a => !a.IsDeactivated),
+                    ActivationsThisMonth = activationsThisMonth
+                },
+                EditionBreakdown = editionBreakdown,
+                DailyActivity = dailyActivity,
+                UsageEvents = usageEvents,
+                ModuleUsage = moduleUsage,
+                FloatingPoolStats = new FloatingPoolStatistics
+                {
+                    ActiveCheckouts = activeFloatingCheckouts,
+                    TotalCheckouts = totalFloatingCheckouts
+                },
+                TransferStats = new TransferStatistics
+                {
+                    CompletedTransfers = completedTransfers,
+                    PendingTransfers = pendingTransfers
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting analytics");
+            return StatusCode(500, new { error = "Failed to generate analytics" });
+        }
+    }
+
+    /// <summary>
+    /// Get usage analytics for a specific license
+    /// GET /api/admin/analytics/license/{licenseId}
+    /// </summary>
+    [HttpGet("analytics/license/{licenseId}")]
+    public async Task<ActionResult<LicenseAnalyticsResponse>> GetLicenseAnalytics(
+        string licenseId,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null)
+    {
+        try
+        {
+            var license = await _db.LicenseKeys
+                .Include(l => l.Activations)
+                .FirstOrDefaultAsync(l => l.LicenseId == licenseId);
+
+            if (license == null)
+            {
+                return NotFound(new { error = "License not found" });
+            }
+
+            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+            var toDate = to ?? DateTime.UtcNow;
+
+            var usageEvents = await _db.UsageAnalytics
+                .Where(u => u.LicenseId == licenseId && u.Timestamp >= fromDate && u.Timestamp <= toDate)
+                .ToListAsync();
+
+            var moduleUsage = usageEvents
+                .Where(e => e.EventType == "ModuleLaunch" && e.EntityId != null)
+                .GroupBy(e => e.EntityId!)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var featureUsage = usageEvents
+                .Where(e => e.EventType == "FeatureUsage" && e.EntityId != null)
+                .GroupBy(e => e.EntityId!)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var sessionCount = usageEvents.Count(e => e.EventType == "SessionStart");
+            var totalUsageMinutes = usageEvents
+                .Where(e => e.EventType == "SessionEnd" && e.Properties != null)
+                .Sum(e => {
+                    try
+                    {
+                        var props = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(e.Properties!);
+                        if (props != null && props.TryGetValue("DurationMinutes", out var duration) && int.TryParse(duration, out var mins))
+                            return mins;
+                    }
+                    catch { }
+                    return 0;
+                });
+
+            return Ok(new LicenseAnalyticsResponse
+            {
+                LicenseId = licenseId,
+                CustomerName = license.CustomerName,
+                Edition = license.Edition,
+                PeriodFrom = fromDate,
+                PeriodTo = toDate,
+                TotalSessions = sessionCount,
+                TotalUsageMinutes = totalUsageMinutes,
+                ModuleUsage = moduleUsage,
+                FeatureUsage = featureUsage,
+                ActivationCount = license.Activations.Count(a => !a.IsDeactivated),
+                LastSeen = license.Activations.Where(a => !a.IsDeactivated).Max(a => a.LastSeenAt)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting license analytics for {LicenseId}", licenseId);
+            return StatusCode(500, new { error = "Failed to get license analytics" });
+        }
+    }
+
+    /// <summary>
+    /// Export analytics data as CSV
+    /// GET /api/admin/analytics/export
+    /// </summary>
+    [HttpGet("analytics/export")]
+    public async Task<ActionResult> ExportAnalytics([FromQuery] string type = "licenses")
+    {
+        try
+        {
+            string csv;
+            string filename;
+
+            switch (type.ToLower())
+            {
+                case "licenses":
+                    var licenses = await _db.LicenseKeys
+                        .OrderByDescending(l => l.CreatedAt)
+                        .Take(1000)
+                        .ToListAsync();
+
+                    csv = "LicenseId,CustomerEmail,CustomerName,Edition,CreatedAt,ExpiresAt,Status,Brand,LicenseeCode\n" +
+                        string.Join("\n", licenses.Select(l =>
+                            $"\"{l.LicenseId}\",\"{l.CustomerEmail}\",\"{l.CustomerName}\",\"{l.Edition}\"," +
+                            $"\"{l.CreatedAt:yyyy-MM-dd}\",\"{l.ExpiresAt:yyyy-MM-dd}\"," +
+                            $"\"{(l.IsRevoked ? "Revoked" : l.ExpiresAt < DateTime.UtcNow ? "Expired" : "Active")}\"," +
+                            $"\"{l.Brand}\",\"{l.LicenseeCode}\""));
+                    filename = $"licenses_export_{DateTime.Now:yyyyMMdd}.csv";
+                    break;
+
+                case "activations":
+                    var activations = await _db.LicenseActivations
+                        .Include(a => a.LicenseKey)
+                        .OrderByDescending(a => a.ActivatedAt)
+                        .Take(1000)
+                        .ToListAsync();
+
+                    csv = "LicenseId,MachineName,ActivatedAt,LastSeenAt,IpAddress,AppVersion\n" +
+                        string.Join("\n", activations.Select(a =>
+                            $"\"{a.LicenseKey?.LicenseId}\",\"{a.MachineName}\",\"{a.ActivatedAt:yyyy-MM-dd HH:mm}\"," +
+                            $"\"{a.LastSeenAt:yyyy-MM-dd HH:mm}\",\"{a.IpAddress}\",\"{a.AppVersion}\""));
+                    filename = $"activations_export_{DateTime.Now:yyyyMMdd}.csv";
+                    break;
+
+                case "usage":
+                    var usage = await _db.UsageAnalytics
+                        .OrderByDescending(u => u.Timestamp)
+                        .Take(5000)
+                        .ToListAsync();
+
+                    csv = "LicenseId,EventType,EntityId,Timestamp,MachineName\n" +
+                        string.Join("\n", usage.Select(u =>
+                            $"\"{u.LicenseId}\",\"{u.EventType}\",\"{u.EntityId}\",\"{u.Timestamp:yyyy-MM-dd HH:mm}\",\"{u.MachineName}\""));
+                    filename = $"usage_export_{DateTime.Now:yyyyMMdd}.csv";
+                    break;
+
+                default:
+                    return BadRequest(new { error = "Invalid export type. Use: licenses, activations, or usage" });
+            }
+
+            return File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", filename);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting analytics");
+            return StatusCode(500, new { error = "Export failed" });
+        }
+    }
+
+    #endregion
+
+    #region Revocation Endpoints
+
+    /// <summary>
+    /// Revoke a license by license ID (string)
+    /// POST /api/admin/revoke/{licenseId}
+    /// </summary>
+    [HttpPost("revoke/{licenseId}")]
+    public async Task<ActionResult> RevokeLicenseById(string licenseId, [FromBody] RevokeLicenseRequest? request = null)
+    {
+        var license = await _db.LicenseKeys.FirstOrDefaultAsync(l => l.LicenseId == licenseId);
+        if (license == null)
+        {
+            return NotFound(new { error = "License not found" });
+        }
+
+        if (license.IsRevoked)
+        {
+            return BadRequest(new { error = "License is already revoked" });
+        }
+
+        license.IsRevoked = true;
+        license.RevokedAt = DateTime.UtcNow;
+        license.RevocationReason = request?.Reason ?? "Revoked by admin";
+
+        // Add revocation record
+        _db.Revocations.Add(new RevocationRecord
+        {
+            LicenseId = licenseId,
+            RevokedAt = DateTime.UtcNow,
+            Reason = license.RevocationReason,
+            RevokedBy = "Admin API"
+        });
+
+        // Terminate any active sessions
+        var activeSessions = await _db.ActiveSessions
+            .Where(s => s.LicenseId == licenseId && s.IsActive)
+            .ToListAsync();
+
+        foreach (var session in activeSessions)
+        {
+            session.IsActive = false;
+            session.EndedAt = DateTime.UtcNow;
+            session.EndReason = "License revoked";
+        }
+
+        // Terminate floating checkouts
+        var floatingCheckouts = await _db.FloatingPoolCheckouts
+            .Where(c => c.LicenseId == licenseId && c.IsActive)
+            .ToListAsync();
+
+        foreach (var checkout in floatingCheckouts)
+        {
+            checkout.IsActive = false;
+            checkout.CheckedInAt = DateTime.UtcNow;
+            checkout.CheckInReason = "License revoked";
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogWarning("License revoked: {LicenseId}, Reason: {Reason}", licenseId, license.RevocationReason);
+
+        return Ok(new
+        {
+            message = "License revoked successfully",
+            licenseId,
+            revokedAt = license.RevokedAt,
+            reason = license.RevocationReason,
+            terminatedSessions = activeSessions.Count,
+            terminatedCheckouts = floatingCheckouts.Count
+        });
+    }
+
+    /// <summary>
+    /// Bulk revoke multiple licenses
+    /// POST /api/admin/revoke/bulk
+    /// </summary>
+    [HttpPost("revoke/bulk")]
+    public async Task<ActionResult> BulkRevokeLicenses([FromBody] BulkRevokeRequest request)
+    {
+        if (request.LicenseIds == null || !request.LicenseIds.Any())
+        {
+            return BadRequest(new { error = "No license IDs provided" });
+        }
+
+        var revokedCount = 0;
+        var failedIds = new List<string>();
+
+        foreach (var licenseId in request.LicenseIds)
+        {
+            var license = await _db.LicenseKeys.FirstOrDefaultAsync(l => l.LicenseId == licenseId);
+            if (license == null || license.IsRevoked)
+            {
+                failedIds.Add(licenseId);
+                continue;
+            }
+
+            license.IsRevoked = true;
+            license.RevokedAt = DateTime.UtcNow;
+            license.RevocationReason = request.Reason ?? "Bulk revocation by admin";
+
+            _db.Revocations.Add(new RevocationRecord
+            {
+                LicenseId = licenseId,
+                RevokedAt = DateTime.UtcNow,
+                Reason = license.RevocationReason,
+                RevokedBy = "Admin API (Bulk)"
+            });
+
+            revokedCount++;
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogWarning("Bulk revocation: {Count} licenses revoked, {Failed} failed",
+            revokedCount, failedIds.Count);
+
+        return Ok(new
+        {
+            message = $"Revoked {revokedCount} licenses",
+            revokedCount,
+            failedIds,
+            failedCount = failedIds.Count
+        });
+    }
+
+    /// <summary>
+    /// Get revocation history
+    /// GET /api/admin/revocations
+    /// </summary>
+    [HttpGet("revocations")]
+    public async Task<ActionResult> GetRevocations([FromQuery] int limit = 50)
+    {
+        var revocations = await _db.Revocations
+            .OrderByDescending(r => r.RevokedAt)
+            .Take(limit)
+            .Select(r => new
+            {
+                r.Id,
+                r.LicenseId,
+                r.RevokedAt,
+                r.Reason,
+                r.RevokedBy
+            })
+            .ToListAsync();
+
+        return Ok(revocations);
+    }
+
+    #endregion
+
     #region Server Admin Endpoints
 
     /// <summary>
@@ -2143,4 +2555,117 @@ public class SyncedLicenseInfo
     public string? CustomerEmail { get; set; }
     public string? Brand { get; set; }
     public string Status { get; set; } = "Active";
+}
+
+// ============================================================================
+// Analytics DTOs
+// ============================================================================
+
+public class AdminAnalyticsResponse
+{
+    public DateTime GeneratedAt { get; set; }
+    public DateTime PeriodFrom { get; set; }
+    public DateTime PeriodTo { get; set; }
+    public LicenseStatistics LicenseStats { get; set; } = new();
+    public ActivationStatistics ActivationStats { get; set; } = new();
+    public List<EditionStatistic> EditionBreakdown { get; set; } = new();
+    public List<DailyActivityStat> DailyActivity { get; set; } = new();
+    public List<UsageEventStat> UsageEvents { get; set; } = new();
+    public List<ModuleUsageStat> ModuleUsage { get; set; } = new();
+    public FloatingPoolStatistics FloatingPoolStats { get; set; } = new();
+    public TransferStatistics TransferStats { get; set; } = new();
+}
+
+public class LicenseStatistics
+{
+    public int Total { get; set; }
+    public int Active { get; set; }
+    public int Expired { get; set; }
+    public int Revoked { get; set; }
+    public int Offline { get; set; }
+    public int NewThisMonth { get; set; }
+}
+
+public class ActivationStatistics
+{
+    public int TotalActivations { get; set; }
+    public int ActiveActivations { get; set; }
+    public int ActivationsThisMonth { get; set; }
+}
+
+public class EditionStatistic
+{
+    public string Edition { get; set; } = string.Empty;
+    public int Count { get; set; }
+}
+
+public class DailyActivityStat
+{
+    public string Date { get; set; } = string.Empty;
+    public int Activations { get; set; }
+}
+
+public class UsageEventStat
+{
+    public string EventType { get; set; } = string.Empty;
+    public int Count { get; set; }
+}
+
+public class ModuleUsageStat
+{
+    public string ModuleId { get; set; } = string.Empty;
+    public int LaunchCount { get; set; }
+}
+
+public class FloatingPoolStatistics
+{
+    public int ActiveCheckouts { get; set; }
+    public int TotalCheckouts { get; set; }
+}
+
+public class TransferStatistics
+{
+    public int CompletedTransfers { get; set; }
+    public int PendingTransfers { get; set; }
+}
+
+public class LicenseAnalyticsResponse
+{
+    public string LicenseId { get; set; } = string.Empty;
+    public string? CustomerName { get; set; }
+    public string? Edition { get; set; }
+    public DateTime PeriodFrom { get; set; }
+    public DateTime PeriodTo { get; set; }
+    public int TotalSessions { get; set; }
+    public int TotalUsageMinutes { get; set; }
+    public Dictionary<string, int> ModuleUsage { get; set; } = new();
+    public Dictionary<string, int> FeatureUsage { get; set; } = new();
+    public int ActivationCount { get; set; }
+    public DateTime? LastSeen { get; set; }
+}
+
+public class BulkRevokeRequest
+{
+    public List<string> LicenseIds { get; set; } = new();
+    public string? Reason { get; set; }
+}
+
+// ============================================================================
+// Module Registration DTOs
+// ============================================================================
+
+public class ModuleRegistrationRequest
+{
+    public string ModuleId { get; set; } = string.Empty;
+    public string CertificateCode { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
+    public string? Version { get; set; }
+}
+
+public class ModuleRegistrationResponse
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public string? ModuleId { get; set; }
+    public string? CertificateCode { get; set; }
 }

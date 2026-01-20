@@ -65,6 +65,12 @@ public class LicenseDbContext : DbContext
     // Webhook Delivery Records (for tracking webhook notifications)
     public DbSet<WebhookDeliveryRecord> WebhookDeliveries => Set<WebhookDeliveryRecord>();
 
+    // Floating License Pool
+    public DbSet<FloatingPoolCheckoutRecord> FloatingPoolCheckouts => Set<FloatingPoolCheckoutRecord>();
+
+    // Usage Analytics
+    public DbSet<UsageAnalyticsRecord> UsageAnalytics => Set<UsageAnalyticsRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // LicenseKeyRecord configuration
@@ -213,17 +219,30 @@ public class LicenseDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.LicenseId);
             entity.HasIndex(e => e.TransferToken).IsUnique();
+            entity.HasIndex(e => e.TransferId).IsUnique();
             entity.HasIndex(e => e.RequestedAt);
-            
+            entity.HasIndex(e => e.Status);
+
+            entity.Property(e => e.TransferId).HasMaxLength(64).IsRequired();
             entity.Property(e => e.LicenseId).HasMaxLength(32).IsRequired();
             entity.Property(e => e.TransferToken).HasMaxLength(64);
             entity.Property(e => e.OldHardwareFingerprint).HasMaxLength(256);
             entity.Property(e => e.NewHardwareFingerprint).HasMaxLength(256);
             entity.Property(e => e.OldMachineName).HasMaxLength(256);
             entity.Property(e => e.NewMachineName).HasMaxLength(256);
-            entity.Property(e => e.CustomerEmail).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.CustomerEmail).HasMaxLength(256);
             entity.Property(e => e.IpAddress).HasMaxLength(64);
             entity.Property(e => e.Reason).HasMaxLength(512);
+            entity.Property(e => e.Status).HasMaxLength(32).HasDefaultValue("Pending");
+            // New fields
+            entity.Property(e => e.SourceFingerprints).HasMaxLength(1024);
+            entity.Property(e => e.SourceMachineName).HasMaxLength(256);
+            entity.Property(e => e.TargetFingerprints).HasMaxLength(1024);
+            entity.Property(e => e.TargetMachineName).HasMaxLength(256);
+            entity.Property(e => e.TargetUserName).HasMaxLength(256);
+            entity.Property(e => e.InitiatedByIp).HasMaxLength(64);
+            entity.Property(e => e.CompletedByIp).HasMaxLength(64);
+            entity.Property(e => e.CancelledByIp).HasMaxLength(64);
         });
 
         // TransferVerificationRecord configuration
@@ -400,6 +419,40 @@ public class LicenseDbContext : DbContext
             entity.Property(e => e.Payload).HasColumnType("TEXT");
             entity.Property(e => e.ResponseBody).HasColumnType("TEXT");
             entity.Property(e => e.ErrorMessage).HasMaxLength(1024);
+        });
+
+        // FloatingPoolCheckoutRecord configuration
+        modelBuilder.Entity<FloatingPoolCheckoutRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.LicenseId);
+            entity.HasIndex(e => e.CheckoutToken).IsUnique();
+            entity.HasIndex(e => new { e.LicenseId, e.IsActive });
+            entity.HasIndex(e => e.ExpiresAt);
+
+            entity.Property(e => e.LicenseId).HasMaxLength(32).IsRequired();
+            entity.Property(e => e.CheckoutToken).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.HardwareFingerprint).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.MachineName).HasMaxLength(256);
+            entity.Property(e => e.UserName).HasMaxLength(256);
+            entity.Property(e => e.IpAddress).HasMaxLength(64);
+            entity.Property(e => e.CheckInReason).HasMaxLength(128);
+        });
+
+        // UsageAnalyticsRecord configuration
+        modelBuilder.Entity<UsageAnalyticsRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.LicenseId);
+            entity.HasIndex(e => e.EventType);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => new { e.LicenseId, e.EventType, e.Timestamp });
+
+            entity.Property(e => e.LicenseId).HasMaxLength(32).IsRequired();
+            entity.Property(e => e.EventType).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.EntityId).HasMaxLength(128);
+            entity.Property(e => e.MachineName).HasMaxLength(256);
+            entity.Property(e => e.Properties).HasColumnType("TEXT");
         });
 
         // Seed default data
@@ -936,71 +989,138 @@ public class CertificateSequenceRecord
 public class LicenseTransferRecord
 {
     public int Id { get; set; }
-    
+
+    /// <summary>
+    /// Unique transfer ID
+    /// </summary>
+    public string TransferId { get; set; } = string.Empty;
+
     /// <summary>
     /// License ID being transferred
     /// </summary>
     public string LicenseId { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Unique token for this transfer request
     /// </summary>
     public string? TransferToken { get; set; }
-    
+
     /// <summary>
     /// Hardware fingerprint of the old device
     /// </summary>
     public string? OldHardwareFingerprint { get; set; }
-    
+
     /// <summary>
     /// Hardware fingerprint of the new device
     /// </summary>
     public string? NewHardwareFingerprint { get; set; }
-    
+
     /// <summary>
     /// Machine name of the old device
     /// </summary>
     public string? OldMachineName { get; set; }
-    
+
     /// <summary>
     /// Machine name of the new device
     /// </summary>
     public string? NewMachineName { get; set; }
-    
+
     /// <summary>
     /// Customer email for verification
     /// </summary>
     public string CustomerEmail { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// IP address of the request
     /// </summary>
     public string? IpAddress { get; set; }
-    
+
     /// <summary>
     /// Reason for transfer (optional)
     /// </summary>
     public string? Reason { get; set; }
-    
+
     /// <summary>
     /// When the transfer was requested
     /// </summary>
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
-    
+
     /// <summary>
     /// When the transfer was completed (null if pending/cancelled)
     /// </summary>
     public DateTime? CompletedAt { get; set; }
-    
+
     /// <summary>
     /// Status: Pending, Verified, Completed, Cancelled, Expired
     /// </summary>
     public string Status { get; set; } = "Pending";
-    
+
     /// <summary>
     /// Whether email verification was completed
     /// </summary>
     public bool IsEmailVerified { get; set; }
+
+    // === Additional fields for new transfer system ===
+
+    /// <summary>
+    /// Comma-separated source fingerprints
+    /// </summary>
+    public string? SourceFingerprints { get; set; }
+
+    /// <summary>
+    /// Source machine name
+    /// </summary>
+    public string? SourceMachineName { get; set; }
+
+    /// <summary>
+    /// Comma-separated target fingerprints
+    /// </summary>
+    public string? TargetFingerprints { get; set; }
+
+    /// <summary>
+    /// Target machine name
+    /// </summary>
+    public string? TargetMachineName { get; set; }
+
+    /// <summary>
+    /// Target user name
+    /// </summary>
+    public string? TargetUserName { get; set; }
+
+    /// <summary>
+    /// When the transfer token expires
+    /// </summary>
+    public DateTime ExpiresAt { get; set; }
+
+    /// <summary>
+    /// When the transfer was actually performed
+    /// </summary>
+    public DateTime? TransferredAt { get; set; }
+
+    /// <summary>
+    /// Transfer number (for tracking annual limits)
+    /// </summary>
+    public int TransferNumber { get; set; }
+
+    /// <summary>
+    /// IP address that initiated the transfer
+    /// </summary>
+    public string? InitiatedByIp { get; set; }
+
+    /// <summary>
+    /// IP address that completed the transfer
+    /// </summary>
+    public string? CompletedByIp { get; set; }
+
+    /// <summary>
+    /// When the transfer was cancelled (if applicable)
+    /// </summary>
+    public DateTime? CancelledAt { get; set; }
+
+    /// <summary>
+    /// IP address that cancelled the transfer
+    /// </summary>
+    public string? CancelledByIp { get; set; }
 }
 
 /// <summary>
@@ -1671,4 +1791,192 @@ public class SyncedLicenseRecord
     /// Brand/company name for white-labeling
     /// </summary>
     public string? Brand { get; set; }
+}
+
+// ============================================================================
+// WEBHOOK DELIVERY RECORD (For webhook tracking)
+// ============================================================================
+
+/// <summary>
+/// Tracks webhook delivery attempts and responses.
+/// </summary>
+public class WebhookDeliveryRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Unique webhook delivery ID
+    /// </summary>
+    public string WebhookId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the webhook endpoint
+    /// </summary>
+    public string? EndpointName { get; set; }
+
+    /// <summary>
+    /// URL of the webhook endpoint
+    /// </summary>
+    public string EndpointUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Type of event that triggered the webhook
+    /// </summary>
+    public string EventType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// JSON payload that was sent
+    /// </summary>
+    public string? Payload { get; set; }
+
+    /// <summary>
+    /// When the delivery was attempted
+    /// </summary>
+    public DateTime AttemptedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Whether the delivery was successful
+    /// </summary>
+    public bool Success { get; set; }
+
+    /// <summary>
+    /// HTTP response status code
+    /// </summary>
+    public int? ResponseStatusCode { get; set; }
+
+    /// <summary>
+    /// Response body (truncated)
+    /// </summary>
+    public string? ResponseBody { get; set; }
+
+    /// <summary>
+    /// Error message if failed
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// Number of retry attempts
+    /// </summary>
+    public int RetryCount { get; set; }
+}
+
+// ============================================================================
+// FLOATING LICENSE POOL RECORDS
+// ============================================================================
+
+/// <summary>
+/// Tracks floating license pool checkouts.
+/// Floating licenses allow concurrent use up to the pool size limit.
+/// </summary>
+public class FloatingPoolCheckoutRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// License ID for this pool
+    /// </summary>
+    public string LicenseId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Unique checkout token for this session
+    /// </summary>
+    public string CheckoutToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Hardware fingerprint of the checked-out device
+    /// </summary>
+    public string HardwareFingerprint { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Machine name
+    /// </summary>
+    public string? MachineName { get; set; }
+
+    /// <summary>
+    /// User name (if available)
+    /// </summary>
+    public string? UserName { get; set; }
+
+    /// <summary>
+    /// When the license was checked out
+    /// </summary>
+    public DateTime CheckedOutAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// When the checkout expires (must be renewed via heartbeat)
+    /// </summary>
+    public DateTime ExpiresAt { get; set; }
+
+    /// <summary>
+    /// Last heartbeat received
+    /// </summary>
+    public DateTime LastHeartbeat { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Whether this checkout is still active
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// When the license was checked back in (null if still checked out)
+    /// </summary>
+    public DateTime? CheckedInAt { get; set; }
+
+    /// <summary>
+    /// Reason for check-in: UserCheckin, Expired, AdminRelease
+    /// </summary>
+    public string? CheckInReason { get; set; }
+
+    /// <summary>
+    /// IP address of the checkout
+    /// </summary>
+    public string? IpAddress { get; set; }
+}
+
+// ============================================================================
+// USAGE ANALYTICS RECORDS
+// ============================================================================
+
+/// <summary>
+/// Stores usage analytics events synced from clients.
+/// Used for compliance reporting and usage analysis.
+/// </summary>
+public class UsageAnalyticsRecord
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// License ID this event belongs to
+    /// </summary>
+    public string LicenseId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Type of event: SessionStart, SessionEnd, ModuleLaunch, FeatureUsage, etc.
+    /// </summary>
+    public string EventType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Entity ID (module ID for ModuleLaunch, feature ID for FeatureUsage)
+    /// </summary>
+    public string? EntityId { get; set; }
+
+    /// <summary>
+    /// When the event occurred on the client
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+
+    /// <summary>
+    /// Machine name where the event occurred
+    /// </summary>
+    public string? MachineName { get; set; }
+
+    /// <summary>
+    /// Additional properties as JSON
+    /// </summary>
+    public string? Properties { get; set; }
+
+    /// <summary>
+    /// When the event was synced to the server
+    /// </summary>
+    public DateTime SyncedAt { get; set; } = DateTime.UtcNow;
 }
