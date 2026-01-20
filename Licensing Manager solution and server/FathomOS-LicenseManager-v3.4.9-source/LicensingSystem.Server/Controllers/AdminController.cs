@@ -1504,7 +1504,7 @@ public class AdminController : ControllerBase
                 GeneratedAt = DateTime.UtcNow,
                 PeriodFrom = fromDate,
                 PeriodTo = toDate,
-                LicenseStats = new LicenseStatistics
+                LicenseStats = new AdminLicenseStatistics
                 {
                     Total = totalLicenses,
                     Active = activeLicenses,
@@ -1513,7 +1513,7 @@ public class AdminController : ControllerBase
                     Offline = offlineLicenses,
                     NewThisMonth = newLicensesThisMonth
                 },
-                ActivationStats = new ActivationStatistics
+                ActivationStats = new AdminActivationStatistics
                 {
                     TotalActivations = await _db.LicenseActivations.CountAsync(),
                     ActiveActivations = await _db.LicenseActivations.CountAsync(a => !a.IsDeactivated),
@@ -1528,7 +1528,7 @@ public class AdminController : ControllerBase
                     ActiveCheckouts = activeFloatingCheckouts,
                     TotalCheckouts = totalFloatingCheckouts
                 },
-                TransferStats = new TransferStatistics
+                TransferStats = new AdminTransferStatistics
                 {
                     CompletedTransfers = completedTransfers,
                     PendingTransfers = pendingTransfers
@@ -2566,17 +2566,17 @@ public class AdminAnalyticsResponse
     public DateTime GeneratedAt { get; set; }
     public DateTime PeriodFrom { get; set; }
     public DateTime PeriodTo { get; set; }
-    public LicenseStatistics LicenseStats { get; set; } = new();
-    public ActivationStatistics ActivationStats { get; set; } = new();
+    public AdminLicenseStatistics LicenseStats { get; set; } = new();
+    public AdminActivationStatistics ActivationStats { get; set; } = new();
     public List<EditionStatistic> EditionBreakdown { get; set; } = new();
     public List<DailyActivityStat> DailyActivity { get; set; } = new();
     public List<UsageEventStat> UsageEvents { get; set; } = new();
     public List<ModuleUsageStat> ModuleUsage { get; set; } = new();
     public FloatingPoolStatistics FloatingPoolStats { get; set; } = new();
-    public TransferStatistics TransferStats { get; set; } = new();
+    public AdminTransferStatistics TransferStats { get; set; } = new();
 }
 
-public class LicenseStatistics
+public class AdminLicenseStatistics
 {
     public int Total { get; set; }
     public int Active { get; set; }
@@ -2586,7 +2586,7 @@ public class LicenseStatistics
     public int NewThisMonth { get; set; }
 }
 
-public class ActivationStatistics
+public class AdminActivationStatistics
 {
     public int TotalActivations { get; set; }
     public int ActiveActivations { get; set; }
@@ -2623,7 +2623,7 @@ public class FloatingPoolStatistics
     public int TotalCheckouts { get; set; }
 }
 
-public class TransferStatistics
+public class AdminTransferStatistics
 {
     public int CompletedTransfers { get; set; }
     public int PendingTransfers { get; set; }
