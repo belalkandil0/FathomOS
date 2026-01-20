@@ -1,5 +1,5 @@
 // FathomOS.Shell/Views/CertificateViewerWindow.xaml.cs
-// Window for viewing and exporting certificates
+// Window for viewing and exporting certificates with PDF and HTML support
 
 using System;
 using System.IO;
@@ -11,24 +11,26 @@ using FathomOS.Core.Certificates;
 namespace FathomOS.Shell.Views;
 
 /// <summary>
-/// Window for viewing a certificate
+/// Window for viewing a certificate with dual PDF/HTML export capability
 /// </summary>
 public partial class CertificateViewerWindow : Window
 {
     private readonly ProcessingCertificate _certificate;
-    private readonly CertificatePdfGenerator _pdfGenerator;
+    private readonly CertificatePdfGenerator _htmlGenerator;
+    private readonly ICertificatePdfService _pdfService;
     private readonly bool _isSynced;
     private readonly string? _brandLogo;
 
     public CertificateViewerWindow(ProcessingCertificate certificate, bool isSynced = false, string? brandLogo = null)
     {
         InitializeComponent();
-        
+
         _certificate = certificate;
         _isSynced = isSynced;
         _brandLogo = brandLogo;
-        _pdfGenerator = new CertificatePdfGenerator();
-        
+        _htmlGenerator = new CertificatePdfGenerator();
+        _pdfService = new CertificatePdfService();
+
         LoadCertificate();
     }
 
@@ -43,21 +45,21 @@ public partial class CertificateViewerWindow : Window
         {
             badgeSynced.Visibility = Visibility.Visible;
             badgePending.Visibility = Visibility.Collapsed;
-            txtSyncStatus.Text = "✓ Synced to server";
+            txtSyncStatus.Text = "Synced to server";
             txtSyncStatus.Foreground = System.Windows.Media.Brushes.Green;
         }
         else
         {
             badgeSynced.Visibility = Visibility.Collapsed;
             badgePending.Visibility = Visibility.Visible;
-            txtSyncStatus.Text = "⏳ Pending server sync (will sync automatically)";
+            txtSyncStatus.Text = "Pending server sync (will sync automatically)";
             txtSyncStatus.Foreground = System.Windows.Media.Brushes.DarkOrange;
         }
 
         // Generate and display HTML preview
         try
         {
-            var html = _pdfGenerator.GenerateHtml(_certificate, _brandLogo);
+            var html = _htmlGenerator.GenerateHtml(_certificate, _brandLogo);
             webBrowser.NavigateToString(html);
         }
         catch (Exception ex)
@@ -87,9 +89,10 @@ public partial class CertificateViewerWindow : Window
         var saveDialog = new SaveFileDialog
         {
             Title = "Export Certificate",
-            Filter = "HTML File (*.html)|*.html",
+            Filter = "PDF Document (*.pdf)|*.pdf|HTML File (*.html)|*.html",
             FileName = $"Certificate_{_certificate.CertificateId}",
-            DefaultExt = ".html"
+            DefaultExt = ".pdf",
+            FilterIndex = 1
         };
 
         if (saveDialog.ShowDialog() == true)
@@ -99,14 +102,46 @@ public partial class CertificateViewerWindow : Window
 
             try
             {
-                await _pdfGenerator.SaveToFileAsync(_certificate, saveDialog.FileName, _brandLogo);
-                
-                MessageBox.Show(
-                    $"Certificate exported to:\n{saveDialog.FileName}\n\n" +
-                    "Tip: Open in a browser and use 'Print to PDF' for PDF format.",
-                    "Export Complete",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                var extension = Path.GetExtension(saveDialog.FileName).ToLowerInvariant();
+
+                if (extension == ".pdf")
+                {
+                    // Use CertificatePdfService for PDF export
+                    var certificate = _certificate.ToCertificate();
+                    var options = new CertificatePdfOptions
+                    {
+                        BrandLogo = _brandLogo,
+                        IncludeQrCode = true
+                    };
+
+                    var result = await _pdfService.GeneratePdfToFileAsync(certificate, saveDialog.FileName, options);
+
+                    if (result.Success)
+                    {
+                        MessageBox.Show(
+                            $"Certificate exported to:\n{saveDialog.FileName}",
+                            "Export Complete",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Export error: {result.ErrorMessage}", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    // Use HTML generator for HTML export
+                    await _htmlGenerator.SaveToFileAsync(_certificate, saveDialog.FileName, _brandLogo);
+
+                    MessageBox.Show(
+                        $"Certificate exported to:\n{saveDialog.FileName}\n\n" +
+                        "Tip: Open in a browser and use 'Print to PDF' for additional PDF formatting options.",
+                        "Export Complete",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
             }
             catch (Exception ex)
             {
@@ -116,7 +151,7 @@ public partial class CertificateViewerWindow : Window
             finally
             {
                 btnExport.IsEnabled = true;
-                btnExport.Content = "📄 Export HTML";
+                btnExport.Content = "Export";
             }
         }
     }

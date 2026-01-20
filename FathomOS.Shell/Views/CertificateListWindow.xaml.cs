@@ -182,20 +182,53 @@ public partial class CertificateListWindow : Window
         var saveDialog = new SaveFileDialog
         {
             Title = "Export Certificate",
-            Filter = "HTML File (*.html)|*.html",
+            Filter = "PDF Document (*.pdf)|*.pdf|HTML File (*.html)|*.html",
             FileName = $"Certificate_{item.CertificateId}",
-            DefaultExt = ".html"
+            DefaultExt = ".pdf",
+            FilterIndex = 1
         };
 
         if (saveDialog.ShowDialog() == true)
         {
             try
             {
-                var generator = new CertificatePdfGenerator();
-                await generator.SaveToFileAsync(item.Certificate, saveDialog.FileName, _brandLogo);
-                
-                MessageBox.Show($"Certificate exported to:\n{saveDialog.FileName}",
-                    "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                var extension = System.IO.Path.GetExtension(saveDialog.FileName).ToLowerInvariant();
+
+                if (extension == ".pdf")
+                {
+                    // Use CertificatePdfService for PDF export
+                    var pdfService = new CertificatePdfService();
+                    var certificate = item.Certificate.ToCertificate();
+                    var options = new CertificatePdfOptions
+                    {
+                        BrandLogo = _brandLogo,
+                        IncludeQrCode = true
+                    };
+
+                    var result = await pdfService.GeneratePdfToFileAsync(certificate, saveDialog.FileName, options);
+
+                    if (result.Success)
+                    {
+                        MessageBox.Show($"Certificate exported to:\n{saveDialog.FileName}",
+                            "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Export error: {result.ErrorMessage}", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    // Use HTML generator for HTML export
+                    var htmlGenerator = new CertificatePdfGenerator();
+                    await htmlGenerator.SaveToFileAsync(item.Certificate, saveDialog.FileName, _brandLogo);
+
+                    MessageBox.Show(
+                        $"Certificate exported to:\n{saveDialog.FileName}\n\n" +
+                        "Tip: Open in a browser and use 'Print to PDF' for additional PDF formatting options.",
+                        "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
             catch (Exception ex)
             {

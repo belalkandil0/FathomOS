@@ -121,6 +121,69 @@ public partial class App : Application
     
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
+        // ============================================================================
+        // GLOBAL EXCEPTION HANDLERS - Catch unhandled exceptions
+        // ============================================================================
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        {
+            var ex = args.ExceptionObject as Exception;
+            var message = ex?.ToString() ?? "Unknown error";
+            System.Diagnostics.Debug.WriteLine($"FATAL: AppDomain UnhandledException: {message}");
+            try
+            {
+                System.IO.File.WriteAllText(
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FathomOS", "crash.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] AppDomain UnhandledException:\n{message}");
+            }
+            catch { /* Ignore logging errors */ }
+
+            MessageBox.Show(
+                $"A fatal error occurred:\n\n{ex?.Message ?? "Unknown error"}\n\nThe application will now close.\n\nDetails logged to: %LOCALAPPDATA%\\FathomOS\\crash.log",
+                "Fatal Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        };
+
+        DispatcherUnhandledException += (s, args) =>
+        {
+            var ex = args.Exception;
+            System.Diagnostics.Debug.WriteLine($"ERROR: Dispatcher UnhandledException: {ex}");
+            try
+            {
+                var logDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FathomOS");
+                if (!System.IO.Directory.Exists(logDir))
+                    System.IO.Directory.CreateDirectory(logDir);
+                System.IO.File.AppendAllText(
+                    System.IO.Path.Combine(logDir, "crash.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Dispatcher UnhandledException:\n{ex}\n\n");
+            }
+            catch { /* Ignore logging errors */ }
+
+            MessageBox.Show(
+                $"An error occurred:\n\n{ex.Message}\n\nPlease report this issue.\n\nDetails logged to: %LOCALAPPDATA%\\FathomOS\\crash.log",
+                "Application Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            args.Handled = true;
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, args) =>
+        {
+            var ex = args.Exception;
+            System.Diagnostics.Debug.WriteLine($"ERROR: TaskScheduler UnobservedTaskException: {ex}");
+            try
+            {
+                var logDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FathomOS");
+                if (!System.IO.Directory.Exists(logDir))
+                    System.IO.Directory.CreateDirectory(logDir);
+                System.IO.File.AppendAllText(
+                    System.IO.Path.Combine(logDir, "crash.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] TaskScheduler UnobservedTaskException:\n{ex}\n\n");
+            }
+            catch { /* Ignore logging errors */ }
+            args.SetObserved();
+        };
+
         try
         {
             // ============================================================================
@@ -364,19 +427,19 @@ public partial class App : Application
                     goto case StartupResult.NeedsAccountCreation;
 
                 case StartupResult.NeedsAccountCreation:
-                    System.Diagnostics.Debug.WriteLine("DEBUG: No local users - showing account creation window...");
-                    var createAccountWindow = new CreateAccountWindow(userService, startupFlow.LicenseResult?.License);
-                    var createResult = createAccountWindow.ShowDialog();
+                    System.Diagnostics.Debug.WriteLine("DEBUG: No local users - showing admin setup window...");
+                    var adminSetupWindow = new AdminSetupWindow(userService);
+                    var createResult = adminSetupWindow.ShowDialog();
 
-                    if (createResult != true || createAccountWindow.CreatedUser == null)
+                    if (createResult != true || adminSetupWindow.CreatedUser == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("DEBUG: User cancelled account creation - shutting down");
+                        System.Diagnostics.Debug.WriteLine("DEBUG: User cancelled admin setup - shutting down");
                         Shutdown();
                         return;
                     }
 
-                    // Auto-login with newly created account
-                    CurrentLocalUser = createAccountWindow.CreatedUser;
+                    // Auto-login with newly created admin account
+                    CurrentLocalUser = adminSetupWindow.CreatedUser;
                     System.Diagnostics.Debug.WriteLine($"DEBUG: Admin account created and logged in: {CurrentLocalUser.Username}");
                     break;
 
@@ -394,19 +457,6 @@ public partial class App : Application
 
                 case StartupResult.ReadyForLogin:
                     System.Diagnostics.Debug.WriteLine("DEBUG: Showing local login window...");
-
-                    // Check if default credentials were just created
-                    if (startupFlow.ErrorMessage == "DEFAULT_CREDENTIALS_CREATED")
-                    {
-                        MessageBox.Show(
-                            "A default administrator account has been created.\n\n" +
-                            "Username: administrator\n" +
-                            "Password: FathomOS2026!\n\n" +
-                            "Please change this password after first login for security.",
-                            "Default Credentials Created",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-                    }
 
                     var settingsService = Services.GetService(typeof(ISettingsService)) as ISettingsService;
                     var loginWindow = new LocalLoginWindow(userService, settingsService);
@@ -519,8 +569,19 @@ public partial class App : Application
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"DEBUG: EXCEPTION in startup: {ex}");
+            try
+            {
+                var logDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FathomOS");
+                if (!System.IO.Directory.Exists(logDir))
+                    System.IO.Directory.CreateDirectory(logDir);
+                System.IO.File.AppendAllText(
+                    System.IO.Path.Combine(logDir, "crash.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Startup Exception:\n{ex}\n\n");
+            }
+            catch { /* Ignore logging errors */ }
+
             MessageBox.Show(
-                $"Error starting Fathom OS:\n\n{ex.Message}",
+                $"Error starting Fathom OS:\n\n{ex.Message}\n\nDetails logged to: %LOCALAPPDATA%\\FathomOS\\crash.log",
                 "Startup Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -580,6 +641,9 @@ public partial class App : Application
         services.AddSingleton<ICertificateRepository>(sp =>
             new SqliteCertificateRepository(sp.GetRequiredService<SqliteConnectionFactory>()));
 
+        // Certificate PDF Service - QuestPDF-based PDF generation for certificates
+        services.AddSingleton<ICertificatePdfService, CertificatePdfService>();
+
         // Sync API Client - bridges to LicenseManager for server communication
         services.AddSingleton<ISyncApiClient>(sp =>
             new LicenseServerSyncApiClient(() => App.LicenseManager));
@@ -606,11 +670,53 @@ public partial class App : Application
         services.AddSingleton<ILocalUserService, LocalUserService>();
 
         // ============================================================================
+        // CONSOLIDATED CORE SERVICES
+        // Unified services for common functionality across all modules
+        // ============================================================================
+
+        // Smoothing Service - signal processing and data smoothing algorithms
+        services.AddSingleton<ISmoothingService, FathomOS.Core.Services.UnifiedSmoothingService>();
+
+        // Unit Conversion Service - length, temperature, pressure, velocity, angle conversions
+        services.AddSingleton<IUnitConversionService, FathomOS.Core.Services.UnitConversionService>();
+
+        // Excel Export Service - generic Excel export for any data type
+        services.AddSingleton<IExcelExportService, FathomOS.Core.Services.ExcelExportService>();
+
+        // Backup Service - database and configuration backup management
+        services.AddSingleton<IBackupService, FathomOS.Core.Services.BackupService>();
+
+        // Encryption Service - AES-256 encryption, key management, file encryption
+        services.AddSingleton<IEncryptionService, FathomOS.Core.Services.EncryptionService>();
+
+        // ============================================================================
         // MODULE MANAGEMENT
         // ModuleManager receives IServiceProvider to support DI in module instantiation
         // ============================================================================
         services.AddSingleton<IModuleManager>(sp =>
             new ModuleManager(sp));
+
+        // ============================================================================
+        // SHELL SERVICES - Keyboard shortcuts, command palette, session management
+        // These services are created in DashboardWindow for now to avoid circular deps
+        // ============================================================================
+
+        // Keyboard Shortcut Service - global shortcut registration
+        services.AddSingleton<IKeyboardShortcutService>(sp =>
+            new KeyboardShortcutService(
+                sp.GetRequiredService<ISettingsService>(),
+                sp.GetRequiredService<IEventAggregator>()));
+
+        // Recent Projects Service - tracks recently opened files
+        services.AddSingleton<IRecentProjectsService>(sp =>
+            new RecentProjectsService(
+                sp.GetRequiredService<ISettingsService>(),
+                sp.GetRequiredService<IEventAggregator>()));
+
+        // Background Task Service - task queue with progress
+        services.AddSingleton<IBackgroundTaskService>(sp =>
+            new BackgroundTaskService(
+                sp.GetRequiredService<IEventAggregator>()));
     }
 
     protected override void OnExit(ExitEventArgs e)

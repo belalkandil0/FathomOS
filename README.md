@@ -19,6 +19,7 @@ Fathom OS is a comprehensive, modular software platform designed for offshore an
 - [License](#license)
 - [Contributing](#contributing)
 - [Support](#support)
+- [Certificate System](#certificate-system)
 - [Version History](#version-history)
 
 ---
@@ -336,6 +337,64 @@ Report bugs and feature requests through the issue tracker. Include:
 - Steps to reproduce
 - Expected vs actual behavior
 - Screenshots if applicable
+
+---
+
+## Certificate System
+
+FathomOS includes a comprehensive certificate system for documenting processing workflows. Certificates provide tamper-evident, verifiable proof of data processing.
+
+### Key Features
+
+- **Unique IDs**: Format `FOS-{LicenseeCode}-{YYMM}-{Seq}-{Check}` (e.g., `FOS-OCS-2601-0001-X`)
+- **Cryptographic Signing**: RSA-SHA256 digital signatures for authenticity
+- **Offline Generation**: Create certificates without internet connectivity
+- **Online Verification**: QR codes and URLs for instant verification
+- **PDF/HTML Export**: Professional certificate documents
+
+### Generating Certificates from Modules
+
+```csharp
+// Using the fluent API
+var certificate = await CertificateHelper
+    .QuickCreate(licenseManager)
+    .ForModule("SurveyListing", "SLG", "1.0.45")
+    .WithProject("North Sea Pipeline", "North Sea, Block 22/5")
+    .WithVessel("MV Survey Excellence")
+    .AddData("Total Points", "45,678")
+    .AddInputFiles(inputFiles)
+    .AddOutputFiles(outputFiles)
+    .CreateWithDialogAsync(ownerWindow);
+```
+
+### Export Options
+
+**HTML Export**:
+```csharp
+var generator = new CertificatePdfGenerator();
+await generator.SaveToFileAsync(certificate, "certificate.html", brandLogo);
+```
+
+**PDF Export**: Print the HTML certificate using the browser's print function.
+
+### Online Verification
+
+Verify certificates at:
+```
+https://s7fathom-license-server.onrender.com/verify.html?id={CertificateId}
+```
+
+Each certificate includes a QR code linking to this verification page.
+
+### Certificate Manager
+
+Access the Certificate Manager from the dashboard footer to:
+- View all local certificates
+- Check sync status
+- Export certificates
+- Manually sync to server
+
+For complete documentation, see [docs/CERTIFICATE_SYSTEM.md](docs/CERTIFICATE_SYSTEM.md).
 
 ---
 
