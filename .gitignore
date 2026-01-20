@@ -242,3 +242,11 @@ FathomOS.Shell/usersettings.json
 **/TestOutput/
 **/test_exports/
 FathomOS.Core/nul
+
+# Large binary files (exceed GitHub 100MB limit)
+FathomOS-Publish/
+installer/output/
+installer/staging/
+installer/payload/
+**/versioned-output/
+*.exe.bak
